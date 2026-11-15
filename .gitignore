@@ -1,0 +1,15 @@
+node_modules/
+.next/
+out/
+next-env.d.ts
+*.tsbuildinfo
+.env*
+# Đề Cambridge và audio: chỉ để trên máy, không đưa lên git
+content/
+
+# File nén tải về: để ngoài repo
+*.zip
+*.rar
+
+# Video/ảnh lạc, không thuộc app
+*.mp4

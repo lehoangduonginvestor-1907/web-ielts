@@ -1,0 +1,175 @@
+@import "tailwindcss";
+
+@theme {
+  --color-paper: #f5f1e8;
+  --color-surface: #fffdf8;
+  --color-sunk: #ede7da;
+  --color-ink: #1c1b18;
+  --color-ink-2: #4a4740;
+  --color-muted: #8a857a;
+  --color-line: #e2dbcb;
+  --color-line-strong: #cfc6b3;
+  --color-accent: #1f5e4f;
+  --color-accent-2: #174a3e;
+  --color-accent-soft: #dceae3;
+  --color-ember: #e0561b;
+  --color-ember-soft: #fbe3d6;
+  --color-good: #2f7d4a;
+  --color-good-soft: #e1f0e4;
+  --color-bad: #b83a2e;
+  --color-bad-soft: #f6e0dc;
+  --color-mark: #fce9a6;
+  --color-evidence: #cfe8d6;
+
+  --font-sans: var(--font-ui), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-read), ui-serif, Georgia, serif;
+
+  --shadow-card: 0 1px 0 rgb(28 27 24 / 0.04), 0 1px 3px rgb(28 27 24 / 0.06);
+  --shadow-pop: 0 8px 28px rgb(28 27 24 / 0.16), 0 1px 3px rgb(28 27 24 / 0.08);
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-feature-settings: "ss01", "cv11";
+}
+
+::selection {
+  background: #f7dc7a;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* ---------- Thành phần dùng chung ---------- */
+
+@utility card {
+  @apply rounded-xl border border-line bg-surface;
+  box-shadow: var(--shadow-card);
+}
+
+@utility btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-colors select-none disabled:cursor-not-allowed disabled:opacity-50;
+}
+@utility btn-primary {
+  @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-colors select-none disabled:cursor-not-allowed disabled:opacity-50 bg-accent text-white hover:bg-accent-2;
+}
+@utility btn-ghost {
+  @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-colors select-none disabled:cursor-not-allowed disabled:opacity-50 border border-line-strong bg-surface text-ink hover:bg-sunk;
+}
+@utility btn-quiet {
+  @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-colors select-none disabled:cursor-not-allowed disabled:opacity-50 px-2.5 text-ink-2 hover:bg-sunk hover:text-ink;
+}
+
+@utility eyebrow {
+  @apply text-[11px] font-semibold tracking-[0.12em] text-muted uppercase;
+}
+
+@utility field {
+  @apply w-full rounded-lg border border-line-strong bg-surface px-3 py-2 text-[15px] outline-none placeholder:text-muted focus:border-accent;
+}
+
+@utility num {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Bài đọc ---------- */
+
+.passage {
+  font-family: var(--font-serif);
+  font-size: var(--passage-size, 17px);
+  line-height: 1.75;
+  color: var(--color-ink);
+}
+.passage p + p {
+  margin-top: 0.9em;
+}
+
+mark.hl {
+  background: var(--color-mark);
+  color: inherit;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px var(--color-mark);
+}
+mark.ev {
+  background: var(--color-evidence);
+  color: inherit;
+  border-radius: 2px;
+  box-shadow: 0 0 0 2px var(--color-evidence);
+  animation: ev-pulse 1.6s ease-out 1;
+}
+@keyframes ev-pulse {
+  0% {
+    box-shadow: 0 0 0 6px rgb(47 125 74 / 0.35);
+  }
+  100% {
+    box-shadow: 0 0 0 2px var(--color-evidence);
+  }
+}
+
+/* Ô điền từ nằm giữa dòng */
+.gap-input {
+  display: inline-block;
+  min-width: 7.5rem;
+  max-width: 14rem;
+  height: 1.9em;
+  margin: 0 0.2em;
+  padding: 0 0.5em;
+  vertical-align: baseline;
+  border: 1px solid var(--color-line-strong);
+  border-radius: 6px;
+  background: #fff;
+  font: inherit;
+  font-size: 0.95em;
+  color: var(--color-ink);
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.gap-input:focus {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-accent-soft);
+}
+.gap-input.is-right {
+  border-color: var(--color-good);
+  background: var(--color-good-soft);
+}
+.gap-input.is-wrong {
+  border-color: var(--color-bad);
+  background: var(--color-bad-soft);
+}
+
+.qnum {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.6rem;
+  height: 1.6rem;
+  padding: 0 0.3rem;
+  border-radius: 6px;
+  background: var(--color-ink);
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.scroll-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-line-strong) transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
