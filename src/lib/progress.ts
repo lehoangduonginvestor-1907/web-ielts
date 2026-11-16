@@ -2,6 +2,7 @@ import type { Attempt, Skill, Store, TestIndexEntry, UnitIndex } from './types';
 import { bandFor } from './band';
 import { addDays, dayKey } from './dates';
 import { isActive } from './store';
+import { drillBooks, type DrillGroup } from './skills';
 
 // Bài làm thật: không phải làm lại câu sai, không phải bài bỏ dở (trả lời chưa tới một nửa)
 const realAttempts = (s: Store) => s.attempts.filter(a => !a.focus?.length && !a.incomplete);
@@ -36,11 +37,14 @@ export function bandEstimate(s: Store, skill: Skill) {
   return { latest: bands[bands.length - 1], avg: Math.round(avg * 2) / 2, count: full.length };
 }
 
+// Bài làm tính vào thống kê dạng câu: bài làm thật và bài luyện theo dạng
+const statAttempts = (s: Store) => s.attempts.filter(a => !a.incomplete && (!a.focus?.length || a.drill));
+
 // Độ chính xác theo dạng câu hỏi (60 ngày gần nhất)
 export function typeStats(s: Store, skill?: Skill) {
   const since = Date.now() - 60 * 86400000;
   const map = new Map<string, { type: string; skill: Skill; ok: number; all: number }>();
-  for (const a of realAttempts(s)) {
+  for (const a of statAttempts(s)) {
     if (a.finishedAt < since || (skill && a.skill !== skill)) continue;
     for (const [n, ok] of Object.entries(a.results)) {
       const type = a.types[Number(n)] ?? 'Khác';
@@ -99,9 +103,10 @@ export function nextUnit(s: Store, index: TestIndexEntry[], skill: Skill): Sugge
   const tier = tierOf(s, skill);
   const allowed = tierUnits(skill, tier);
   const reserved = reservedBook(index);
+  const drill = drillBooks(index);
   const candidates: Suggestion[] = [];
   for (const t of index) {
-    if (t.book === reserved) continue;
+    if (t.book === reserved || drill.includes(t.book)) continue;
     for (const u of t[skill]) {
       if (!allowed.includes(u.n)) continue;
       if (u.audio === false) continue; // chưa có audio thì chưa giao
@@ -113,6 +118,29 @@ export function nextUnit(s: Store, index: TestIndexEntry[], skill: Skill): Sugge
   const target = tier > 0 ? allowed[allowed.length - 1] : -1;
   candidates.sort((a, b) => (a.unit.n === target ? -1 : 0) - (b.unit.n === target ? -1 : 0) || a.book - b.book || a.test - b.test || a.unit.n - b.unit.n);
   return candidates[0] ?? null;
+}
+
+// Tiến độ luyện một dạng: nhóm nào đã làm (lấy lần làm gần nhất), nhóm kế tiếp chưa làm
+export function drillSummary(s: Store, groups: DrillGroup[]) {
+  let done = 0;
+  let ok = 0;
+  let all = 0;
+  let next: DrillGroup | null = null;
+  for (const g of groups) {
+    const a = s.attempts.findLast(x => x.testId === g.testId && x.skill === g.skill && !x.incomplete && g.from in x.results);
+    if (!a) {
+      next ??= g;
+      continue;
+    }
+    done++;
+    for (let n = g.from; n <= g.to; n++) {
+      if (n in a.results) {
+        all++;
+        if (a.results[n]) ok++;
+      }
+    }
+  }
+  return { done, ok, all, next };
 }
 
 export function dueMistakes(s: Store) {

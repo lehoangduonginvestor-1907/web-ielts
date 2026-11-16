@@ -8,6 +8,7 @@ import { useStore } from '@/lib/store';
 import { nextUnit, reservedBook, tierOf, tierUnits, unitScore } from '@/lib/progress';
 import { bandFor, fmtBand } from '@/lib/band';
 import { usePref } from '@/lib/hooks';
+import { drillBooks } from '@/lib/skills';
 
 const SKILL_KEY = 'ielts.libskill';
 
@@ -16,10 +17,11 @@ export default function Library({ index }: { index: TestIndexEntry[] }) {
   const [skillPref, choose] = usePref<Skill>(SKILL_KEY, 'listening');
   const skill: Skill = skillPref === 'reading' ? 'reading' : 'listening';
 
-  // Cuốn cũ nhất lên đầu (lộ trình đi từ đó), cuốn để dành thi thử xuống cuối
+  // Cuốn của lộ trình lên đầu (cũ trước), rồi tới kho luyện theo dạng, cuốn để dành thi thử ở cuối
   const reserved = reservedBook(index);
+  const drill = drillBooks(index);
   const sorted = [...new Set(index.map(t => t.book))].sort((a, b) => a - b);
-  const books = [...sorted.filter(b => b !== reserved), ...sorted.filter(b => b === reserved)];
+  const books = [...sorted.filter(b => b !== reserved && !drill.includes(b)), ...sorted.filter(b => drill.includes(b)), ...sorted.filter(b => b === reserved)];
   const tier = store ? tierOf(store, skill) : 0;
   const open = tierUnits(skill, tier);
   const unitWord = skill === 'listening' ? 'Part' : 'Passage';
@@ -138,6 +140,9 @@ export default function Library({ index }: { index: TestIndexEntry[] }) {
                 <h2 className="font-serif text-xl font-semibold">Cambridge {book}</h2>
                 {book === reserved && (
                   <span className="rounded bg-ember-soft px-2 py-0.5 text-[11px] font-semibold text-ember">Để dành thi thử cuối kỳ</span>
+                )}
+                {drill.includes(book) && (
+                  <span className="rounded bg-accent-soft px-2 py-0.5 text-[11px] font-semibold text-accent">Kho luyện theo dạng (trang Kỹ năng)</span>
                 )}
                 <span className="num ml-auto text-sm text-muted">
                   {done}/{all.length} {unitWord.toLowerCase()} đã làm

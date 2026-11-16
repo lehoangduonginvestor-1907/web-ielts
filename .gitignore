@@ -5,7 +5,7 @@ next-env.d.ts
 *.tsbuildinfo
 .env*
 # Đề Cambridge và audio: chỉ để trên máy, không đưa lên git
-content/
+/content/
 
 # File nén tải về: để ngoài repo
 *.zip

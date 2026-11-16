@@ -9,6 +9,7 @@ import { gradeGroups, isFilled } from '@/lib/scoring';
 import { draftKey, logSeconds, recordAttempt, update, useStore } from '@/lib/store';
 import { usePref } from '@/lib/hooks';
 import { fmtClock } from '@/lib/dates';
+import { lessonFor, type LessonDef } from '@/lib/skills';
 import GroupView from './GroupView';
 import Passage from './Passage';
 import AudioBar, { type AudioHandle } from './AudioBar';
@@ -23,6 +24,7 @@ export interface RoomProps {
   units: (PassageT | ListeningPart)[];
   initialMode: 'practice' | 'exam';
   focus?: number[];
+  drill?: boolean; // luyện theo dạng: focus là các câu của một nhóm
   attemptId?: string;
 }
 
@@ -41,7 +43,8 @@ function isAnswered(groups: Group[], answers: Answers, n: number): boolean {
 const FS_KEY = 'ielts.fontsize';
 
 export default function TestRoom(props: RoomProps) {
-  const { testId, book, testNo, skill, units, focus } = props;
+  const { testId, book, testNo, skill, units, focus, drill } = props;
+  const home = drill ? '/skills' : '/practice';
   const router = useRouter();
   const store = useStore();
   const isReading = skill === 'reading';
@@ -59,6 +62,18 @@ export default function TestRoom(props: RoomProps) {
     () => (props.attemptId && store ? store.attempts.find(a => a.id === props.attemptId) : undefined),
     [props.attemptId, store],
   );
+
+  // Dạng câu trong bài mà người học chưa đọc bài "cách làm": gợi ý ngay ở màn mở đầu
+  const hints = useMemo(() => {
+    const out: LessonDef[] = [];
+    if (!store) return out;
+    for (const g of allGroups) {
+      if (focus?.length && !g.questions.some(q => focus.includes(q.n))) continue;
+      const l = lessonFor(skill, g.type);
+      if (l && !out.includes(l) && !store.lessons[l.slug]?.done) out.push(l);
+    }
+    return out;
+  }, [store, allGroups, focus, skill]);
 
   const [phase, setPhase] = useState<Phase>(props.attemptId ? 'review' : 'intro');
   const [mode, setMode] = useState<'practice' | 'exam'>(focus?.length ? 'practice' : props.initialMode);
@@ -139,6 +154,7 @@ export default function TestRoom(props: RoomProps) {
       units: unitNums,
       mode,
       focus,
+      ...(drill ? { drill: true } : {}),
       startedAt: startedAt || Date.now(),
       finishedAt: Date.now(),
       seconds,
@@ -154,7 +170,7 @@ export default function TestRoom(props: RoomProps) {
     const url = new URL(window.location.href);
     url.searchParams.set('attempt', attempt.id);
     router.replace(url.pathname + url.search, { scroll: false });
-  }, [allGroups, qNums, answers, focus, testId, skill, unitNums, mode, startedAt, seconds, router]);
+  }, [allGroups, qNums, answers, focus, drill, testId, skill, unitNums, mode, startedAt, seconds, router]);
 
   // Hết giờ (thi thử Reading) hoặc hết 2 phút kiểm tra (thi thử Listening)
   const remaining = limit !== null ? limit - seconds : audioDone !== null ? 120 - (seconds - audioDone) : null;
@@ -230,6 +246,9 @@ export default function TestRoom(props: RoomProps) {
         mode={mode}
         setMode={setMode}
         focus={focus}
+        drill={drill}
+        home={home}
+        hints={hints}
         hasDraft={!!draft && Object.keys(draft.answers).length > 0}
         onStart={start}
       />
@@ -264,7 +283,7 @@ export default function TestRoom(props: RoomProps) {
       <header className="flex h-14 shrink-0 items-center gap-2 border-b border-line bg-surface px-3 sm:px-4">
         <button
           className="btn-quiet"
-          onClick={() => (phase === 'doing' ? setConfirm('exit') : router.push('/practice'))}
+          onClick={() => (phase === 'doing' ? setConfirm('exit') : router.push(home))}
           aria-label="Thoát"
         >
           {phase === 'doing' ? <X size={18} /> : <ArrowLeft size={18} />}
@@ -279,7 +298,7 @@ export default function TestRoom(props: RoomProps) {
           <div className="flex items-center gap-1.5 overflow-hidden text-xs whitespace-nowrap text-muted">
             {isReading ? <BookOpen size={12} /> : <Headphones size={12} />}
             {isReading ? 'Reading' : 'Listening'}
-            {focus?.length ? ' · làm lại câu sai' : mode === 'exam' ? ' · thi thử' : ' · luyện tập'}
+            {drill ? ' · luyện theo dạng' : focus?.length ? ' · làm lại câu sai' : mode === 'exam' ? ' · thi thử' : ' · luyện tập'}
           </div>
         </div>
 
@@ -327,7 +346,11 @@ export default function TestRoom(props: RoomProps) {
               Nộp bài
             </button>
           ) : (
-            <Link href={`/test/${testId}/${skill}?p=${unitNums.join(',')}`} className="btn-ghost whitespace-nowrap" onClick={() => setPhase('intro')}>
+            <Link
+              href={`/test/${testId}/${skill}?p=${unitNums.join(',')}${drill && focus ? `&focus=${focus.join(',')}&drill=1` : ''}`}
+              className="btn-ghost whitespace-nowrap"
+              onClick={() => setPhase('intro')}
+            >
               Làm lại
             </Link>
           )}
@@ -514,7 +537,7 @@ export default function TestRoom(props: RoomProps) {
                   Nộp bài
                 </button>
               ) : (
-                <button className="btn-primary" onClick={() => router.push('/practice')}>
+                <button className="btn-primary" onClick={() => router.push(home)}>
                   Rời bài
                 </button>
               )}
@@ -550,6 +573,9 @@ function Intro(p: {
   mode: 'practice' | 'exam';
   setMode: (m: 'practice' | 'exam') => void;
   focus?: number[];
+  drill?: boolean;
+  home: string;
+  hints: LessonDef[];
   hasDraft: boolean;
   onStart: (resume: boolean) => void;
 }) {
@@ -566,8 +592,8 @@ function Intro(p: {
   return (
     <div className="flex min-h-dvh items-center justify-center bg-paper p-4">
       <div className="w-full max-w-lg">
-        <Link href="/practice" className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-ink">
-          <ArrowLeft size={15} /> Thư viện đề
+        <Link href={p.home} className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-ink">
+          <ArrowLeft size={15} /> {p.drill ? 'Kỹ năng' : 'Thư viện đề'}
         </Link>
         <div className="card mt-4 p-6 sm:p-8">
           <p className="eyebrow">{p.title}</p>
@@ -584,8 +610,30 @@ function Intro(p: {
             ))}
           </ul>
           <p className="mt-4 text-sm text-ink-2">
-            {p.focus?.length ? `Làm lại ${p.count} câu đã sai: ${p.focus.join(', ')}` : `${p.count} câu hỏi`}
+            {p.drill && p.focus?.length
+              ? `Luyện theo dạng: câu ${p.focus[0]}–${p.focus[p.focus.length - 1]} (${p.count} câu)`
+              : p.focus?.length
+                ? `Làm lại ${p.count} câu đã sai: ${p.focus.join(', ')}`
+                : `${p.count} câu hỏi`}
           </p>
+          {p.drill && !reading && (
+            <p className="mt-1 text-sm text-muted">Audio phát từ đầu Part. Nghe tới đoạn của các câu này rồi trả lời.</p>
+          )}
+          {p.hints.length > 0 && (
+            <div className="mt-5 rounded-lg border border-dashed border-line-strong px-4 py-3 text-sm">
+              <p className="text-ink-2">Phần này có dạng câu bạn chưa học cách làm:</p>
+              <ul className="mt-1.5 space-y-1">
+                {p.hints.map(h => (
+                  <li key={h.slug}>
+                    <Link href={`/skills/${h.slug}`} className="font-semibold text-accent hover:underline">
+                      {h.title}
+                    </Link>
+                    <span className="text-muted"> · {h.minutes} phút</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           {!p.focus?.length && (
             <div className="mt-6 grid gap-2 sm:grid-cols-2">

@@ -8,6 +8,7 @@ import { applyFreezes, isActive, longestStreak, streakOf, useStore } from '@/lib
 import { bandEstimate, dueMistakes, dueWords, nextUnit, typeStats, type Suggestion } from '@/lib/progress';
 import { addDays, daysBetween, dayKey, dow } from '@/lib/dates';
 import { fmtBand } from '@/lib/band';
+import { lessonFor } from '@/lib/skills';
 import { Flame } from './Flame';
 import Onboarding from './Onboarding';
 
@@ -265,7 +266,14 @@ export default function Today({ index }: { index: TestIndexEntry[] }) {
                 <li key={`${w.skill}${w.type}`}>
                   <div className="flex items-baseline justify-between gap-2 text-sm">
                     <span className="truncate">
-                      {w.type} <span className="text-muted">· {w.skill === 'listening' ? 'L' : 'R'}</span>
+                      {lessonFor(w.skill, w.type) ? (
+                        <Link href={`/skills/${lessonFor(w.skill, w.type)!.slug}`} className="hover:underline" title="Xem cách làm dạng này">
+                          {w.type}
+                        </Link>
+                      ) : (
+                        w.type
+                      )}{' '}
+                      <span className="text-muted">· {w.skill === 'listening' ? 'L' : 'R'}</span>
                     </span>
                     <span className="num font-semibold">{Math.round((w.ok / w.all) * 100)}%</span>
                   </div>

@@ -7,7 +7,7 @@ import TestRoom from '@/components/test/TestRoom';
 import type { Skill } from '@/lib/types';
 
 type Params = { id: string; skill: string };
-type Search = { p?: string; mode?: string; focus?: string; attempt?: string };
+type Search = { p?: string; mode?: string; focus?: string; attempt?: string; drill?: string };
 
 const nums = (s?: string) =>
   (s ?? '')
@@ -54,7 +54,7 @@ export default async function TestPage({ params, searchParams }: { params: Promi
 
   return (
     <TestRoom
-      key={`${id}-${skill}-${units.map(u => u.n).join('')}-${sp.focus ?? ''}`}
+      key={`${id}-${skill}-${units.map(u => u.n).join('')}-${sp.focus ?? ''}-${sp.drill ?? ''}`}
       testId={test.id}
       book={test.book}
       testNo={test.test}
@@ -62,6 +62,7 @@ export default async function TestPage({ params, searchParams }: { params: Promi
       units={units}
       initialMode={sp.mode === 'exam' ? 'exam' : 'practice'}
       focus={nums(sp.focus)}
+      drill={sp.drill === '1' && nums(sp.focus).length > 0}
       attemptId={sp.attempt}
     />
   );

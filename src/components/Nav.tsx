@@ -2,13 +2,14 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BookOpenText, CalendarDays, Home, Layers, NotebookPen } from 'lucide-react';
+import { BookOpenText, CalendarDays, GraduationCap, Home, Layers, NotebookPen } from 'lucide-react';
 import { streakOf, useStore } from '@/lib/store';
 import { Flame } from './Flame';
 
 const ITEMS = [
   { href: '/', label: 'Hôm nay', icon: Home },
   { href: '/practice', label: 'Luyện đề', icon: BookOpenText },
+  { href: '/skills', label: 'Kỹ năng', icon: GraduationCap },
   { href: '/vocab', label: 'Từ vựng', icon: Layers },
   { href: '/mistakes', label: 'Sổ lỗi', icon: NotebookPen },
   { href: '/journal', label: 'Nhật ký', icon: CalendarDays },

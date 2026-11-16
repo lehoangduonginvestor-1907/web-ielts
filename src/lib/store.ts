@@ -1,7 +1,7 @@
 'use client';
 
 import { useSyncExternalStore } from 'react';
-import type { Attempt, DayLog, MistakeReason, Profile, Store, Word } from './types';
+import type { Attempt, DayLog, LessonState, MistakeReason, Profile, Store, Word } from './types';
 import { addDays, dayKey } from './dates';
 import { newSrs } from './srs';
 
@@ -22,6 +22,7 @@ const empty = (): Store => ({
   highlights: {},
   freezes: 0,
   frozenDays: [],
+  lessons: {},
 });
 
 let cache: Store | null = null;
@@ -234,6 +235,14 @@ export function addWord(w: Pick<Word, 'word' | 'vi'> & Partial<Pick<Word, 'pos' 
 
 export function hasWord(s: Store | null, word: string) {
   return !!s?.words.some(x => x.word.toLowerCase() === word.trim().toLowerCase());
+}
+
+// ---------- Bài học ----------
+
+export function updateLesson(slug: string, fn: (p: LessonState) => LessonState) {
+  update(s => {
+    s.lessons[slug] = fn(s.lessons[slug] ?? {});
+  });
 }
 
 // ---------- Hồ sơ ----------

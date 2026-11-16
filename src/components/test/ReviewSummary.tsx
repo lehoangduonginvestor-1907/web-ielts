@@ -8,6 +8,7 @@ import { bandFor, fmtBand } from '@/lib/band';
 import { fmtDuration } from '@/lib/dates';
 import { addWord, hasWord, useStore } from '@/lib/store';
 import { sentenceAround } from '@/lib/markup';
+import { lessonFor } from '@/lib/skills';
 
 export default function ReviewSummary({
   attempt,
@@ -96,7 +97,15 @@ export default function ReviewSummary({
         <ul className="space-y-1.5">
           {[...byType.entries()].map(([t, v]) => (
             <li key={t} className="grid grid-cols-[1fr_6rem_2.5rem] items-center gap-3 text-[13.5px]">
-              <span className="truncate text-ink-2">{t}</span>
+              <span className="truncate text-ink-2">
+                {t}
+                {/* Dạng làm dưới 60%: dẫn tới bài "cách làm" */}
+                {v.ok / v.all < 0.6 && lessonFor(attempt.skill, t) && (
+                  <Link href={`/skills/${lessonFor(attempt.skill, t)!.slug}`} className="ml-2 font-semibold text-accent hover:underline">
+                    xem cách làm
+                  </Link>
+                )}
+              </span>
               <span className="h-1.5 overflow-hidden rounded-full bg-sunk">
                 <span className={`block h-full rounded-full ${v.ok / v.all >= 0.7 ? 'bg-good' : v.ok / v.all >= 0.4 ? 'bg-ember' : 'bg-bad'}`} style={{ width: `${(v.ok / v.all) * 100}%` }} />
               </span>
@@ -124,7 +133,12 @@ export default function ReviewSummary({
           ) : (
             <span className="px-2 text-sm text-muted">Từ vựng của bài đã có trong bộ thẻ.</span>
           ))}
-        {!attempt.focus?.length && (attempt.incomplete ? wrongAnswered.length > 0 : wrong.length > 0) && (
+        {attempt.drill && (
+          <Link href="/skills" className="btn-ghost">
+            Về trang Kỹ năng
+          </Link>
+        )}
+        {(!attempt.focus?.length || attempt.drill) && (attempt.incomplete ? wrongAnswered.length > 0 : wrong.length > 0) && (
           <span className="text-xs text-muted sm:ml-auto">
             {attempt.incomplete ? `${wrongAnswered.length} câu trả lời sai` : 'Câu sai'} đã vào Sổ lỗi và sẽ quay lại sau 1 ngày.
           </span>

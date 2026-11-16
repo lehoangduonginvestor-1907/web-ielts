@@ -118,6 +118,7 @@ export interface Attempt {
   units: number[];
   mode: 'practice' | 'exam';
   focus?: number[]; // làm lại một số câu
+  drill?: boolean; // luyện theo dạng: focus là các câu của một nhóm câu, có tính vào thống kê dạng câu
   startedAt: number;
   finishedAt: number;
   seconds: number; // thời gian thực sự làm bài
@@ -169,6 +170,11 @@ export interface DayLog {
   cards: number; // số thẻ từ đã ôn
 }
 
+export interface LessonState {
+  done?: boolean; // đã đánh dấu học xong
+  checks?: Record<number, boolean>; // kết quả lần đầu của từng câu thử nhanh
+}
+
 export interface Profile {
   name: string;
   examDate?: string; // YYYY-MM-DD
@@ -189,4 +195,5 @@ export interface Store {
   highlights: Record<string, { p: number; start: number; end: number }[]>; // khoá: testId:R:n
   freezes: number;
   frozenDays: string[];
+  lessons: Record<string, LessonState>; // khoá: slug bài học
 }
