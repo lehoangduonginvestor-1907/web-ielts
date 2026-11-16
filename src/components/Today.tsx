@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect } from 'react';
+import { Fragment, useEffect } from 'react';
 import Link from 'next/link';
 import { ArrowRight, BookOpen, Check, Headphones, Layers, NotebookPen, PenLine, Snowflake } from 'lucide-react';
 import type { Skill, TestIndexEntry } from '@/lib/types';
 import { applyFreezes, isActive, longestStreak, streakOf, useStore } from '@/lib/store';
-import { bandEstimate, dueMistakes, dueWords, nextUnit, typeStats } from '@/lib/progress';
+import { bandEstimate, dueMistakes, dueWords, nextUnit, typeStats, type Suggestion } from '@/lib/progress';
 import { addDays, daysBetween, dayKey, dow } from '@/lib/dates';
 import { fmtBand } from '@/lib/band';
 import { Flame } from './Flame';
@@ -39,8 +39,9 @@ export default function Today({ index }: { index: TestIndexEntry[] }) {
   const best = longestStreak(store);
   const daysLeft = p.examDate ? daysBetween(today, p.examDate) : null;
 
-  const todayAttempts = store.attempts.filter(a => dayKey(a.finishedAt) === today);
-  const didSkill = (s: Skill) => todayAttempts.some(a => a.skill === s && !a.focus?.length);
+  // Bài đã làm hôm nay (không kể làm lại câu sai và bài bỏ dở)
+  const todayAttempts = store.attempts.filter(a => dayKey(a.finishedAt) === today && !a.focus?.length && !a.incomplete);
+  const doneToday = (s: Skill) => todayAttempts.findLast(a => a.skill === s);
   const words = dueWords(store);
   const mistakes = dueMistakes(store);
   const nextL = nextUnit(store, index, 'listening');
@@ -59,18 +60,32 @@ export default function Today({ index }: { index: TestIndexEntry[] }) {
       mins: Math.max(3, Math.ceil(words.length / 6)),
     });
   }
-  const unitTask = (skill: Skill, s: typeof nextL): Task | null =>
-    s
-      ? {
-          key: skill,
-          icon: skill === 'listening' ? Headphones : BookOpen,
-          title: `${skill === 'listening' ? 'Listening' : 'Reading'} · ${skill === 'listening' ? 'Part' : 'Passage'} ${s.unit.n}`,
-          detail: `Cam ${s.book} Test ${s.test} · ${s.unit.title}`,
-          href: `/test/${s.testId}/${skill}?p=${s.unit.n}`,
-          done: didSkill(skill),
-          mins: skill === 'listening' ? 10 : 20,
-        }
-      : null;
+  const skillName = (skill: Skill) => (skill === 'listening' ? 'Listening' : 'Reading');
+  const unitWord = (skill: Skill) => (skill === 'listening' ? 'Part' : 'Passage');
+  const unitTask = (skill: Skill, s: Suggestion | null): Task | null => {
+    const base = { key: skill, icon: skill === 'listening' ? Headphones : BookOpen, mins: skill === 'listening' ? 10 : 20 };
+    const a = doneToday(skill);
+    if (a) {
+      // Đã làm hôm nay: hiện đúng phần đã làm (không phải phần kế tiếp), bấm vào để xem lại lời giải
+      const t = index.find(x => x.id === a.testId);
+      const one = a.units.length === 1 ? t?.[skill].find(u => u.n === a.units[0]) : undefined;
+      return {
+        ...base,
+        title: `${skillName(skill)} · ${a.units.length === 1 ? `${unitWord(skill)} ${a.units[0]}` : 'cả bài'}`,
+        detail: `${t ? `Cam ${t.book} Test ${t.test}` : a.testId}${one ? ` · ${one.title}` : ''} · đúng ${a.score}/${a.total}`,
+        href: `/test/${a.testId}/${skill}?p=${a.units.join(',')}&attempt=${a.id}`,
+        done: true,
+      };
+    }
+    if (!s) return null;
+    return {
+      ...base,
+      title: `${skillName(skill)} · ${unitWord(skill)} ${s.unit.n}`,
+      detail: `Cam ${s.book} Test ${s.test} · ${s.unit.title}`,
+      href: `/test/${s.testId}/${skill}?p=${s.unit.n}`,
+      done: false,
+    };
+  };
   const tl = unitTask('listening', nextL);
   const tr = unitTask('reading', nextR);
   if (tl) tasks.push(tl);
@@ -87,6 +102,8 @@ export default function Today({ index }: { index: TestIndexEntry[] }) {
     });
   }
   const doneCount = tasks.filter(t => t.done).length;
+  // Đã xong phần của hôm nay mà còn sức: gợi ý phần kế tiếp
+  const extra = ([nextL, nextR] as const).filter((s): s is Suggestion => !!s && !!doneToday(s.skill));
 
   const bandL = bandEstimate(store, 'listening');
   const bandR = bandEstimate(store, 'reading');
@@ -198,6 +215,19 @@ export default function Today({ index }: { index: TestIndexEntry[] }) {
           ))}
           {!tasks.length && <li className="px-5 py-6 text-sm text-muted">Chưa có đề nào trong máy để giao việc.</li>}
         </ol>
+        {extra.length > 0 && (
+          <p className="mt-3 text-sm text-muted">
+            Còn sức thì làm thêm:{' '}
+            {extra.map((s, i) => (
+              <Fragment key={s.skill}>
+                {i > 0 && ' · '}
+                <Link href={`/test/${s.testId}/${s.skill}?p=${s.unit.n}`} className="font-semibold text-accent hover:underline">
+                  {skillName(s.skill)} {unitWord(s.skill)} {s.unit.n} (Cam {s.book} Test {s.test})
+                </Link>
+              </Fragment>
+            ))}
+          </p>
+        )}
         {isActive(log) && !store.journal[today]?.note && (
           <Link href="/journal" className="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-accent hover:underline">
             <PenLine size={15} /> Viết một dòng nhật ký: hôm nay vướng ở đâu?

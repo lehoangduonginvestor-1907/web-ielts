@@ -176,11 +176,16 @@ export function recordAttempt(a: Attempt) {
     const k = dayKey(a.finishedAt);
     const was = isActive(s.days[k]);
     const d = touchDay(s, k);
-    d.units += 1; // thời gian đã được ghi dần trong lúc làm bài
+    // Thời gian đã được ghi dần trong lúc làm bài. Bài trả lời chưa tới một nửa số câu
+    // không được tính là một phần đã làm (nên cũng không tự giữ chuỗi ngày).
+    if (!a.incomplete) d.units += 1;
     s.attempts.push(a);
     delete s.drafts[draftKey(a.testId, a.skill, a.units, a.focus)];
     // Sổ lỗi: câu sai đưa vào lịch làm lại; câu làm lại đúng thì giãn lịch
+    // Bài bỏ dở: câu chưa đụng tới không phải câu sai, không đưa vào Sổ lỗi
+    const untouched = new Set(a.incomplete ? a.blank : []);
     for (const [nStr, ok] of Object.entries(a.results)) {
+      if (untouched.has(Number(nStr))) continue;
       const key = mistakeKey(a.testId, a.skill, Number(nStr));
       const m = s.mistakes[key];
       if (!ok) {

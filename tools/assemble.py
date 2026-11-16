@@ -4,6 +4,7 @@ chép audio vào content/audio và cập nhật content/index.json.
 Dùng:  python tools/assemble.py <q.json> <text.json> <audio-map.json>
 
 audio-map.json: {"c17t1-l1.mp3": "D:/ielts-data/books/.../audio1.mp3", ...}
+Hình của nhóm câu (trường "image" trong q.json) lấy từ thư mục images/ nằm cạnh q.json.
 """
 import json
 import os
@@ -42,6 +43,14 @@ def main():
         dst = os.path.join(ROOT, "audio", name)
         if not os.path.exists(dst) or os.path.getsize(dst) != os.path.getsize(src):
             shutil.copyfile(src, dst)
+
+    # Hình bản đồ / sơ đồ của các nhóm câu
+    img_src = os.path.join(os.path.dirname(os.path.abspath(sys.argv[1])), "images")
+    for p in q["listening"] + q["reading"]:
+        for g in p["groups"]:
+            if g.get("image"):
+                os.makedirs(os.path.join(ROOT, "images"), exist_ok=True)
+                shutil.copyfile(os.path.join(img_src, g["image"]), os.path.join(ROOT, "images", g["image"]))
 
     # Mục lục các đề có trong máy
     index_path = os.path.join(ROOT, "index.json")

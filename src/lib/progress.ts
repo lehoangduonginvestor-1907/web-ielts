@@ -3,13 +3,14 @@ import { bandFor } from './band';
 import { addDays, dayKey } from './dates';
 import { isActive } from './store';
 
-const realAttempts = (s: Store) => s.attempts.filter(a => !a.focus?.length);
+// Bài làm thật: không phải làm lại câu sai, không phải bài bỏ dở (trả lời chưa tới một nửa)
+const realAttempts = (s: Store) => s.attempts.filter(a => !a.focus?.length && !a.incomplete);
 
 // Điểm gần nhất của một phần (lấy từ bài làm riêng phần đó hoặc bài làm cả đề)
 export function unitScore(s: Store, testId: string, skill: Skill, u: UnitIndex) {
   for (let i = s.attempts.length - 1; i >= 0; i--) {
     const a = s.attempts[i];
-    if (a.testId !== testId || a.skill !== skill || a.focus?.length || !a.units.includes(u.n)) continue;
+    if (a.testId !== testId || a.skill !== skill || a.focus?.length || a.incomplete || !a.units.includes(u.n)) continue;
     let score = 0;
     let total = 0;
     for (let n = u.from; n <= u.to; n++) {

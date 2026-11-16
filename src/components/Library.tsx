@@ -1,10 +1,11 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
-import { Headphones, BookOpen } from 'lucide-react';
+import { ArrowRight, BookOpen, ChevronDown, Headphones } from 'lucide-react';
 import type { Skill, TestIndexEntry, UnitIndex } from '@/lib/types';
 import { useStore } from '@/lib/store';
-import { reservedBook, tierOf, tierUnits, unitScore } from '@/lib/progress';
+import { nextUnit, reservedBook, tierOf, tierUnits, unitScore } from '@/lib/progress';
 import { bandFor, fmtBand } from '@/lib/band';
 import { usePref } from '@/lib/hooks';
 
@@ -15,11 +16,45 @@ export default function Library({ index }: { index: TestIndexEntry[] }) {
   const [skillPref, choose] = usePref<Skill>(SKILL_KEY, 'listening');
   const skill: Skill = skillPref === 'reading' ? 'reading' : 'listening';
 
-  const books = [...new Set(index.map(t => t.book))].sort((a, b) => b - a);
+  // Cuốn cũ nhất lên đầu (lộ trình đi từ đó), cuốn để dành thi thử xuống cuối
   const reserved = reservedBook(index);
+  const sorted = [...new Set(index.map(t => t.book))].sort((a, b) => a - b);
+  const books = [...sorted.filter(b => b !== reserved), ...sorted.filter(b => b === reserved)];
   const tier = store ? tierOf(store, skill) : 0;
   const open = tierUnits(skill, tier);
   const unitWord = skill === 'listening' ? 'Part' : 'Passage';
+
+  // Việc làm tiếp: bài đang làm dở (nếu có), không thì phần kế tiếp của lộ trình
+  const next = store ? nextUnit(store, index, skill) : null;
+  const draft = store
+    ? Object.entries(store.drafts)
+        .map(([key, d]) => ({ parts: key.split(':'), d }))
+        .filter(x => x.parts.length === 3 && x.parts[1] === skill && Object.keys(x.d.answers).length > 0)
+        .sort((a, b) => b.d.startedAt - a.d.startedAt)[0]
+    : undefined;
+  const draftTest = draft && index.find(t => t.id === draft.parts[0]);
+  const draftUnits = draft ? draft.parts[2].split('').map(Number) : [];
+  const resume = draftTest
+    ? {
+        label: 'Bài đang làm dở',
+        title: `Cam ${draftTest.book} Test ${draftTest.test} · ${draftUnits.length === 1 ? `${unitWord} ${draftUnits[0]}` : 'cả bài'}`,
+        detail: draftUnits.length === 1 ? (draftTest[skill].find(u => u.n === draftUnits[0])?.title ?? '') : `${Object.keys(draft!.d.answers).length} câu đã trả lời`,
+        href: `/test/${draftTest.id}/${skill}?p=${draftUnits.join(',')}`,
+        cta: 'Làm tiếp',
+      }
+    : next
+      ? {
+          label: 'Phần kế tiếp của lộ trình',
+          title: `Cam ${next.book} Test ${next.test} · ${unitWord} ${next.unit.n}`,
+          detail: next.unit.title,
+          href: `/test/${next.testId}/${skill}?p=${next.unit.n}`,
+          cta: 'Bắt đầu',
+        }
+      : null;
+
+  // Mỗi cuốn gập lại được; mặc định chỉ mở cuốn đang học
+  const currentBook = next?.book ?? books[0];
+  const [toggled, setToggled] = useState<Record<number, boolean>>({});
 
   if (!index.length) {
     return (
@@ -54,7 +89,20 @@ export default function Library({ index }: { index: TestIndexEntry[] }) {
         </div>
       </header>
 
-      <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-dashed border-line-strong px-4 py-3 text-sm">
+      {resume && (
+        <Link href={resume.href} className="card group mt-6 flex items-center gap-4 p-4 transition-colors hover:bg-sunk/50 sm:p-5">
+          <div className="min-w-0 flex-1">
+            <p className="eyebrow">{resume.label}</p>
+            <p className="mt-1 font-semibold">{resume.title}</p>
+            <p className="truncate font-serif text-sm text-muted">{resume.detail}</p>
+          </div>
+          <span className="btn-primary shrink-0 whitespace-nowrap">
+            {resume.cta} <ArrowRight size={15} className="transition-transform group-hover:translate-x-0.5" />
+          </span>
+        </Link>
+      )}
+
+      <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-dashed border-line-strong px-4 py-3 text-sm">
         <span className="eyebrow">Lộ trình</span>
         <span className="flex items-center gap-1">
           {tierUnits(skill, 2).map(n => (
@@ -73,24 +121,38 @@ export default function Library({ index }: { index: TestIndexEntry[] }) {
         </span>
       </div>
 
-      <div className="mt-8 space-y-10">
-        {books.map(book => (
-          <section key={book}>
-            <div className="mb-3 flex items-baseline gap-3">
-              <h2 className="font-serif text-xl font-semibold">Cambridge {book}</h2>
-              {book === reserved && (
-                <span className="rounded bg-ember-soft px-2 py-0.5 text-[11px] font-semibold text-ember">Để dành thi thử cuối kỳ</span>
+      <div className="mt-6 space-y-2">
+        {books.map(book => {
+          const tests = index.filter(t => t.book === book);
+          const all = tests.flatMap(t => t[skill].map(u => ({ t, u })));
+          const done = store ? all.filter(x => unitScore(store, x.t.id, skill, x.u)).length : 0;
+          const isOpen = toggled[book] ?? book === currentBook;
+          return (
+            <section key={book}>
+              <button
+                onClick={() => setToggled(v => ({ ...v, [book]: !isOpen }))}
+                aria-expanded={isOpen}
+                className="flex w-full flex-wrap items-center gap-x-3 gap-y-1 rounded-lg px-1 py-2.5 text-left transition-colors hover:bg-sunk/50"
+              >
+                <ChevronDown size={18} className={`shrink-0 text-muted transition-transform ${isOpen ? '' : '-rotate-90'}`} />
+                <h2 className="font-serif text-xl font-semibold">Cambridge {book}</h2>
+                {book === reserved && (
+                  <span className="rounded bg-ember-soft px-2 py-0.5 text-[11px] font-semibold text-ember">Để dành thi thử cuối kỳ</span>
+                )}
+                <span className="num ml-auto text-sm text-muted">
+                  {done}/{all.length} {unitWord.toLowerCase()} đã làm
+                </span>
+              </button>
+              {isOpen && (
+                <div className="card mt-1 mb-4 divide-y divide-line">
+                  {tests.map(t => (
+                    <TestRow key={t.id} t={t} skill={skill} open={open} />
+                  ))}
+                </div>
               )}
-            </div>
-            <div className="card divide-y divide-line">
-              {index
-                .filter(t => t.book === book)
-                .map(t => (
-                  <TestRow key={t.id} t={t} skill={skill} open={open} />
-                ))}
-            </div>
-          </section>
-        ))}
+            </section>
+          );
+        })}
       </div>
     </div>
   );

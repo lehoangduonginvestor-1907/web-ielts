@@ -28,6 +28,16 @@ export interface RoomProps {
 
 type Phase = 'intro' | 'doing' | 'review';
 
+// Câu n đã có câu trả lời chưa (dạng chọn nhiều đáp án lưu chung ở câu đầu nhóm)
+function isAnswered(groups: Group[], answers: Answers, n: number): boolean {
+  const g = groups.find(x => x.questions.some(q => q.n === n));
+  if (g?.kind === 'multi') {
+    const picked = (answers[g.from] as string[] | undefined) ?? [];
+    return picked.length > g.questions.findIndex(q => q.n === n);
+  }
+  return isFilled(answers[n]);
+}
+
 const FS_KEY = 'ielts.fontsize';
 
 export default function TestRoom(props: RoomProps) {
@@ -121,6 +131,7 @@ export default function TestRoom(props: RoomProps) {
       unloggedSeconds.current = 0;
     }
     const graded = gradeGroups(allGroups, answers, focus);
+    const blank = qNums.filter(n => !isAnswered(allGroups, answers, n));
     const attempt: Attempt = {
       id: `a${Date.now().toString(36)}`,
       testId,
@@ -133,6 +144,8 @@ export default function TestRoom(props: RoomProps) {
       seconds,
       answers,
       ...graded,
+      blank,
+      incomplete: qNums.length - blank.length < qNums.length / 2,
     };
     recordAttempt(attempt);
     setPhase('review');
@@ -141,7 +154,7 @@ export default function TestRoom(props: RoomProps) {
     const url = new URL(window.location.href);
     url.searchParams.set('attempt', attempt.id);
     router.replace(url.pathname + url.search, { scroll: false });
-  }, [allGroups, answers, focus, testId, skill, unitNums, mode, startedAt, seconds, router]);
+  }, [allGroups, qNums, answers, focus, testId, skill, unitNums, mode, startedAt, seconds, router]);
 
   // Hết giờ (thi thử Reading) hoặc hết 2 phút kiểm tra (thi thử Listening)
   const remaining = limit !== null ? limit - seconds : audioDone !== null ? 120 - (seconds - audioDone) : null;
@@ -191,17 +204,10 @@ export default function TestRoom(props: RoomProps) {
     setTimeout(() => document.getElementById(`q-${n}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 60);
   };
 
-  const groupOf = (n: number): Group | undefined => allGroups.find(g => g.questions.some(q => q.n === n));
-  const answered = (n: number) => {
-    const g = groupOf(n);
-    if (g?.kind === 'multi') {
-      const picked = (answers[g.from] as string[] | undefined) ?? [];
-      return picked.length > g.questions.findIndex(q => q.n === n);
-    }
-    return isFilled(answers[n]);
-  };
-  const unanswered = qNums.filter(n => !answered(n)).length;
   const shownAnswers = phase === 'review' && reviewAttempt ? reviewAttempt.answers : answers;
+  const answered = (n: number) => isAnswered(allGroups, shownAnswers, n);
+  const unanswered = qNums.filter(n => !answered(n)).length;
+  const tooFew = qNums.length - unanswered < qNums.length / 2; // nộp lúc này sẽ không được tính
 
   const title = `Cambridge ${book} · Test ${testNo}`;
   const unitLabel = (u: PassageT | ListeningPart) => (isReading ? `Passage ${u.n}` : `Part ${u.n}`);
@@ -248,6 +254,9 @@ export default function TestRoom(props: RoomProps) {
   }
 
   const isListeningExam = !isReading && mode === 'exam' && phase === 'doing';
+  // Phần nghe có bản đồ: nới rộng khung để hình đủ lớn, các nhóm câu khác giữ bề rộng cũ
+  const wide = !isReading && phase !== 'review' && unit.groups.some(g => g.image);
+  const narrow = wide ? 'mx-auto max-w-[44rem]' : '';
 
   return (
     <div className="flex h-dvh flex-col bg-paper" style={{ ['--passage-size' as string]: `${fontSize}px` }}>
@@ -261,8 +270,13 @@ export default function TestRoom(props: RoomProps) {
           {phase === 'doing' ? <X size={18} /> : <ArrowLeft size={18} />}
         </button>
         <div className="min-w-0">
-          <div className="truncate text-[13px] font-semibold">{title}</div>
-          <div className="flex items-center gap-1.5 text-xs text-muted">
+          <div className="truncate text-[13px] font-semibold">
+            <span className="sm:hidden">
+              Cam {book} · Test {testNo}
+            </span>
+            <span className="hidden sm:inline">{title}</span>
+          </div>
+          <div className="flex items-center gap-1.5 overflow-hidden text-xs whitespace-nowrap text-muted">
             {isReading ? <BookOpen size={12} /> : <Headphones size={12} />}
             {isReading ? 'Reading' : 'Listening'}
             {focus?.length ? ' · làm lại câu sai' : mode === 'exam' ? ' · thi thử' : ' · luyện tập'}
@@ -286,7 +300,7 @@ export default function TestRoom(props: RoomProps) {
           </nav>
         )}
 
-        <div className="ml-auto flex items-center gap-1">
+        <div className="ml-auto flex shrink-0 items-center gap-1">
           {isReading && (
             <div className="mr-1 hidden items-center sm:flex">
               <button className="btn-quiet px-2" onClick={() => changeFont(-1)} aria-label="Chữ nhỏ hơn">
@@ -299,7 +313,7 @@ export default function TestRoom(props: RoomProps) {
           )}
           {phase === 'doing' && (
             <div
-              className={`num mr-2 flex items-center gap-1.5 rounded-md px-2 py-1 text-[14px] font-semibold ${
+              className={`num mr-1 flex items-center gap-1.5 rounded-md px-1.5 py-1 text-[14px] font-semibold sm:mr-2 sm:px-2 ${
                 remaining !== null && remaining < 300 ? 'bg-bad-soft text-bad' : 'text-ink-2'
               }`}
               title={remaining !== null ? 'Thời gian còn lại' : 'Thời gian đã làm'}
@@ -309,11 +323,11 @@ export default function TestRoom(props: RoomProps) {
             </div>
           )}
           {phase === 'doing' ? (
-            <button className="btn-primary" onClick={() => (unanswered ? setConfirm('submit') : submit())}>
+            <button className="btn-primary whitespace-nowrap" onClick={() => (unanswered ? setConfirm('submit') : submit())}>
               Nộp bài
             </button>
           ) : (
-            <Link href={`/test/${testId}/${skill}?p=${unitNums.join(',')}`} className="btn-ghost" onClick={() => setPhase('intro')}>
+            <Link href={`/test/${testId}/${skill}?p=${unitNums.join(',')}`} className="btn-ghost whitespace-nowrap" onClick={() => setPhase('intro')}>
               Làm lại
             </Link>
           )}
@@ -368,8 +382,9 @@ export default function TestRoom(props: RoomProps) {
         </>
       ) : (
         <div className="scroll-thin min-h-0 flex-1 overflow-y-auto">
-          <div className={`mx-auto px-4 py-6 sm:px-8 ${phase === 'review' ? 'max-w-6xl' : 'max-w-3xl'}`}>
+          <div className={`mx-auto px-4 py-6 sm:px-8 ${phase === 'review' ? 'max-w-6xl' : wide ? 'max-w-5xl' : 'max-w-3xl'}`}>
             <div className="sticky top-0 z-10 -mx-1 bg-paper/95 px-1 pt-1 pb-3 backdrop-blur">
+              <div className={narrow}>
               <AudioBar
                 key={(unit as ListeningPart).audio}
                 ref={audioRef}
@@ -392,6 +407,7 @@ export default function TestRoom(props: RoomProps) {
                   Audio đã hết. Bạn còn 2 phút để kiểm tra lại câu trả lời.
                 </p>
               )}
+              </div>
             </div>
             <div className={phase === 'review' ? 'grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]' : ''}>
               {phase === 'review' && (
@@ -407,18 +423,23 @@ export default function TestRoom(props: RoomProps) {
                   <ReviewSummary attempt={reviewAttempt} units={units} testId={testId} source={`Cam ${book} · Test ${testNo}`} />
                 )}
                 {visibleGroups(unit).map(g => (
-                  <GroupView
-                    key={g.from}
-                    g={g}
-                    answers={shownAnswers}
-                    onAnswer={phase === 'doing' ? onAnswer : undefined}
-                    review={results ? { results } : undefined}
-                    focus={focus}
-                    onLocate={locate}
-                    locateLabel="Xem trong transcript"
-                  />
+                  <div key={g.from} className={g.image ? '' : narrow}>
+                    <GroupView
+                      g={g}
+                      answers={shownAnswers}
+                      onAnswer={phase === 'doing' ? onAnswer : undefined}
+                      review={results ? { results } : undefined}
+                      focus={focus}
+                      onLocate={locate}
+                      locateLabel="Xem trong transcript"
+                    />
+                  </div>
                 ))}
-                {!isListeningExam && <UnitPager units={units} idx={unitIdx} setIdx={setUnitIdx} label={unitLabel} />}
+                {!isListeningExam && (
+                  <div className={narrow}>
+                    <UnitPager units={units} idx={unitIdx} setIdx={setUnitIdx} label={unitLabel} />
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -435,7 +456,9 @@ export default function TestRoom(props: RoomProps) {
               r === true
                 ? 'bg-good text-white'
                 : r === false
-                  ? 'bg-bad text-white'
+                  ? answered(n)
+                    ? 'bg-bad text-white'
+                    : 'bg-bad-soft text-bad ring-1 ring-bad ring-inset' // bỏ trống
                   : answered(n)
                     ? 'bg-ink text-paper'
                     : 'bg-surface text-ink-2 ring-1 ring-line-strong ring-inset';
@@ -470,7 +493,11 @@ export default function TestRoom(props: RoomProps) {
             {confirm === 'submit' ? (
               <>
                 <p className="font-semibold">Nộp bài khi còn {unanswered} câu bỏ trống?</p>
-                <p className="mt-1 text-sm text-muted">Trong phòng thi thật, đoán vẫn tốt hơn bỏ trống vì không bị trừ điểm.</p>
+                <p className="mt-1 text-sm text-muted">
+                  {tooFew
+                    ? `Bạn mới trả lời ${qNums.length - unanswered}/${qNums.length} câu. Nộp bây giờ thì bài này không được tính là đã làm và không tính vào chuỗi ngày.`
+                    : 'Trong phòng thi thật, đoán vẫn tốt hơn bỏ trống vì không bị trừ điểm.'}
+                </p>
               </>
             ) : (
               <>

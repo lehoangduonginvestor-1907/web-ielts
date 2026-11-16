@@ -26,6 +26,14 @@ export async function getTest(id: string): Promise<Test | null> {
 
 const AUDIO_TYPES: Record<string, string> = { mp3: 'audio/mpeg', m4a: 'audio/mp4', wav: 'audio/wav' };
 
+const IMAGE_TYPES: Record<string, string> = { png: 'image/png', jpg: 'image/jpeg', webp: 'image/webp' };
+
+export function imagePath(file: string): { path: string; type: string } | null {
+  const m = /^[a-z0-9-]+\.(png|jpg|webp)$/.exec(file);
+  if (!m) return null;
+  return { path: path.join(ROOT, 'images', file), type: IMAGE_TYPES[m[1]] };
+}
+
 export function audioPath(file: string): { path: string; type: string } | null {
   const m = /^[a-z0-9-]+\.(mp3|m4a|wav)$/.exec(file);
   if (!m) return null;

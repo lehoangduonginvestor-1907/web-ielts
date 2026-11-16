@@ -29,6 +29,7 @@ export interface Group {
   kind: GroupKind;
   type: string; // tên dạng câu hỏi để thống kê, vd. "Note completion"
   instructions: string;
+  image?: string; // hình bản đồ / sơ đồ trong content/images (Map, Plan, Diagram labelling)
   title?: string;
   prompt?: string; // câu hỏi chung của nhóm (multi)
   template?: string; // gap: văn bản có {{n}}
@@ -125,6 +126,8 @@ export interface Attempt {
   types: Record<number, string>; // dạng câu hỏi của từng câu
   score: number;
   total: number;
+  blank?: number[]; // các câu bỏ trống lúc nộp
+  incomplete?: boolean; // trả lời chưa tới một nửa số câu: lưu để xem lại nhưng không tính là đã làm
 }
 
 export interface Srs {

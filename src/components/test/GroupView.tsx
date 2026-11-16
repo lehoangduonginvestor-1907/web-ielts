@@ -26,8 +26,9 @@ const YNNG = ['YES', 'NO', 'NOT GIVEN'];
 
 export default function GroupView(p: Props) {
   const { g } = p;
+  const body = <GroupBody {...p} />;
   return (
-    <section className="mb-10" aria-label={`Questions ${g.from}–${g.to}`}>
+    <section className="@container mb-10" aria-label={`Questions ${g.from}–${g.to}`}>
       <header className="mb-4">
         <h3 className="text-[15px] font-bold tracking-tight">
           Questions {g.from}
@@ -36,6 +37,47 @@ export default function GroupView(p: Props) {
         <p className="mt-1 text-[14px] leading-relaxed whitespace-pre-line text-ink-2">{g.instructions}</p>
       </header>
 
+      {g.image ? (
+        // Bản đồ / sơ đồ: đủ rộng thì hình đứng yên bên trái, câu hỏi cuộn bên phải
+        <div className={g.kind === 'match' ? 'grid gap-5 @2xl:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)] @2xl:items-start' : ''}>
+          <Figure g={g} sticky={g.kind === 'match'} />
+          <div>{body}</div>
+        </div>
+      ) : (
+        body
+      )}
+    </section>
+  );
+}
+
+function Figure({ g, sticky }: { g: Group; sticky: boolean }) {
+  const [zoom, setZoom] = useState(false);
+  const src = `/api/image/${g.image}`;
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setZoom(true)}
+        title="Bấm để phóng to"
+        className={`mb-5 block w-full cursor-zoom-in overflow-hidden rounded-lg border border-line-strong bg-white p-2 ${sticky ? '@2xl:sticky @2xl:top-28 @2xl:mb-0' : ''}`}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={src} alt={`Hình cho Questions ${g.from}–${g.to}`} className="mx-auto max-h-[70dvh] w-auto max-w-full" />
+      </button>
+      {zoom && (
+        <div className="fixed inset-0 z-50 flex cursor-zoom-out items-center justify-center bg-ink/70 p-3" onClick={() => setZoom(false)}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={src} alt="" className="max-h-full max-w-full rounded-lg bg-white p-2" />
+        </div>
+      )}
+    </>
+  );
+}
+
+function GroupBody(p: Props) {
+  const { g } = p;
+  return (
+    <>
       {g.options?.some(o => o.text) && g.kind !== 'multi' && <OptionBox g={g} />}
 
       {g.kind === 'gap' && <GapGroup {...p} />}
@@ -51,7 +93,7 @@ export default function GroupView(p: Props) {
           ))}
         </>
       )}
-    </section>
+    </>
   );
 }
 

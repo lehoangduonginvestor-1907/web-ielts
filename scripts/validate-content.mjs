@@ -30,6 +30,9 @@ function checkSection(id, label, units, sourceOf) {
       if (nums.join() !== expected.join()) err(where, `số câu ${nums} ≠ ${expected}`);
       seen.push(...nums);
       if (!g.instructions) err(where, 'thiếu instructions');
+      // Dạng gắn nhãn bản đồ / sơ đồ phải có hình thật; mô tả bằng chữ làm lộ bố cục
+      if (/\b(map|plan|diagram)\b/i.test(g.type) && /label/i.test(g.type) && !g.image) err(where, `dạng "${g.type}" thiếu hình (image)`);
+      if (g.image && !fs.existsSync(path.join(process.cwd(), 'content', 'images', g.image))) err(where, `không thấy hình content/images/${g.image}`);
       if (g.kind === 'gap') {
         const holes = [...(g.template || '').matchAll(/\{\{(\d+)\}\}/g)].map(m => +m[1]);
         if (holes.join() !== expected.join()) err(where, `chỗ trống ${holes} ≠ ${expected}`);

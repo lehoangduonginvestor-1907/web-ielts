@@ -28,7 +28,7 @@ function MoodIcon({ d, size = 22 }: { d: string; size?: number }) {
 
 function summary(s: Store, key: string) {
   const d = s.days[key];
-  const atts = s.attempts.filter(a => dayKey(a.finishedAt) === key);
+  const atts = s.attempts.filter(a => dayKey(a.finishedAt) === key && !a.incomplete);
   return {
     minutes: Math.round((d?.seconds ?? 0) / 60),
     cards: d?.cards ?? 0,

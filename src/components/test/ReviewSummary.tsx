@@ -25,7 +25,9 @@ export default function ReviewSummary({
   const wrong = Object.entries(attempt.results)
     .filter(([, ok]) => !ok)
     .map(([n]) => Number(n));
-  const full = attempt.total === 40 && !attempt.focus?.length;
+  const blank = attempt.blank ?? [];
+  const wrongAnswered = wrong.filter(n => !blank.includes(n));
+  const full = attempt.total === 40 && !attempt.focus?.length && !attempt.incomplete;
   const pct = attempt.total ? Math.round((attempt.score / attempt.total) * 100) : 0;
 
   // Độ chính xác theo dạng câu hỏi
@@ -61,6 +63,12 @@ export default function ReviewSummary({
 
   return (
     <div className="card mb-8 overflow-hidden">
+      {attempt.incomplete && (
+        <p className="border-b border-line bg-ember-soft px-5 py-3 text-[13.5px] leading-snug text-ember sm:px-6">
+          Bài này mới trả lời {attempt.total - blank.length}/{attempt.total} câu nên chưa được tính là đã làm. Câu bỏ trống không vào Sổ lỗi. Bấm
+          “Làm lại” khi bạn có đủ thời gian.
+        </p>
+      )}
       <div className="flex flex-wrap items-end gap-x-8 gap-y-3 p-5 sm:p-6">
         <div>
           <p className="eyebrow">Kết quả</p>
@@ -76,7 +84,9 @@ export default function ReviewSummary({
           </div>
         )}
         <div className="pb-1 text-sm text-ink-2">
-          <div>{pct}% chính xác</div>
+          <div>
+            {pct}% chính xác{blank.length > 0 && ` · ${blank.length} câu bỏ trống`}
+          </div>
           <div className="text-muted">{fmtDuration(attempt.seconds)}</div>
         </div>
       </div>
@@ -99,7 +109,7 @@ export default function ReviewSummary({
       </div>
 
       <div className="flex flex-wrap items-center gap-2 border-t border-line bg-paper/60 px-5 py-3 sm:px-6">
-        {wrong.length > 0 && (
+        {wrong.length > 0 && !attempt.incomplete && (
           <Link href={`/test/${testId}/${attempt.skill}?p=${attempt.units.join(',')}&focus=${wrong.join(',')}`} className="btn-ghost">
             <RotateCcw size={15} /> Làm lại {wrong.length} câu sai
           </Link>
@@ -114,8 +124,10 @@ export default function ReviewSummary({
           ) : (
             <span className="px-2 text-sm text-muted">Từ vựng của bài đã có trong bộ thẻ.</span>
           ))}
-        {wrong.length > 0 && !attempt.focus?.length && (
-          <span className="text-xs text-muted sm:ml-auto">Câu sai đã vào Sổ lỗi và sẽ quay lại sau 1 ngày.</span>
+        {!attempt.focus?.length && (attempt.incomplete ? wrongAnswered.length > 0 : wrong.length > 0) && (
+          <span className="text-xs text-muted sm:ml-auto">
+            {attempt.incomplete ? `${wrongAnswered.length} câu trả lời sai` : 'Câu sai'} đã vào Sổ lỗi và sẽ quay lại sau 1 ngày.
+          </span>
         )}
       </div>
     </div>
