@@ -4,20 +4,14 @@ import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { RotateCcw } from 'lucide-react';
 import type { Group, MistakeReason, MistakeState, Test } from '@/lib/types';
-import { setMistakeReason, useStore } from '@/lib/store';
+import { useStore } from '@/lib/store';
 import { dayKey, fmtDay } from '@/lib/dates';
-import { correctDisplay } from '@/lib/scoring';
+import { correctDisplay, shownAnswer } from '@/lib/scoring';
+import { REASONS } from '@/lib/reasons';
+import ReasonChips from './ReasonChips';
 import { useNow } from '@/lib/hooks';
 import { HedgehogMascot } from './Mascots';
 
-const REASONS: { k: MistakeReason; label: string; hint: string }[] = [
-  { k: 'vocab', label: 'Không biết từ', hint: 'Từ khoá trong bài hoặc đề lạ' },
-  { k: 'paraphrase', label: 'Không nhận ra paraphrase', hint: 'Đề và bài nói cùng ý bằng chữ khác' },
-  { k: 'locate', label: 'Không tìm ra chỗ', hint: 'Đọc lướt / nghe mà lạc vị trí' },
-  { k: 'missed', label: 'Nghe sót', hint: 'Nói nhanh, bỏ lỡ đáp án' },
-  { k: 'careless', label: 'Ẩu', hint: 'Chính tả, số ít/nhiều, quá số từ' },
-  { k: 'time', label: 'Hết giờ', hint: 'Không kịp làm' },
-];
 
 interface Item {
   key: string;
@@ -54,6 +48,7 @@ export default function Mistakes() {
   const store = useStore();
   const [tests, setTests] = useState<Record<string, Test>>({});
   const [tab, setTab] = useState<'due' | 'all'>('due');
+  const [revealed, setRevealed] = useState<Record<string, boolean>>({});
 
   const items = useMemo(() => (store ? Object.entries(store.mistakes).map(([k, m]) => parseKey(k, m)) : []), [store]);
   const open = items.filter(i => !i.m.resolved);
@@ -179,6 +174,9 @@ export default function Mistakes() {
               .map(i => {
                 const t = tests[i.testId];
                 const loc = locate(t, i.skill, i.n);
+                // Câu trả lời sai gần nhất của người học cho câu này
+                const lastWrong = store.attempts.findLast(a => a.testId === i.testId && a.skill === i.skill && a.results[i.n] === false);
+                const mine = loc && lastWrong ? shownAnswer(loc.g, i.n, lastWrong.answers) : '';
                 return (
                   <li key={i.key} className="card p-4 sm:p-5">
                     <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 text-xs text-muted">
@@ -194,27 +192,26 @@ export default function Mistakes() {
                     {loc ? (
                       <>
                         <p className="mt-2 text-[15px]">{loc.prompt}</p>
-                        <p className="mt-1 text-sm">
-                          Đáp án: <span className="font-semibold text-good">{correctDisplay(loc.g, i.n)}</span>
+                        <p className="mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-1 text-sm">
+                          <span className="text-muted">
+                            Lần trước: <span className="font-medium text-bad line-through decoration-1">{mine || 'bỏ trống'}</span>
+                          </span>
+                          {/* Che đáp án để lần làm lại là tự tìm, không phải chép từ trí nhớ */}
+                          {revealed[i.key] ? (
+                            <span>
+                              Đáp án: <span className="font-semibold text-good">{correctDisplay(loc.g, i.n)}</span>
+                            </span>
+                          ) : (
+                            <button className="text-xs font-semibold text-accent hover:underline" onClick={() => setRevealed(r => ({ ...r, [i.key]: true }))}>
+                              Xem đáp án
+                            </button>
+                          )}
                         </p>
                       </>
                     ) : (
                       <p className="mt-2 text-sm text-muted">Đang tải câu hỏi…</p>
                     )}
-                    <div className="mt-3 flex flex-wrap gap-1.5">
-                      {REASONS.map(r => (
-                        <button
-                          key={r.k}
-                          title={r.hint}
-                          onClick={() => setMistakeReason(i.key, i.m.reason === r.k ? undefined : r.k)}
-                          className={`rounded-full border px-2.5 py-0.5 text-[12px] font-medium transition-colors ${
-                            i.m.reason === r.k ? 'border-ink bg-ink text-paper' : 'border-line-strong text-ink-2 hover:bg-sunk'
-                          }`}
-                        >
-                          {r.label}
-                        </button>
-                      ))}
-                    </div>
+                    <ReasonChips mistakeKey={i.key} />
                   </li>
                 );
               })}

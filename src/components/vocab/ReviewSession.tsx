@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Volume2 } from 'lucide-react';
 import type { Word } from '@/lib/types';
@@ -34,6 +34,11 @@ function Cloze({ text, word, hide }: { text: string; word: string; hide: boolean
   );
 }
 
+// Thẻ đã nhớ đúng từ 2 lần trở lên và có nghĩa tiếng Việt: hỏi ngược, nhìn nghĩa + câu khuyết rồi gõ lại từ.
+// Đi thi cần viết đúng chính tả, không chỉ nhận ra nghĩa.
+const recallMode = (w: Word) => w.srs.reps >= 2 && !!w.vi.trim();
+const norm = (s: string) => s.trim().toLowerCase().replace(/[’']/g, "'").replace(/\s+/g, ' ');
+
 export default function ReviewSession() {
   // Phiên ôn chỉ dựng trên trình duyệt (danh sách thẻ nằm trong localStorage)
   return useMounted() ? <Session /> : <div className="h-96" />;
@@ -49,14 +54,23 @@ function Session() {
       .slice(0, 60);
   });
   const [shown, setShown] = useState(false);
+  const [typed, setTyped] = useState('');
+  const inputRef = useRef<HTMLInputElement>(null);
   const [done, setDone] = useState(0);
   const [remembered, setRemembered] = useState(0);
 
   const card = queue?.[0];
+  const recall = !!card && recallMode(card);
+  const typedRight = recall && norm(typed) === norm(card.word);
 
   useEffect(() => {
-    if (card) speak(card.word);
-  }, [card]);
+    // Chế độ gõ từ: không đọc từ lên trước (sẽ lộ đáp án); đọc khi lật
+    if (card && (!recallMode(card) || shown)) speak(card.word);
+  }, [card, shown]);
+
+  useEffect(() => {
+    if (recall && !shown) inputRef.current?.focus();
+  }, [recall, shown, card]);
 
   const grade = useCallback(
     (g: Grade) => {
@@ -72,6 +86,7 @@ function Session() {
       // Quên: đưa thẻ về cuối hàng để gặp lại trong phiên này
       setQueue(q => (q ? (g === 0 ? [...q.slice(1), { ...card, srs: next }] : q.slice(1)) : q));
       setShown(false);
+      setTyped('');
     },
     [card],
   );
@@ -79,16 +94,19 @@ function Session() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (!card) return;
+      if (e.target instanceof HTMLInputElement) return; // đang gõ từ: Enter do ô nhập xử lý
       if (!shown && (e.code === 'Space' || e.key === 'Enter')) {
         e.preventDefault();
         setShown(true);
       } else if (shown && ['1', '2', '3', '4'].includes(e.key)) {
-        grade((Number(e.key) - 1) as Grade);
+        const g = (Number(e.key) - 1) as Grade;
+        if (recallMode(card) && norm(typed) !== norm(card.word) && g >= 2) return;
+        grade(g);
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [card, shown, grade]);
+  }, [card, shown, grade, typed]);
 
   if (!queue) return <div className="h-96" />;
 
@@ -112,25 +130,62 @@ function Session() {
         <>
           <div className="card mt-8 flex min-h-[340px] flex-col items-center justify-center px-6 py-10 text-center">
             <HedgehogMascot pose={shown ? 'celebrate' : 'vocab'} size={58} className="mb-2" />
-            <div className="flex items-center gap-2">
-              <h1 className="font-serif text-[40px] leading-tight font-semibold">{card.word}</h1>
-              <button className="btn-quiet px-2" onClick={() => speak(card.word)} aria-label="Nghe lại">
-                <Volume2 size={20} />
-              </button>
-            </div>
-            {card.pos && <p className="text-sm text-muted italic">{card.pos}</p>}
+            {recall && !shown ? (
+              <>
+                <p className="eyebrow">Gõ lại từ tiếng Anh</p>
+                <p className="mt-2 text-[24px] font-semibold text-accent">{card.vi}</p>
+                {card.pos && <p className="text-sm text-muted italic">{card.pos}</p>}
+              </>
+            ) : (
+              <>
+                <div className="flex items-center gap-2">
+                  <h1 className="font-serif text-[40px] leading-tight font-semibold">{card.word}</h1>
+                  <button className="btn-quiet px-2" onClick={() => speak(card.word)} aria-label="Nghe lại">
+                    <Volume2 size={20} />
+                  </button>
+                </div>
+                {card.pos && <p className="text-sm text-muted italic">{card.pos}</p>}
+              </>
+            )}
             {card.context && (
               <p className="mt-6 max-w-md font-serif text-[16px] leading-relaxed text-ink-2 italic">
-                “<Cloze text={card.context} word={card.word} hide={false} />”
+                “<Cloze text={card.context} word={card.word} hide={recall && !shown} />”
               </p>
             )}
-            {shown ? (
+            {recall && !shown && (
+              <form
+                className="mt-6 flex w-full max-w-xs gap-2"
+                onSubmit={e => {
+                  e.preventDefault();
+                  setShown(true);
+                }}
+              >
+                <input
+                  ref={inputRef}
+                  className="field text-center"
+                  value={typed}
+                  onChange={e => setTyped(e.target.value)}
+                  aria-label="Từ tiếng Anh"
+                  spellCheck={false}
+                  autoComplete="off"
+                  autoCapitalize="off"
+                />
+              </form>
+            )}
+            {recall && shown && (
+              <p className={`mt-3 text-sm font-semibold ${typedRight ? 'text-good' : 'text-bad'}`}>
+                {typedRight ? 'Gõ đúng.' : typed.trim() ? `Bạn gõ: ${typed.trim()}` : 'Bạn chưa gõ gì.'}
+              </p>
+            )}
+            {recall && shown ? (
+              card.source && <p className="mt-2 text-xs text-muted">{card.source}</p>
+            ) : shown ? (
               <div className="mt-6 border-t border-line pt-5">
                 <p className="text-[22px] font-semibold text-accent">{card.vi || 'Chưa có nghĩa. Bổ sung ở trang Từ vựng.'}</p>
                 {card.source && <p className="mt-2 text-xs text-muted">{card.source}</p>}
               </div>
             ) : (
-              <p className="mt-8 text-sm text-muted">Nghĩ ra nghĩa trước, rồi mới lật thẻ.</p>
+              <p className="mt-8 text-sm text-muted">{recall ? 'Gõ từ rồi bấm Enter. Viết đúng chính tả mới được chấm Nhớ.' : 'Nghĩ ra nghĩa trước, rồi mới lật thẻ.'}</p>
             )}
           </div>
 
@@ -138,7 +193,13 @@ function Session() {
             {shown ? (
               <div className="grid grid-cols-4 gap-2">
                 {GRADES.map(({ g, label, tone }, i) => (
-                  <button key={g} onClick={() => grade(g)} className={`rounded-xl border bg-surface px-2 py-3 text-center transition-colors ${tone}`}>
+                  <button
+                    key={g}
+                    onClick={() => grade(g)}
+                    // Gõ sai thì không được chấm "Nhớ"/"Dễ"
+                    disabled={recall && !typedRight && g >= 2}
+                    className={`rounded-xl border bg-surface px-2 py-3 text-center transition-colors disabled:opacity-35 ${tone}`}
+                  >
                     <div className="font-semibold">{label}</div>
                     <div className="mt-0.5 text-[11px] opacity-70">{preview(card.srs, g)}</div>
                     <div className="mt-1 hidden text-[10px] text-muted sm:block">phím {i + 1}</div>
@@ -147,7 +208,7 @@ function Session() {
               </div>
             ) : (
               <button className="btn-primary w-full py-3 text-[15px]" onClick={() => setShown(true)}>
-                Lật thẻ <span className="text-xs font-normal opacity-70">(Space)</span>
+                {recall ? 'Kiểm tra' : 'Lật thẻ'} <span className="text-xs font-normal opacity-70">({recall ? 'Enter' : 'Space'})</span>
               </button>
             )}
           </div>

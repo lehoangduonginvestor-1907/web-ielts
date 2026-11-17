@@ -3,9 +3,10 @@
 import { Fragment, useEffect } from 'react';
 import Link from 'next/link';
 import { ArrowRight, BookOpen, Check, Headphones, Layers, NotebookPen, PenLine, Snowflake } from 'lucide-react';
-import type { Skill, TestIndexEntry } from '@/lib/types';
+import type { Skill, Store, TestIndexEntry } from '@/lib/types';
 import { applyFreezes, isActive, longestStreak, streakOf, useStore } from '@/lib/store';
-import { bandEstimate, dueMistakes, dueWords, nextUnit, typeStats, type Suggestion } from '@/lib/progress';
+import { bandEstimate, dueMistakes, dueWords, nextUnit, tierProgress, typeStats, type Suggestion } from '@/lib/progress';
+import { CoachNoteCard } from './CoachNote';
 import { addDays, daysBetween, dayKey, dow } from '@/lib/dates';
 import { fmtBand } from '@/lib/band';
 import { lessonFor } from '@/lib/skills';
@@ -137,6 +138,8 @@ export default function Today({ index }: { index: TestIndexEntry[] }) {
         <MascotDuo size={130} mood={duoMood} />
       </header>
 
+      <CoachNoteCard />
+
       {/* Mục tiêu ngày + chuỗi */}
       <section className="grid gap-4 sm:grid-cols-[1.2fr_1fr]">
         <div className="card flex items-center gap-4 p-5">
@@ -170,6 +173,19 @@ export default function Today({ index }: { index: TestIndexEntry[] }) {
               </p>
             </div>
           </div>
+          {!isActive(log) && (
+            <p className="mt-3 rounded-lg bg-sunk/70 px-3 py-2 text-[13px] leading-snug text-ink-2">
+              Hôm nay mệt? Chỉ cần{' '}
+              {store.words.length >= 10 ? (
+                <Link href="/vocab/review" className="font-semibold text-accent hover:underline">
+                  ôn 10 thẻ từ
+                </Link>
+              ) : (
+                'ôn 10 thẻ từ'
+              )}{' '}
+              hoặc học 10 phút là giữ được chuỗi.
+            </p>
+          )}
           <div className="mt-4 grid grid-cols-7 gap-1.5">
             {week.map(k => {
               const on = isActive(store.days[k]);
@@ -266,7 +282,7 @@ export default function Today({ index }: { index: TestIndexEntry[] }) {
                     </p>
                   </>
                 ) : (
-                  <p className="mt-2 text-sm leading-snug text-muted">Làm một bài cả 40 câu để có ước tính.</p>
+                  <TierMeter store={store} skill={name === 'Listening' ? 'listening' : 'reading'} />
                 )}
               </div>
             ))}
@@ -329,5 +345,29 @@ function Ring({ pct }: { pct: number }) {
       />
       {pct >= 1 && <path d="M28 38.5l7 7 13-14" fill="none" stroke="var(--color-good)" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />}
     </svg>
+  );
+}
+
+// Chưa có bài 40 câu: cho thấy còn bao xa để mở phần khó hơn của lộ trình (không quy đổi band từ phần lẻ)
+function TierMeter({ store, skill }: { store: Store; skill: Skill }) {
+  const tp = tierProgress(store, skill);
+  if (!tp) return <p className="mt-2 text-sm leading-snug text-muted">Đã mở hết các phần. Làm một bài cả 40 câu để có ước tính band.</p>;
+  const word = skill === 'listening' ? 'Part' : 'Passage';
+  const pct = tp.acc === null ? 0 : Math.round(tp.acc * 100);
+  return (
+    <div className="mt-2">
+      <p className="text-sm leading-snug text-ink-2">
+        Mở {word} {tp.next}: cần trung bình 70% ở {word} {tp.unit}
+      </p>
+      <div className="relative mt-2 h-2 rounded-full bg-sunk">
+        <div className={`h-full rounded-full ${pct >= 70 ? 'bg-good' : 'bg-accent'}`} style={{ width: `${Math.min(100, pct)}%` }} />
+        <span className="absolute -top-1 h-4 w-0.5 bg-ink-2" style={{ left: '70%' }} aria-hidden="true" />
+      </div>
+      <p className="num mt-1 text-xs text-muted">
+        {tp.count === 0
+          ? `Chưa làm ${word} ${tp.unit} lần nào`
+          : `${pct}% · ${tp.count} lần gần nhất${tp.count < 3 ? ` · cần thêm ${3 - tp.count} lần nữa` : ''}`}
+      </p>
+    </div>
   );
 }

@@ -49,13 +49,12 @@ export default function ReviewSummary({
     for (const { v, u } of newVocab) {
       // Lấy câu chứa từ trong bài làm ngữ cảnh
       let context = '';
-      if ('paragraphs' in u) {
-        for (const p of u.paragraphs) {
-          const i = p.text.toLowerCase().indexOf(v.word.toLowerCase());
-          if (i >= 0) {
-            context = sentenceAround(p.text, i, i + v.word.length);
-            break;
-          }
+      const texts = 'paragraphs' in u ? u.paragraphs.map(p => p.text) : u.script.map(s => s.text);
+      for (const text of texts) {
+        const i = text.toLowerCase().indexOf(v.word.toLowerCase());
+        if (i >= 0) {
+          context = sentenceAround(text, i, i + v.word.length);
+          break;
         }
       }
       if (addWord({ word: v.word, vi: v.vi, pos: v.pos, context, source: `${source} · ${'paragraphs' in u ? 'Reading' : 'Listening'} ${u.n}` })) n++;

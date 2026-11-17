@@ -6,6 +6,7 @@ import { isActive, longestStreak, streakOf } from '@/lib/store';
 import { addDays, dayKey, daysBetween, fmtDay, fmtDuration, weekdayName } from '@/lib/dates';
 import { bandFor, fmtBand } from '@/lib/band';
 import { LESSONS } from '@/lib/skills';
+import { CoachNoteEditor } from './CoachNote';
 import { HedgehogMood, MascotDuo } from './Mascots';
 
 const REASON: Record<MistakeReason, string> = {
@@ -31,6 +32,7 @@ export default function Coach({ store, index }: { store: Store | null; index: Te
     return (
       <Shell onLogout={logout}>
         <p className="card p-6 text-muted">Chưa có dữ liệu. Người học chưa mở app lần nào, hoặc tiến độ chưa kịp đồng bộ lên máy chủ.</p>
+        <CoachNoteEditor />
       </Shell>
     );
   }
@@ -91,6 +93,8 @@ export default function Coach({ store, index }: { store: Store | null; index: Te
         </div>
         <MascotDuo size={102} mood="study" />
       </header>
+
+      <CoachNoteEditor />
 
       <section className="grid gap-4 sm:grid-cols-4">
         <Stat label="Chuỗi ngày" value={`${streakOf(store)}`} note={`kỷ lục ${longestStreak(store)}`} />

@@ -12,6 +12,28 @@ export function normalizeAnswer(s: string): string {
     .trim();
 }
 
+// Giới hạn số từ đọc từ hướng dẫn của nhóm câu, vd. "ONE WORD AND/OR A NUMBER", "NO MORE THAN TWO WORDS"
+const NUM_WORDS: Record<string, number> = { one: 1, two: 2, three: 3 };
+export interface WordLimit {
+  words: number;
+  number: boolean; // được thêm một con số
+}
+export function wordLimit(instructions: string): WordLimit | null {
+  const m = /\b(one|two|three) words?\b(\s+and\/or\s+a\s+number)?/i.exec(instructions);
+  return m ? { words: NUM_WORDS[m[1].toLowerCase()], number: !!m[2] } : null;
+}
+/**
+ * Câu trả lời có vượt giới hạn số từ không (từ có gạch nối tính là một từ).
+ * Khi đề cho thêm "a number", mọi mảnh có chữ số (số, giá, giờ, mã bưu điện như "PE9 7QT") đều thuộc phần số.
+ * Đây chỉ là lời nhắc khi luyện tập, không ảnh hưởng chấm điểm.
+ */
+export function overLimit(v: string, lim: WordLimit | null): boolean {
+  if (!lim || !v.trim()) return false;
+  const tokens = v.trim().split(/\s+/);
+  if (!lim.number) return tokens.length > lim.words;
+  return tokens.filter(t => !/\d/.test(t)).length > lim.words;
+}
+
 export function isFilled(v: string | string[] | undefined): boolean {
   if (Array.isArray(v)) return v.length > 0;
   return !!v && v.trim().length > 0;

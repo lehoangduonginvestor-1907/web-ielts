@@ -52,7 +52,8 @@ export default function TestRoom(props: RoomProps) {
   const unitNums = units.map(u => u.n);
   const dKey = draftKey(testId, skill, unitNums, focus);
   const allGroups = useMemo(() => units.flatMap(u => u.groups), [units]);
-  const visibleGroups = (u: PassageT | ListeningPart) =>
+  const [onlyWrong, setOnlyWrong] = useState(false); // xem lại: chỉ hiện nhóm câu có câu sai
+  const shownGroups = (u: PassageT | ListeningPart) =>
     focus?.length ? u.groups.filter(g => g.questions.some(q => focus.includes(q.n))) : u.groups;
   const qNums = useMemo(() => {
     const all = allGroups.flatMap(g => g.questions.map(q => q.n));
@@ -274,6 +275,35 @@ export default function TestRoom(props: RoomProps) {
   }
 
   const isListeningExam = !isReading && mode === 'exam' && phase === 'doing';
+  const wrongNums = results ? Object.keys(results).map(Number).filter(n => !results[n]) : [];
+  const visibleGroups = (u: PassageT | ListeningPart) =>
+    phase === 'review' && onlyWrong ? shownGroups(u).filter(g => g.questions.some(q => results?.[q.n] === false)) : shownGroups(u);
+  const groupProps = {
+    answers: shownAnswers,
+    onAnswer: phase === 'doing' ? onAnswer : undefined,
+    review: results ? { results } : undefined,
+    focus,
+    onLocate: locate,
+    reasonFor: phase === 'review' ? { testId, skill } : undefined,
+    wordGuard: phase === 'doing' && mode === 'practice',
+  };
+  const filterBar =
+    phase === 'review' && wrongNums.length > 0 ? (
+      <div className="mb-6 flex flex-wrap items-center gap-2 text-sm">
+        <div className="inline-flex rounded-lg border border-line-strong bg-surface p-1">
+          {([false, true] as const).map(w => (
+            <button
+              key={String(w)}
+              onClick={() => setOnlyWrong(w)}
+              className={`rounded-md px-3 py-1 font-medium ${onlyWrong === w ? 'bg-ink text-paper' : 'text-ink-2'}`}
+            >
+              {w ? `Chỉ câu sai (${wrongNums.length})` : `Tất cả (${qNums.length})`}
+            </button>
+          ))}
+        </div>
+        {onlyWrong && visibleGroups(unit).length === 0 && <span className="text-muted">{isReading ? 'Passage' : 'Part'} này không có câu sai.</span>}
+      </div>
+    ) : null;
   // Phần nghe có bản đồ: nới rộng khung để hình đủ lớn, các nhóm câu khác giữ bề rộng cũ
   const wide = !isReading && phase !== 'review' && unit.groups.some(g => g.image);
   const narrow = wide ? 'mx-auto max-w-[44rem]' : '';
@@ -388,16 +418,9 @@ export default function TestRoom(props: RoomProps) {
                 {phase === 'review' && reviewAttempt && (
                   <ReviewSummary attempt={reviewAttempt} units={units} testId={testId} source={`Cam ${book} · Test ${testNo}`} />
                 )}
+                {filterBar}
                 {visibleGroups(unit).map(g => (
-                  <GroupView
-                    key={g.from}
-                    g={g}
-                    answers={shownAnswers}
-                    onAnswer={phase === 'doing' ? onAnswer : undefined}
-                    review={results ? { results } : undefined}
-                    focus={focus}
-                    onLocate={locate}
-                  />
+                  <GroupView key={g.from} g={g} {...groupProps} />
                 ))}
                 <UnitPager units={units} idx={unitIdx} setIdx={setUnitIdx} label={unitLabel} />
               </div>
@@ -446,17 +469,10 @@ export default function TestRoom(props: RoomProps) {
                 {phase === 'review' && reviewAttempt && (
                   <ReviewSummary attempt={reviewAttempt} units={units} testId={testId} source={`Cam ${book} · Test ${testNo}`} />
                 )}
+                {filterBar}
                 {visibleGroups(unit).map(g => (
                   <div key={g.from} className={g.image ? '' : narrow}>
-                    <GroupView
-                      g={g}
-                      answers={shownAnswers}
-                      onAnswer={phase === 'doing' ? onAnswer : undefined}
-                      review={results ? { results } : undefined}
-                      focus={focus}
-                      onLocate={locate}
-                      locateLabel="Xem trong transcript"
-                    />
+                    <GroupView g={g} {...groupProps} locateLabel="Xem trong transcript" />
                   </div>
                 ))}
                 {!isListeningExam && (

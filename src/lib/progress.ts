@@ -84,6 +84,18 @@ export function tierOf(s: Store, skill: Skill): number {
 
 export const tierUnits = (skill: Skill, tier: number) => TIERS[skill][tier];
 
+/** Đang ở bậc nào và còn bao xa để mở bậc tiếp theo (null khi đã mở hết). */
+export function tierProgress(s: Store, skill: Skill) {
+  const tier = tierOf(s, skill);
+  if (tier >= 2) return null;
+  const unit = TIERS[skill][tier][TIERS[skill][tier].length - 1];
+  const recent = realAttempts(s)
+    .filter(a => a.skill === skill && a.units.includes(unit))
+    .slice(-5);
+  const acc = recent.length ? recent.reduce((x, a) => x + a.score / Math.max(1, a.total), 0) / recent.length : null;
+  return { tier, unit, next: TIERS[skill][tier + 1][TIERS[skill][tier + 1].length - 1], count: recent.length, acc };
+}
+
 // Đề "để dành" cho thi thử cuối kỳ: cuốn mới nhất, khi đã có từ 4 cuốn trở lên
 export function reservedBook(index: TestIndexEntry[]): number | null {
   const books = [...new Set(index.map(t => t.book))].sort((a, b) => a - b);

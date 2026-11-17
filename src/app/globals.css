@@ -334,3 +334,9 @@ mark.ev {
 .lesson .not-lesson p {
   margin: 0;
 }
+
+/* Ô điền từ vượt giới hạn số từ (chỉ ở chế độ luyện tập) */
+.gap-input.is-over {
+  border-color: var(--color-ember);
+  box-shadow: 0 0 0 3px var(--color-ember-soft);
+}

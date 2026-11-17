@@ -2,9 +2,11 @@
 
 import { useState } from 'react';
 import { Check, ChevronDown, X } from 'lucide-react';
-import type { Answers, Explanation, Group, Question } from '@/lib/types';
+import type { Answers, Explanation, Group, Question, Skill } from '@/lib/types';
 import { parseTemplate, type Piece } from '@/lib/markup';
-import { correctDisplay, shownAnswer } from '@/lib/scoring';
+import { correctDisplay, overLimit, shownAnswer, wordLimit } from '@/lib/scoring';
+import { mistakeKey } from '@/lib/store';
+import ReasonChips from '../ReasonChips';
 import Explain from './Explain';
 
 export interface ReviewInfo {
@@ -19,6 +21,8 @@ interface Props {
   focus?: number[];
   onLocate?: (ex: Explanation) => void;
   locateLabel?: string;
+  reasonFor?: { testId: string; skill: Skill }; // xem lại: cho gắn lý do sai ngay dưới lời giải
+  wordGuard?: boolean; // luyện tập: nhắc khi gõ quá số từ đề cho phép
 }
 
 const TFNG = ['TRUE', 'FALSE', 'NOT GIVEN'];
@@ -144,6 +148,7 @@ function ReviewLine({ g, q, p }: { g: Group; q: Question; p: Props }) {
         <ChevronDown size={14} className={`text-muted transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
       {open && <Explain ex={q.explain} onLocate={q.explain?.evidence && p.onLocate ? () => p.onLocate!(q.explain!) : undefined} locateLabel={p.locateLabel} />}
+      {open && !ok && p.reasonFor && <ReasonChips mistakeKey={mistakeKey(p.reasonFor.testId, p.reasonFor.skill, q.n)} label="Vì sao câu này sai?" />}
     </div>
   );
 }
@@ -156,6 +161,14 @@ function GapGroup(p: Props) {
   const { g } = p;
   const blocks = parseTemplate(g.template ?? '');
   const withOptions = !!g.options?.length;
+  const limit = p.wordGuard && !withOptions ? wordLimit(g.instructions) : null;
+  // Enter: sang ô điền từ kế tiếp trên trang
+  const nextOnEnter = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key !== 'Enter') return;
+    e.preventDefault();
+    const all = [...document.querySelectorAll<HTMLInputElement>('input.gap-input:not([disabled])')];
+    all[all.indexOf(e.currentTarget) + 1]?.focus();
+  };
 
   const renderPiece = (piece: Piece, i: number) => {
     if (typeof piece === 'string') return <span key={i}>{piece}</span>;
@@ -181,17 +194,26 @@ function GapGroup(p: Props) {
             ))}
           </select>
         ) : (
-          <input
-            aria-label={`Question ${n}`}
-            className={`gap-input ${state}`}
-            value={v}
-            placeholder={`${n}`}
-            spellCheck={false}
-            autoComplete="off"
-            autoCapitalize="off"
-            disabled={disabledFor(p, n)}
-            onChange={e => p.onAnswer?.(n, e.target.value)}
-          />
+          <>
+            <input
+              aria-label={`Question ${n}`}
+              className={`gap-input ${state} ${overLimit(v, limit) ? 'is-over' : ''}`}
+              value={v}
+              placeholder={`${n}`}
+              spellCheck={false}
+              autoComplete="off"
+              autoCapitalize="off"
+              enterKeyHint="next"
+              disabled={disabledFor(p, n)}
+              onChange={e => p.onAnswer?.(n, e.target.value)}
+              onKeyDown={nextOnEnter}
+            />
+            {overLimit(v, limit) && (
+              <span role="status" className="mr-1 rounded bg-ember-soft px-1.5 text-[11px] font-semibold whitespace-nowrap text-ember">
+                quá {limit!.words} từ{limit!.number ? ' + 1 số' : ''}
+              </span>
+            )}
+          </>
         )}
       </span>
     );
