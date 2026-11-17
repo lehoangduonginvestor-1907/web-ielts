@@ -9,6 +9,7 @@ import { nextUnit, reservedBook, tierOf, tierUnits, unitScore } from '@/lib/prog
 import { bandFor, fmtBand } from '@/lib/band';
 import { usePref } from '@/lib/hooks';
 import { drillBooks } from '@/lib/skills';
+import { MascotBadge, SealMascot } from './Mascots';
 
 const SKILL_KEY = 'ielts.libskill';
 
@@ -61,6 +62,7 @@ export default function Library({ index }: { index: TestIndexEntry[] }) {
   if (!index.length) {
     return (
       <div className="card p-8 text-center text-muted">
+        <SealMascot pose="reading" size={84} className="mx-auto mb-2" />
         Chưa có đề nào trong máy. Chạy công cụ nhập đề (<code>tools/assemble.py</code>) để thêm đề.
       </div>
     );
@@ -68,12 +70,15 @@ export default function Library({ index }: { index: TestIndexEntry[] }) {
 
   return (
     <div>
-      <header className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="font-serif text-[34px] leading-tight font-semibold">Luyện đề</h1>
-          <p className="mt-1 text-ink-2">
-            {index.length} đề Cambridge · mỗi câu đều có dẫn chứng và giải thích tiếng Việt
-          </p>
+      <header className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-3.5">
+          <SealMascot pose={skill === 'listening' ? 'listening' : 'reading'} size={76} className="hidden sm:block" />
+          <div>
+            <h1 className="font-serif text-[34px] leading-tight font-semibold">Luyện đề</h1>
+            <p className="mt-1 text-ink-2">
+              {index.length} đề Cambridge · Bé Hải Cẩu đồng hành cùng dẫn chứng và giải thích tiếng Việt
+            </p>
+          </div>
         </div>
         <div className="inline-flex rounded-lg border border-line-strong bg-surface p-1">
           {(['listening', 'reading'] as const).map(s => (
@@ -93,6 +98,7 @@ export default function Library({ index }: { index: TestIndexEntry[] }) {
 
       {resume && (
         <Link href={resume.href} className="card group mt-6 flex items-center gap-4 p-4 transition-colors hover:bg-sunk/50 sm:p-5">
+          <MascotBadge character="seal" variant={skill} size={42} />
           <div className="min-w-0 flex-1">
             <p className="eyebrow">{resume.label}</p>
             <p className="mt-1 font-semibold">{resume.title}</p>

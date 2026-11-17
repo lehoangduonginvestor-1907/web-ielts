@@ -10,6 +10,7 @@ import { draftKey, logSeconds, recordAttempt, update, useStore } from '@/lib/sto
 import { usePref } from '@/lib/hooks';
 import { fmtClock } from '@/lib/dates';
 import { lessonFor, type LessonDef } from '@/lib/skills';
+import { SealMascot } from '../Mascots';
 import GroupView from './GroupView';
 import Passage from './Passage';
 import AudioBar, { type AudioHandle } from './AudioBar';
@@ -513,6 +514,7 @@ export default function TestRoom(props: RoomProps) {
       {confirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/30 p-4" onMouseDown={() => setConfirm(null)}>
           <div className="card w-full max-w-sm p-5" onMouseDown={e => e.stopPropagation()}>
+            <SealMascot pose="encourage" size={56} className="mx-auto mb-2" />
             {confirm === 'submit' ? (
               <>
                 <p className="font-semibold">Nộp bài khi còn {unanswered} câu bỏ trống?</p>
@@ -596,11 +598,16 @@ function Intro(p: {
           <ArrowLeft size={15} /> {p.drill ? 'Kỹ năng' : 'Thư viện đề'}
         </Link>
         <div className="card mt-4 p-6 sm:p-8">
-          <p className="eyebrow">{p.title}</p>
-          <h1 className="mt-2 font-serif text-[28px] leading-tight font-semibold">
-            {reading ? 'Reading' : 'Listening'}
-            {p.units.length === 1 ? ` · ${p.units[0].label}` : ' · cả bài'}
-          </h1>
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="eyebrow">{p.title}</p>
+              <h1 className="mt-2 font-serif text-[28px] leading-tight font-semibold">
+                {reading ? 'Reading' : 'Listening'}
+                {p.units.length === 1 ? ` · ${p.units[0].label}` : ' · cả bài'}
+              </h1>
+            </div>
+            <SealMascot pose={reading ? 'reading' : 'listening'} size={78} className="hidden sm:block" />
+          </div>
           <ul className="mt-4 space-y-1.5">
             {p.units.map(u => (
               <li key={u.n} className="flex gap-3 text-[15px]">

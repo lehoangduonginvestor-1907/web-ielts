@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { saveProfile } from '@/lib/store';
 import type { Profile } from '@/lib/types';
 import { Logo } from './Nav';
+import { MascotBadge, MascotDuo } from './Mascots';
 
 const BANDS = [5.5, 6, 6.5, 7, 7.5];
 const MINUTES = [20, 30, 45, 60];
@@ -23,12 +24,29 @@ export default function Onboarding({ initial, onDone }: { initial?: Profile; onD
     <div className={initial ? '' : 'mx-auto max-w-xl pt-4 sm:pt-12'}>
       {!initial && (
         <>
-          <Logo className="text-[40px]" />
-          <h1 className="mt-6 font-serif text-[30px] leading-tight font-semibold">Học đều mỗi ngày, band sẽ tự lên.</h1>
+          <div className="flex items-center justify-between gap-4">
+            <Logo className="text-[40px]" />
+            <MascotDuo size={126} mood="welcome" />
+          </div>
+          <h1 className="mt-5 font-serif text-[30px] leading-tight font-semibold">Học đều mỗi ngày, band sẽ tự lên.</h1>
           <p className="mt-3 text-[15px] leading-relaxed text-ink-2">
             Mỗi ngày một chút Listening, một chút Reading, vài thẻ từ. Câu nào sai đều có giải thích tiếng Việt và sẽ quay lại để bạn làm lại cho
             tới khi chắc. Trả lời bốn câu dưới đây để bắt đầu.
           </p>
+          <div className="mt-4 grid gap-2 sm:grid-cols-2">
+            <div className="flex items-center gap-2.5 rounded-xl border border-line bg-surface px-3 py-2.5 text-[13px] text-ink-2">
+              <MascotBadge character="seal" variant="listening" size={34} />
+              <span>
+                <strong className="text-ink">Bé Hải Cẩu</strong> cùng bạn luyện 4 kỹ năng &amp; đề thi.
+              </span>
+            </div>
+            <div className="flex items-center gap-2.5 rounded-xl border border-line bg-surface px-3 py-2.5 text-[13px] text-ink-2">
+              <MascotBadge character="hedgehog" variant="journal" size={34} />
+              <span>
+                <strong className="text-ink">Bé Nhím</strong> giữ sổ từ, sổ lỗi &amp; nhật ký học.
+              </span>
+            </div>
+          </div>
         </>
       )}
 

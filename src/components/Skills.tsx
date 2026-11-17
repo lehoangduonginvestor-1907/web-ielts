@@ -5,6 +5,7 @@ import { ArrowRight, CheckCircle2, Circle, Clock } from 'lucide-react';
 import { drillHref, drillsOf, GROUP_LABEL, LESSONS, type DrillGroup, type LessonGroup } from '@/lib/skills';
 import { drillSummary, typeStats } from '@/lib/progress';
 import { useStore } from '@/lib/store';
+import { MascotBadge, SealMascot } from './Mascots';
 
 const GROUPS: LessonGroup[] = ['foundation', 'listening', 'reading'];
 const INTRO: Record<LessonGroup, string> = {
@@ -20,17 +21,42 @@ export default function Skills({ written, drills }: { written: string[]; drills:
 
   return (
     <div>
-      <header>
-        <h1 className="font-serif text-[34px] leading-tight font-semibold">Kỹ năng</h1>
-        <p className="mt-1 text-ink-2">
-          {LESSONS.length} bài ngắn về cách làm từng dạng câu, kèm luyện tập bằng câu thật. Đã học {doneCount}/{LESSONS.length}.
-        </p>
+      <header className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 className="font-serif text-[34px] leading-tight font-semibold">Kỹ năng</h1>
+          <p className="mt-1 text-ink-2">
+            Bé Hải Cẩu đồng hành qua {LESSONS.length} bài ngắn về cách làm từng dạng câu, kèm luyện tập bằng câu thật. Đã học {doneCount}/{LESSONS.length}.
+          </p>
+          <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
+            {[
+              { pose: 'listening' as const, label: 'Listening', active: true },
+              { pose: 'reading' as const, label: 'Reading', active: true },
+              { pose: 'writing' as const, label: 'Writing', active: false },
+              { pose: 'speaking' as const, label: 'Speaking', active: false },
+            ].map(s => (
+              <span
+                key={s.label}
+                className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 font-medium ${
+                  s.active ? 'border-line-strong bg-surface text-ink' : 'border-dashed border-line text-muted'
+                }`}
+              >
+                <SealMascot pose={s.pose} size={22} animate={false} />
+                {s.label}
+                {!s.active && <span className="text-[10px]">(sắp có)</span>}
+              </span>
+            ))}
+          </div>
+        </div>
+        <SealMascot pose="skills" size={84} className="hidden sm:block" />
       </header>
 
       <div className="mt-7 space-y-9">
         {GROUPS.map(group => (
           <section key={group}>
-            <h2 className="font-serif text-xl font-semibold">{GROUP_LABEL[group]}</h2>
+            <div className="flex items-center gap-2.5">
+              <MascotBadge character="seal" variant={group === 'foundation' ? 'skills' : group} size={30} />
+              <h2 className="font-serif text-xl font-semibold">{GROUP_LABEL[group]}</h2>
+            </div>
             <p className="mt-0.5 text-sm text-muted">{INTRO[group]}</p>
             <ul className="card mt-3 divide-y divide-line">
               {LESSONS.filter(l => l.group === group).map(l => {

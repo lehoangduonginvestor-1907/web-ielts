@@ -8,6 +8,7 @@ import { getStore, logCards, update } from '@/lib/store';
 import { useMounted } from '@/lib/hooks';
 import { preview, review, type Grade } from '@/lib/srs';
 import { speak } from '@/lib/speech';
+import { HedgehogMascot } from '../Mascots';
 
 const GRADES: { g: Grade; label: string; tone: string }[] = [
   { g: 0, label: 'Quên', tone: 'border-bad/40 text-bad hover:bg-bad-soft' },
@@ -110,6 +111,7 @@ function Session() {
       {card ? (
         <>
           <div className="card mt-8 flex min-h-[340px] flex-col items-center justify-center px-6 py-10 text-center">
+            <HedgehogMascot pose={shown ? 'celebrate' : 'vocab'} size={58} className="mb-2" />
             <div className="flex items-center gap-2">
               <h1 className="font-serif text-[40px] leading-tight font-semibold">{card.word}</h1>
               <button className="btn-quiet px-2" onClick={() => speak(card.word)} aria-label="Nghe lại">
@@ -152,6 +154,7 @@ function Session() {
         </>
       ) : (
         <div className="card mt-8 px-6 py-12 text-center">
+          <HedgehogMascot pose="celebrate" size={92} className="mx-auto mb-3" />
           <p className="font-serif text-[28px] font-semibold">{done ? 'Xong phiên ôn.' : 'Không có thẻ nào đến hạn.'}</p>
           {done > 0 && (
             <p className="mt-2 text-ink-2">

@@ -9,6 +9,7 @@ import { fmtDuration } from '@/lib/dates';
 import { addWord, hasWord, useStore } from '@/lib/store';
 import { sentenceAround } from '@/lib/markup';
 import { lessonFor } from '@/lib/skills';
+import { MascotBadge, SealMascot } from '../Mascots';
 
 export default function ReviewSummary({
   attempt,
@@ -70,7 +71,7 @@ export default function ReviewSummary({
           “Làm lại” khi bạn có đủ thời gian.
         </p>
       )}
-      <div className="flex flex-wrap items-end gap-x-8 gap-y-3 p-5 sm:p-6">
+      <div className="flex flex-wrap items-center gap-x-8 gap-y-3 p-5 sm:p-6">
         <div>
           <p className="eyebrow">Kết quả</p>
           <p className="mt-1 font-serif text-[44px] leading-none font-semibold">
@@ -90,6 +91,7 @@ export default function ReviewSummary({
           </div>
           <div className="text-muted">{fmtDuration(attempt.seconds)}</div>
         </div>
+        <SealMascot pose={pct >= 70 ? 'celebrate' : 'encourage'} size={78} className="ml-auto hidden sm:block" />
       </div>
 
       <div className="border-t border-line px-5 py-4 sm:px-6">
@@ -125,9 +127,13 @@ export default function ReviewSummary({
         )}
         {vocab.length > 0 &&
           (added !== null ? (
-            <span className="px-2 text-sm text-good">Đã thêm {added} từ vào bộ thẻ.</span>
+            <span className="inline-flex items-center gap-1.5 px-2 text-sm text-good">
+              <MascotBadge character="hedgehog" variant="vocab" size={22} />
+              Đã giao {added} từ cho Bé Nhím giữ trong bộ thẻ.
+            </span>
           ) : newVocab.length > 0 ? (
             <button className="btn-ghost" onClick={addAll}>
+              <MascotBadge character="hedgehog" variant="vocab" size={22} />
               <Layers size={15} /> Thêm {newVocab.length} từ của bài vào bộ thẻ
             </button>
           ) : (
@@ -139,8 +145,9 @@ export default function ReviewSummary({
           </Link>
         )}
         {(!attempt.focus?.length || attempt.drill) && (attempt.incomplete ? wrongAnswered.length > 0 : wrong.length > 0) && (
-          <span className="text-xs text-muted sm:ml-auto">
-            {attempt.incomplete ? `${wrongAnswered.length} câu trả lời sai` : 'Câu sai'} đã vào Sổ lỗi và sẽ quay lại sau 1 ngày.
+          <span className="flex items-center gap-1.5 text-xs text-muted sm:ml-auto">
+            <MascotBadge character="hedgehog" variant="mistakes" size={24} />
+            {attempt.incomplete ? `${wrongAnswered.length} câu trả lời sai` : 'Câu sai'} đã được Bé Nhím giữ vào Sổ lỗi và sẽ quay lại sau 1 ngày.
           </span>
         )}
       </div>

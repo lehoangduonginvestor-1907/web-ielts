@@ -10,6 +10,7 @@ import { addDays, daysBetween, dayKey, dow } from '@/lib/dates';
 import { fmtBand } from '@/lib/band';
 import { lessonFor } from '@/lib/skills';
 import { Flame } from './Flame';
+import { HedgehogMascot, MascotBadge, MascotDuo } from './Mascots';
 import Onboarding from './Onboarding';
 
 function greeting() {
@@ -110,33 +111,37 @@ export default function Today({ index }: { index: TestIndexEntry[] }) {
   const bandR = bandEstimate(store, 'reading');
   const weak = typeStats(store).filter(t => t.all >= 5).slice(0, 3);
   const week = Array.from({ length: 7 }, (_, i) => addDays(today, i - 6));
+  const duoMood = doneCount === tasks.length && tasks.length > 0 ? 'done' : minutes === 0 ? 'welcome' : 'study';
 
   return (
     <div className="space-y-8">
-      <header>
-        <p className="text-sm text-muted">
-          {greeting()}, {p.name}.
-        </p>
-        <h1 className="mt-1 font-serif text-[32px] leading-tight font-semibold sm:text-[38px]">
-          {doneCount === tasks.length && tasks.length > 0
-            ? 'Xong hết việc hôm nay rồi.'
-            : minutes === 0
-              ? 'Bắt đầu nhẹ thôi, 10 phút trước đã.'
-              : `Hôm nay đã học ${minutes} phút.`}
-        </h1>
-        {daysLeft !== null && daysLeft >= 0 && (
-          <p className="mt-2 text-ink-2">
-            Còn <span className="num font-semibold text-ink">{daysLeft}</span> ngày đến kỳ thi · mục tiêu{' '}
-            <span className="font-semibold text-ink">{fmtBand(p.target)}</span>
+      <header className="flex flex-col-reverse gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-sm text-muted">
+            {greeting()}, {p.name}.
           </p>
-        )}
+          <h1 className="mt-1 font-serif text-[32px] leading-tight font-semibold sm:text-[38px]">
+            {doneCount === tasks.length && tasks.length > 0
+              ? 'Xong hết việc hôm nay rồi.'
+              : minutes === 0
+                ? 'Bắt đầu nhẹ thôi, 10 phút trước đã.'
+                : `Hôm nay đã học ${minutes} phút.`}
+          </h1>
+          {daysLeft !== null && daysLeft >= 0 && (
+            <p className="mt-2 text-ink-2">
+              Còn <span className="num font-semibold text-ink">{daysLeft}</span> ngày đến kỳ thi · mục tiêu{' '}
+              <span className="font-semibold text-ink">{fmtBand(p.target)}</span>
+            </p>
+          )}
+        </div>
+        <MascotDuo size={130} mood={duoMood} />
       </header>
 
       {/* Mục tiêu ngày + chuỗi */}
       <section className="grid gap-4 sm:grid-cols-[1.2fr_1fr]">
-        <div className="card flex items-center gap-5 p-5">
+        <div className="card flex items-center gap-4 p-5">
           <Ring pct={goalPct} />
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <p className="eyebrow">Mục tiêu hôm nay</p>
             <p className="mt-1 font-serif text-[26px] leading-none font-semibold">
               <span className="num">{minutes}</span>
@@ -146,10 +151,11 @@ export default function Today({ index }: { index: TestIndexEntry[] }) {
               {goalPct >= 1 ? 'Đã đạt mục tiêu. Học thêm là tiền lãi.' : `Còn ${p.goalMinutes - minutes} phút nữa.`}
             </p>
           </div>
+          <HedgehogMascot pose={goalPct >= 1 ? 'celebrate' : 'goal'} size={62} className="hidden sm:block" />
         </div>
         <div className="card p-5">
           <div className="flex items-center gap-3">
-            <Flame lit={isActive(log)} size={34} />
+            <Flame lit={isActive(log)} frozen={store.frozenDays.includes(today)} size={36} />
             <div>
               <p className="font-serif text-[26px] leading-none font-semibold">
                 <span className="num">{streak}</span> <span className="text-[16px] text-muted">ngày liên tiếp</span>
@@ -195,25 +201,30 @@ export default function Today({ index }: { index: TestIndexEntry[] }) {
           </span>
         </div>
         <ol className="card divide-y divide-line">
-          {tasks.map((t, i) => (
-            <li key={t.key}>
-              <Link href={t.href} className="group flex items-center gap-4 px-4 py-4 transition-colors hover:bg-sunk/50 sm:px-5">
-                <span
-                  className={`num flex size-8 shrink-0 items-center justify-center rounded-full text-sm font-bold ${
-                    t.done ? 'bg-good text-white' : 'border border-line-strong text-ink-2'
-                  }`}
-                >
-                  {t.done ? <Check size={15} strokeWidth={3} /> : i + 1}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className={`font-semibold ${t.done ? 'text-muted line-through decoration-1' : ''}`}>{t.title}</p>
-                  <p className="truncate text-sm text-muted">{t.detail}</p>
-                </div>
-                <span className="hidden text-xs text-muted sm:block">~{t.mins} phút</span>
-                <ArrowRight size={17} className="shrink-0 text-muted transition-transform group-hover:translate-x-0.5 group-hover:text-ink" />
-              </Link>
-            </li>
-          ))}
+          {tasks.map((t, i) => {
+            const isPersonal = t.key === 'vocab' || t.key === 'mistakes';
+            const badgeVariant = t.key === 'vocab' ? 'vocab' : t.key === 'mistakes' ? 'mistakes' : t.key === 'listening' ? 'listening' : 'reading';
+            return (
+              <li key={t.key}>
+                <Link href={t.href} className="group flex items-center gap-3.5 px-4 py-4 transition-colors hover:bg-sunk/50 sm:px-5">
+                  <span
+                    className={`num flex size-8 shrink-0 items-center justify-center rounded-full text-sm font-bold ${
+                      t.done ? 'bg-good text-white' : 'border border-line-strong text-ink-2'
+                    }`}
+                  >
+                    {t.done ? <Check size={15} strokeWidth={3} /> : i + 1}
+                  </span>
+                  <MascotBadge character={isPersonal ? 'hedgehog' : 'seal'} variant={badgeVariant} size={36} className="hidden sm:inline-flex" />
+                  <div className="min-w-0 flex-1">
+                    <p className={`font-semibold ${t.done ? 'text-muted line-through decoration-1' : ''}`}>{t.title}</p>
+                    <p className="truncate text-sm text-muted">{t.detail}</p>
+                  </div>
+                  <span className="hidden text-xs text-muted sm:block">~{t.mins} phút</span>
+                  <ArrowRight size={17} className="shrink-0 text-muted transition-transform group-hover:translate-x-0.5 group-hover:text-ink" />
+                </Link>
+              </li>
+            );
+          })}
           {!tasks.length && <li className="px-5 py-6 text-sm text-muted">Chưa có đề nào trong máy để giao việc.</li>}
         </ol>
         {extra.length > 0 && (
@@ -239,7 +250,10 @@ export default function Today({ index }: { index: TestIndexEntry[] }) {
       {/* Band & điểm yếu */}
       <section className="grid gap-4 md:grid-cols-2">
         <div className="card p-5">
-          <p className="eyebrow">Band ước tính</p>
+          <div className="flex items-center gap-2">
+            <MascotBadge character="seal" variant="reading" size={28} />
+            <p className="eyebrow">Band ước tính</p>
+          </div>
           <div className="mt-3 grid grid-cols-2 gap-4">
             {([['Listening', bandL], ['Reading', bandR]] as const).map(([name, b]) => (
               <div key={name}>
@@ -259,7 +273,10 @@ export default function Today({ index }: { index: TestIndexEntry[] }) {
           </div>
         </div>
         <div className="card p-5">
-          <p className="eyebrow">Dạng câu hay sai</p>
+          <div className="flex items-center gap-2">
+            <MascotBadge character="hedgehog" variant="mistakes" size={28} />
+            <p className="eyebrow">Dạng câu hay sai</p>
+          </div>
           {weak.length ? (
             <ul className="mt-3 space-y-2.5">
               {weak.map(w => (

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Logo } from '@/components/Nav';
+import { MascotDuo } from '@/components/Mascots';
 
 export default function LoginPage() {
   const [code, setCode] = useState('');
@@ -31,8 +32,11 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-dvh items-center justify-center bg-paper p-4">
       <form onSubmit={submit} className="card w-full max-w-sm p-6 sm:p-8">
-        <Logo />
-        <h1 className="mt-6 font-serif text-2xl font-semibold">Nhập mã vào cửa</h1>
+        <div className="flex items-center justify-between gap-3">
+          <Logo />
+          <MascotDuo size={86} mood="welcome" />
+        </div>
+        <h1 className="mt-5 font-serif text-2xl font-semibold">Nhập mã vào cửa</h1>
         <p className="mt-1 text-sm text-muted">App này dành riêng cho một người học. Mã do người kèm đưa cho bạn.</p>
         <input
           type="password"

@@ -1,31 +1,31 @@
 @import "tailwindcss";
 
 @theme {
-  --color-paper: #f5f1e8;
-  --color-surface: #fffdf8;
-  --color-sunk: #ede7da;
-  --color-ink: #1c1b18;
-  --color-ink-2: #4a4740;
-  --color-muted: #8a857a;
-  --color-line: #e2dbcb;
-  --color-line-strong: #cfc6b3;
-  --color-accent: #1f5e4f;
-  --color-accent-2: #174a3e;
-  --color-accent-soft: #dceae3;
-  --color-ember: #e0561b;
-  --color-ember-soft: #fbe3d6;
+  --color-paper: #faf5ee;
+  --color-surface: #ffffff;
+  --color-sunk: #f2e8dc;
+  --color-ink: #3b2e28;
+  --color-ink-2: #5c4b43;
+  --color-muted: #8c7a70;
+  --color-line: #eadcd0;
+  --color-line-strong: #d8c5b4;
+  --color-accent: #2f7d69;
+  --color-accent-2: #246353;
+  --color-accent-soft: #dff0eb;
+  --color-ember: #ec7457;
+  --color-ember-soft: #fde6df;
   --color-good: #2f7d4a;
   --color-good-soft: #e1f0e4;
-  --color-bad: #b83a2e;
-  --color-bad-soft: #f6e0dc;
+  --color-bad: #c44536;
+  --color-bad-soft: #fae3e0;
   --color-mark: #fce9a6;
-  --color-evidence: #cfe8d6;
+  --color-evidence: #d4eee2;
 
   --font-sans: var(--font-ui), ui-sans-serif, system-ui, sans-serif;
   --font-serif: var(--font-read), ui-serif, Georgia, serif;
 
-  --shadow-card: 0 1px 0 rgb(28 27 24 / 0.04), 0 1px 3px rgb(28 27 24 / 0.06);
-  --shadow-pop: 0 8px 28px rgb(28 27 24 / 0.16), 0 1px 3px rgb(28 27 24 / 0.08);
+  --shadow-card: 0 1px 0 rgb(59 46 40 / 0.04), 0 1px 3px rgb(59 46 40 / 0.06);
+  --shadow-pop: 0 8px 28px rgb(59 46 40 / 0.16), 0 1px 3px rgb(59 46 40 / 0.08);
 }
 
 html {
@@ -163,6 +163,20 @@ mark.ev {
 .scroll-thin {
   scrollbar-width: thin;
   scrollbar-color: var(--color-line-strong) transparent;
+}
+
+@keyframes mascot-bob {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+.mascot-bob {
+  animation: mascot-bob 3.5s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {

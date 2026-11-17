@@ -8,6 +8,7 @@ import { addWord, update, useStore } from '@/lib/store';
 import { speak } from '@/lib/speech';
 import { dayKey, fmtDay } from '@/lib/dates';
 import { useNow } from '@/lib/hooks';
+import { HedgehogMascot } from '../Mascots';
 
 const stage = (w: Word) => (w.srs.reps === 0 ? 'new' : w.srs.interval >= 21 ? 'known' : 'learning');
 const STAGE_LABEL = { new: 'Mới', learning: 'Đang học', known: 'Đã thuộc' } as const;
@@ -59,11 +60,12 @@ export default function VocabHome() {
 
   return (
     <div>
-      <header className="flex flex-wrap items-end justify-between gap-4">
+      <header className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="font-serif text-[34px] leading-tight font-semibold">Từ vựng</h1>
-          <p className="mt-1 text-ink-2">Từ lưu từ bài đọc, kèm câu gốc. Ôn đúng lúc sắp quên.</p>
+          <p className="mt-1 text-ink-2">Bé Nhím giữ từ lưu từ bài đọc, kèm câu gốc. Ôn đúng lúc sắp quên.</p>
         </div>
+        <HedgehogMascot pose="vocab" size={82} className="hidden sm:block" />
       </header>
 
       <section className="mt-6 grid gap-4 md:grid-cols-[1.3fr_1fr]">
@@ -162,6 +164,7 @@ export default function VocabHome() {
           </ul>
         ) : (
           <div className="rounded-xl border border-dashed border-line-strong px-6 py-10 text-center text-sm text-muted">
+            <HedgehogMascot pose="sleepy" size={80} className="mx-auto mb-2" />
             {words.length ? 'Không có từ nào khớp.' : 'Bộ từ đang trống. Làm xong một bài đọc rồi bấm “Thêm từ của bài vào bộ thẻ”.'}
           </div>
         )}

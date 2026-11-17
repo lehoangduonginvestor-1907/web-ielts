@@ -6,25 +6,15 @@ import type { Store } from '@/lib/types';
 import { exportData, importData, isActive, longestStreak, streakOf, update, useStore } from '@/lib/store';
 import { addDays, dayKey, dow, fmtDay, weekdayName } from '@/lib/dates';
 import { Flame } from './Flame';
+import { HedgehogMascot, HedgehogMood } from './Mascots';
 import Onboarding from './Onboarding';
 
 const MOODS = [
-  { v: 1, label: 'Uể oải', face: 'M8 16.5c1.2-1 2.5-1.5 4-1.5s2.8.5 4 1.5' },
-  { v: 2, label: 'Bình thường', face: 'M8.5 15.5h7' },
-  { v: 3, label: 'Ổn', face: 'M8.5 14.5c1 1 2.2 1.5 3.5 1.5s2.5-.5 3.5-1.5' },
-  { v: 4, label: 'Rất tốt', face: 'M7.5 13.5c1.2 2 2.7 3 4.5 3s3.3-1 4.5-3' },
+  { v: 1 as const, label: 'Uể oải' },
+  { v: 2 as const, label: 'Bình thường' },
+  { v: 3 as const, label: 'Ổn' },
+  { v: 4 as const, label: 'Rất tốt' },
 ];
-
-function MoodIcon({ d, size = 22 }: { d: string; size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
-      <circle cx="12" cy="12" r="9.5" />
-      <circle cx="9" cy="10" r=".9" fill="currentColor" />
-      <circle cx="15" cy="10" r=".9" fill="currentColor" />
-      <path d={d} />
-    </svg>
-  );
-}
 
 function summary(s: Store, key: string) {
   const d = s.days[key];
@@ -101,12 +91,15 @@ export default function Journal() {
 
   return (
     <div className="space-y-8">
-      <header className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="font-serif text-[34px] leading-tight font-semibold">Nhật ký</h1>
-          <p className="mt-1 text-ink-2">Mỗi ngày một dòng. Nhìn lại mới thấy mình đã đi xa thế nào.</p>
+      <header className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3.5">
+          <HedgehogMascot pose="journal" size={76} className="hidden sm:block" />
+          <div>
+            <h1 className="font-serif text-[34px] leading-tight font-semibold">Nhật ký</h1>
+            <p className="mt-1 text-ink-2">Mỗi ngày một dòng cùng Bé Nhím. Nhìn lại mới thấy mình đã đi xa thế nào.</p>
+          </div>
         </div>
-        <button className="btn-ghost" onClick={() => setSettings(s => !s)}>
+        <button className="btn-ghost shrink-0" onClick={() => setSettings(s => !s)}>
           <Settings2 size={16} /> Cài đặt
         </button>
       </header>
@@ -264,7 +257,7 @@ export default function Journal() {
                   mood === m.v ? 'border-ink bg-ink text-paper' : 'border-line-strong text-ink-2 hover:bg-sunk'
                 }`}
               >
-                <MoodIcon d={m.face} size={18} /> {m.label}
+                <HedgehogMood mood={m.v} size={22} /> {m.label}
               </button>
             ))}
           </div>
@@ -298,8 +291,8 @@ export default function Journal() {
                       {s.minutes} phút · {s.atts.length} bài · {s.cards} thẻ
                     </span>
                     {md && (
-                      <span className="flex items-center gap-1 text-sm text-ink-2">
-                        <MoodIcon d={md.face} size={15} /> {md.label}
+                      <span className="flex items-center gap-1.5 text-sm text-ink-2">
+                        <HedgehogMood mood={md.v} size={18} /> {md.label}
                       </span>
                     )}
                   </div>

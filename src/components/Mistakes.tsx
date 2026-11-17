@@ -8,6 +8,7 @@ import { setMistakeReason, useStore } from '@/lib/store';
 import { dayKey, fmtDay } from '@/lib/dates';
 import { correctDisplay } from '@/lib/scoring';
 import { useNow } from '@/lib/hooks';
+import { HedgehogMascot } from './Mascots';
 
 const REASONS: { k: MistakeReason; label: string; hint: string }[] = [
   { k: 'vocab', label: 'Không biết từ', hint: 'Từ khoá trong bài hoặc đề lạ' },
@@ -90,11 +91,14 @@ export default function Mistakes() {
 
   return (
     <div>
-      <header>
-        <h1 className="font-serif text-[34px] leading-tight font-semibold">Sổ lỗi</h1>
-        <p className="mt-1 max-w-2xl text-ink-2">
-          Câu sai quay lại sau 1, 3 rồi 7 ngày. Làm đúng 3 lần liên tiếp thì câu được gạch khỏi sổ. Ghi lý do sai để biết mình hay vấp ở đâu.
-        </p>
+      <header className="flex items-center justify-between gap-4">
+        <div>
+          <h1 className="font-serif text-[34px] leading-tight font-semibold">Sổ lỗi</h1>
+          <p className="mt-1 max-w-2xl text-ink-2">
+            Bé Nhím giữ lại câu sai để quay lại sau 1, 3 rồi 7 ngày. Làm đúng 3 lần liên tiếp thì câu được gạch khỏi sổ. Ghi lý do sai để biết mình hay vấp ở đâu.
+          </p>
+        </div>
+        <HedgehogMascot pose="mistakes" size={82} className="hidden sm:block" />
       </header>
 
       <section className="mt-6 grid grid-cols-3 gap-3">
@@ -217,6 +221,7 @@ export default function Mistakes() {
           </ul>
         ) : (
           <div className="rounded-xl border border-dashed border-line-strong px-6 py-10 text-center text-sm text-muted">
+            <HedgehogMascot pose="sleepy" size={84} className="mx-auto mb-2" />
             {open.length ? 'Không có câu nào đến hạn hôm nay. Quay lại ngày mai nhé.' : 'Sổ lỗi đang trống. Làm một bài, câu sai sẽ tự vào đây.'}
           </div>
         )}

@@ -6,6 +6,7 @@ import { isActive, longestStreak, streakOf } from '@/lib/store';
 import { addDays, dayKey, daysBetween, fmtDay, fmtDuration, weekdayName } from '@/lib/dates';
 import { bandFor, fmtBand } from '@/lib/band';
 import { LESSONS } from '@/lib/skills';
+import { HedgehogMood, MascotDuo } from './Mascots';
 
 const REASON: Record<MistakeReason, string> = {
   vocab: 'Thiếu từ vựng',
@@ -76,16 +77,19 @@ export default function Coach({ store, index }: { store: Store | null; index: Te
 
   return (
     <Shell onLogout={logout}>
-      <header>
-        <h1 className="font-serif text-[32px] leading-tight font-semibold">{p.name}</h1>
-        <p className="mt-1 text-ink-2">
-          Mục tiêu {fmtBand(p.target)} · {p.goalMinutes} phút mỗi ngày
-          {p.examDate && ` · thi ngày ${p.examDate.split('-').reverse().join('/')} (còn ${Math.max(0, daysBetween(today, p.examDate))} ngày)`}
-        </p>
-        <p className="mt-1 text-sm text-muted">
-          {lastSync ? `Dữ liệu cập nhật lúc ${lastSync.toLocaleString('vi-VN')}` : 'Chưa rõ lần cập nhật gần nhất'}
-          {idle !== null && idle >= 2 && <span className="ml-2 font-semibold text-ember">· đã {idle} ngày không học</span>}
-        </p>
+      <header className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 className="font-serif text-[32px] leading-tight font-semibold">{p.name}</h1>
+          <p className="mt-1 text-ink-2">
+            Mục tiêu {fmtBand(p.target)} · {p.goalMinutes} phút mỗi ngày
+            {p.examDate && ` · thi ngày ${p.examDate.split('-').reverse().join('/')} (còn ${Math.max(0, daysBetween(today, p.examDate))} ngày)`}
+          </p>
+          <p className="mt-1 text-sm text-muted">
+            {lastSync ? `Dữ liệu cập nhật lúc ${lastSync.toLocaleString('vi-VN')}` : 'Chưa rõ lần cập nhật gần nhất'}
+            {idle !== null && idle >= 2 && <span className="ml-2 font-semibold text-ember">· đã {idle} ngày không học</span>}
+          </p>
+        </div>
+        <MascotDuo size={102} mood="study" />
       </header>
 
       <section className="grid gap-4 sm:grid-cols-4">
@@ -251,7 +255,11 @@ export default function Coach({ store, index }: { store: Store | null; index: Te
                 <span className="num text-muted">
                   {weekdayName(d)} {fmtDay(d)}
                 </span>
-                {j.mood ? <span className="ml-2 text-xs text-ink-2">· {MOOD[j.mood]}</span> : null}
+                {j.mood ? (
+                  <span className="ml-2 inline-flex items-center gap-1 text-xs text-ink-2">
+                    · <HedgehogMood mood={j.mood as 1 | 2 | 3 | 4} size={17} /> {MOOD[j.mood]}
+                  </span>
+                ) : null}
                 {j.note && <p className="mt-1 font-serif text-[15px] whitespace-pre-line">{j.note}</p>}
               </li>
             ))}

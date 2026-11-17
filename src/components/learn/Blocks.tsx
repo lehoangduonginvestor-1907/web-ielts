@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { BookMarked, Check, Lightbulb, ListOrdered, TriangleAlert, X } from 'lucide-react';
 import type { Block, BoxKind } from '@/lib/learnParse';
+import { MascotBadge } from '../Mascots';
 
 // Định dạng trong dòng: **đậm**, *nghiêng*, [[gạch chân]] (phần đang xét), ~~gạch bỏ~~, ____ (ô trống)
 const TOKEN = /(\*\*.+?\*\*|\[\[.+?\]\]|~~.+?~~|\*[^*\s][^*]*?\*|_{4,})/g;
@@ -154,6 +155,7 @@ function QuickCheck({ b, onResult }: { b: Extract<Block, { t: 'check' }>; onResu
       ) : (
         <div className={`mt-4 rounded-lg px-4 py-3 text-[14.5px] leading-relaxed ${correct ? 'bg-good-soft' : 'bg-bad-soft'}`} role="status">
           <div className={`mb-1 flex items-center gap-2 font-bold ${correct ? 'text-good' : 'text-bad'}`}>
+            <MascotBadge character="seal" variant="skills" size={24} />
             {correct ? <Check size={17} /> : <X size={17} />}
             {correct ? 'Đúng rồi' : `Chưa đúng. Đáp án là ${'ABCDEF'[b.answer]}.`}
           </div>

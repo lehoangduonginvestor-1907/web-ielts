@@ -6,6 +6,7 @@ import type { Block } from '@/lib/learnParse';
 import { drillHref, GROUP_LABEL, LESSONS, type DrillGroup, type LessonDef } from '@/lib/skills';
 import { drillSummary } from '@/lib/progress';
 import { updateLesson, useStore } from '@/lib/store';
+import { SealMascot } from '../Mascots';
 import { Blocks } from './Blocks';
 
 export default function LessonView({ lesson, blocks, drills }: { lesson: LessonDef; blocks: Block[] | null; drills: DrillGroup[] }) {
@@ -50,11 +51,16 @@ export default function LessonView({ lesson, blocks, drills }: { lesson: LessonD
 
       {drills.length > 0 && (
         <section className="card mt-5 p-5 sm:p-6">
-          <h2 className="font-serif text-xl font-semibold">Luyện với câu thật</h2>
-          <p className="mt-1 text-[14.5px] text-ink-2">
-            Kho luyện có {drills.length} nhóm câu dạng này ({drills.reduce((n, g) => n + g.to - g.from + 1, 0)} câu), lấy từ đề Cambridge. Mỗi lần làm một nhóm, có lời giải
-            từng câu.
-          </p>
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h2 className="font-serif text-xl font-semibold">Luyện với câu thật</h2>
+              <p className="mt-1 text-[14.5px] text-ink-2">
+                Kho luyện có {drills.length} nhóm câu dạng này ({drills.reduce((n, g) => n + g.to - g.from + 1, 0)} câu), lấy từ đề Cambridge. Mỗi lần làm một nhóm, có lời giải
+                từng câu.
+              </p>
+            </div>
+            <SealMascot pose={lesson.skill === 'listening' ? 'listening' : 'reading'} size={64} className="hidden sm:block" />
+          </div>
           <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
             <span className="text-sm text-muted">
               {sum && sum.done > 0 ? `Đã luyện ${sum.done}/${drills.length} nhóm · đúng ${sum.ok}/${sum.all} câu` : 'Chưa luyện nhóm nào'}

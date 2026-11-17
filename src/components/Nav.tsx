@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { BookOpenText, CalendarDays, GraduationCap, Home, Layers, NotebookPen } from 'lucide-react';
 import { streakOf, useStore } from '@/lib/store';
 import { Flame } from './Flame';
+import { MascotBadge, MascotDuo } from './Mascots';
 
 const ITEMS = [
   { href: '/', label: 'Hôm nay', icon: Home },
@@ -36,10 +37,11 @@ export default function Nav() {
     <>
       {/* Máy tính: thanh bên */}
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-56 flex-col border-r border-line bg-paper px-4 py-6 lg:flex">
-        <Link href="/" className="px-2">
+        <Link href="/" className="flex items-center justify-between gap-2 px-2">
           <Logo />
+          <MascotDuo size={54} mood="study" />
         </Link>
-        <nav className="mt-8 flex flex-col gap-0.5">
+        <nav className="mt-7 flex flex-col gap-0.5">
           {ITEMS.map(({ href, label, icon: Icon }) => {
             const on = isOn(path, href);
             return (
@@ -58,11 +60,12 @@ export default function Nav() {
         </nav>
         <div className="mt-auto rounded-xl border border-line bg-surface p-3">
           <div className="flex items-center gap-2.5">
-            <Flame lit={streak > 0} size={26} />
-            <div>
+            <Flame lit={streak > 0} size={28} />
+            <div className="min-w-0">
               <div className="num text-lg leading-none font-bold">{store ? streak : '–'}</div>
               <div className="mt-0.5 text-xs text-muted">ngày liên tiếp</div>
             </div>
+            <MascotBadge character="hedgehog" variant="journal" size={32} className="ml-auto" />
           </div>
         </div>
       </aside>
