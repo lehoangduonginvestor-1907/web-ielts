@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { AArrowDown, AArrowUp, ArrowLeft, Flag, Headphones, BookOpen, Clock, X } from 'lucide-react';
 import type { Answers, Attempt, Explanation, Group, ListeningPart, Passage as PassageT, Skill } from '@/lib/types';
-import { gradeGroups, isFilled } from '@/lib/scoring';
+import { expandFocus, gradeGroups, isFilled } from '@/lib/scoring';
 import { draftKey, logSeconds, recordAttempt, update, useStore } from '@/lib/store';
 import { usePref } from '@/lib/hooks';
 import { fmtClock } from '@/lib/dates';
@@ -59,7 +59,8 @@ export default function TestRoom(props: RoomProps) {
     focus?.length ? u.groups.filter(g => g.questions.some(q => focus.includes(q.n))) : u.groups;
   const qNums = useMemo(() => {
     const all = allGroups.flatMap(g => g.questions.map(q => q.n));
-    return focus?.length ? all.filter(n => focus.includes(n)) : all;
+    const scored = expandFocus(allGroups, focus); // nhóm "chọn HAI" được chấm cả nhóm
+    return scored?.length ? all.filter(n => scored.includes(n)) : all;
   }, [allGroups, focus]);
 
   const reviewAttempt = useMemo(
@@ -86,6 +87,7 @@ export default function TestRoom(props: RoomProps) {
   const [seconds, setSeconds] = useState(0);
   const [startedAt, setStartedAt] = useState(0);
   const [unitIdx, setUnitIdx] = useState(0);
+  const [resumed, setResumed] = useState(false); // làm tiếp từ bản nháp
   const [current, setCurrent] = useState<number | null>(null);
   const [evidence, setEvidence] = useState<string | null>(null);
   const [mobilePane, setMobilePane] = useState<'text' | 'questions'>('questions');
@@ -111,11 +113,22 @@ export default function TestRoom(props: RoomProps) {
 
   // ---------- Đồng hồ ----------
   const limit = mode === 'exam' && isReading ? units.length * 20 * 60 : null;
+  // Thi thử: đồng hồ chạy theo giờ thực, kể cả khi chuyển tab hay máy ngủ (như trong phòng thi).
+  // Luyện tập: chỉ đếm lúc đang mở trang. Thời gian học trong ngày luôn chỉ đếm lúc đang mở trang.
+  const clock = useRef<{ at: number; from: number } | null>(null);
   useEffect(() => {
     if (phase !== 'doing') return;
+    clock.current = null;
     const id = setInterval(() => {
+      if (mode === 'exam') {
+        setSeconds(s => {
+          clock.current ??= { at: Date.now() - 1000, from: s };
+          return clock.current.from + Math.floor((Date.now() - clock.current.at) / 1000);
+        });
+      } else if (!document.hidden) {
+        setSeconds(s => s + 1);
+      }
       if (document.hidden) return;
-      setSeconds(s => s + 1);
       unloggedSeconds.current += 1;
       if (unloggedSeconds.current >= 30) {
         logSeconds(unloggedSeconds.current);
@@ -123,7 +136,7 @@ export default function TestRoom(props: RoomProps) {
       }
     }, 1000);
     return () => clearInterval(id);
-  }, [phase]);
+  }, [phase, mode]);
 
   // Ghi nốt thời gian khi rời trang
   useEffect(() => {
@@ -145,11 +158,11 @@ export default function TestRoom(props: RoomProps) {
     if (phase !== 'doing') return;
     const t = setTimeout(() => {
       update(s => {
-        s.drafts[dKey] = { answers, seconds, flagged, startedAt };
+        s.drafts[dKey] = { answers, seconds, flagged, startedAt, mode, unitIdx };
       });
     }, 400);
     return () => clearTimeout(t);
-  }, [answers, flagged, seconds, phase, dKey, startedAt]);
+  }, [answers, flagged, seconds, phase, dKey, startedAt, mode, unitIdx]);
 
   const submit = useCallback(() => {
     setConfirm(null);
@@ -174,6 +187,7 @@ export default function TestRoom(props: RoomProps) {
       ...graded,
       blank,
       incomplete: qNums.length - blank.length < qNums.length / 2,
+      ...(resumed ? { resumed: true } : {}),
     };
     recordAttempt(attempt);
     setPhase('review');
@@ -182,7 +196,7 @@ export default function TestRoom(props: RoomProps) {
     const url = new URL(window.location.href);
     url.searchParams.set('attempt', attempt.id);
     router.replace(url.pathname + url.search, { scroll: false });
-  }, [allGroups, qNums, answers, focus, drill, testId, skill, unitNums, mode, startedAt, seconds, router]);
+  }, [allGroups, qNums, answers, focus, drill, testId, skill, unitNums, mode, startedAt, seconds, resumed, router]);
 
   // Hết giờ (thi thử Reading) hoặc hết 2 phút kiểm tra (thi thử Listening)
   const remaining = limit !== null ? limit - seconds : audioDone !== null ? 120 - (seconds - audioDone) : null;
@@ -194,17 +208,22 @@ export default function TestRoom(props: RoomProps) {
 
   const start = (resume: boolean) => {
     if (resume && draft) {
+      // Làm tiếp sau khi bị gián đoạn: quay về đúng phần đang làm. Bài này vẫn được chữa như thường
+      // nhưng không tính vào band (audio phát lại từ đầu phần, có thời gian nghỉ giữa chừng).
       setAnswers(draft.answers);
       setSeconds(draft.seconds);
       setFlagged(draft.flagged);
       setStartedAt(draft.startedAt);
+      setUnitIdx(Math.min(draft.unitIdx ?? 0, units.length - 1));
+      setResumed(true);
     } else {
       setAnswers({});
       setSeconds(0);
       setFlagged([]);
       setStartedAt(Date.now());
+      setUnitIdx(0);
+      setResumed(false);
     }
-    setUnitIdx(0);
     setPhase('doing');
     if (!isReading && mode === 'exam') pendingPlay.current = true;
     if (startAt) seekOnStart.current = startAt;
@@ -751,6 +770,9 @@ function Intro(p: {
               {p.hasDraft ? 'Làm lại từ đầu' : 'Bắt đầu'}
             </button>
           </div>
+          {p.hasDraft && p.mode === 'exam' && !p.focus?.length && (
+            <p className="mt-3 text-xs text-muted">Bài thi thử làm tiếp sau khi bị gián đoạn vẫn được chữa như thường nhưng không tính vào band.</p>
+          )}
           {!reading && (
             <p className="mt-4 text-xs text-muted">Đeo tai nghe. Khi luyện tập: Space để dừng/phát, ← → để tua 5 giây.</p>
           )}

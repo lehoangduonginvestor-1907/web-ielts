@@ -62,13 +62,28 @@ export function gradeGroup(g: Group, answers: Answers): Record<number, boolean> 
   return out;
 }
 
-export function gradeGroups(groups: Group[], answers: Answers, focus?: number[]) {
+/**
+ * Các câu thực sự được chấm khi chỉ làm lại một số câu. Nhóm "chọn HAI đáp án" luôn được chấm cả nhóm:
+ * điểm của nhóm này dồn vào câu đầu trước, nên nếu chỉ chấm câu thứ hai thì chọn đúng một đáp án vẫn ra 0/1.
+ * Chấm cả nhóm thì đúng một lựa chọn là 1/2, đúng cả hai là 2/2 (câu trong Sổ lỗi chỉ qua khi đúng cả cặp).
+ */
+export function expandFocus(groups: Group[], focus?: number[]): number[] | undefined {
+  if (!focus?.length) return focus;
+  const out = new Set(focus);
+  for (const g of groups) {
+    if (g.kind === 'multi' && g.questions.some(q => out.has(q.n))) g.questions.forEach(q => out.add(q.n));
+  }
+  return [...out].sort((a, b) => a - b);
+}
+
+export function gradeGroups(groups: Group[], answers: Answers, focusIn?: number[]) {
   const results: Record<number, boolean> = {};
   const types: Record<number, string> = {};
   for (const g of groups) {
     Object.assign(results, gradeGroup(g, answers));
     g.questions.forEach(q => (types[q.n] = g.type));
   }
+  const focus = expandFocus(groups, focusIn);
   if (focus?.length) {
     for (const n of Object.keys(results).map(Number)) {
       if (!focus.includes(n)) {

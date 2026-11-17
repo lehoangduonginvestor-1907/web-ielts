@@ -23,7 +23,7 @@ export default function Library({ index }: { index: TestIndexEntry[] }) {
   const drill = drillBooks(index);
   const sorted = [...new Set(index.map(t => t.book))].sort((a, b) => a - b);
   const books = [...sorted.filter(b => b !== reserved && !drill.includes(b)), ...sorted.filter(b => drill.includes(b)), ...sorted.filter(b => b === reserved)];
-  const tier = store ? tierOf(store, skill) : 0;
+  const tier = store ? tierOf(store, skill, index) : 0;
   const open = tierUnits(skill, tier);
   const unitWord = skill === 'listening' ? 'Part' : 'Passage';
 
@@ -124,7 +124,7 @@ export default function Library({ index }: { index: TestIndexEntry[] }) {
         </span>
         <span className="text-ink-2">
           {tier < 2
-            ? `Đạt trung bình 70% ở ${unitWord} ${open[open.length - 1]} (3–5 lần gần nhất) để mở phần tiếp theo. Phần chưa mở vẫn làm được.`
+            ? `Đạt trung bình 70% ở ${unitWord} ${open[open.length - 1]} (lần đầu làm, trên 3–5 đề khác nhau gần nhất) để mở phần tiếp theo. Phần chưa mở vẫn làm được.`
             : 'Đã mở toàn bộ. Bắt đầu làm cả bài có bấm giờ.'}
         </span>
       </div>

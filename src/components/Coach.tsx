@@ -1,7 +1,7 @@
 'use client';
 
 import type { MistakeReason, Store, TestIndexEntry } from '@/lib/types';
-import { bandEstimate, fullAttempts, typeStats } from '@/lib/progress';
+import { bandEstimate, countsForBand, fullAttempts, typeStats } from '@/lib/progress';
 import { isActive, longestStreak, streakOf } from '@/lib/store';
 import { addDays, dayKey, daysBetween, fmtDay, fmtDuration, weekdayName } from '@/lib/dates';
 import { bandFor, fmtBand } from '@/lib/band';
@@ -53,7 +53,9 @@ export default function Coach({ store, index }: { store: Store | null; index: Te
       label: w === 0 ? '7 ngày qua' : `${fmtDay(days[6])} – ${fmtDay(days[0])}`,
       active: logs.filter(l => isActive(l)).length,
       seconds: logs.reduce((n, l) => n + (l?.seconds ?? 0), 0),
-      units: logs.reduce((n, l) => n + (l?.units ?? 0), 0),
+      // Đếm từ bài làm (đúng cả với dữ liệu cũ): một đề Listening cả bài = 4 phần; làm lại câu sai / luyện dạng đếm riêng
+      units: atts.filter(a => !a.focus?.length).reduce((n, a) => n + a.units.length, 0),
+      drills: atts.filter(a => a.focus?.length).length,
       cards: logs.reduce((n, l) => n + (l?.cards ?? 0), 0),
       acc: all ? Math.round((ok / all) * 100) : null,
     };
@@ -101,7 +103,7 @@ export default function Coach({ store, index }: { store: Store | null; index: Te
         <Stat label="7 ngày qua" value={fmtDuration(weeks[0].seconds)} note={`${weeks[0].active}/7 ngày có học`} />
         {(['listening', 'reading'] as const).map(skill => {
           const b = bandEstimate(store, skill);
-          return <Stat key={skill} label={`Band ${skill === 'listening' ? 'Listening' : 'Reading'}`} value={b ? fmtBand(b.avg) : '–'} note={b ? `TB ${b.count} bài 40 câu gần nhất` : 'chưa làm bài 40 câu'} />;
+          return <Stat key={skill} label={`Band ${skill === 'listening' ? 'Listening' : 'Reading'}`} value={b ? fmtBand(b.avg) : '–'} note={b ? `TB ${b.count} lần thi thử đề mới` : 'chưa có bài thi thử đề mới'} />;
         })}
       </section>
 
@@ -130,7 +132,7 @@ export default function Coach({ store, index }: { store: Store | null; index: Te
           <table className="w-full text-left text-sm">
             <thead className="text-xs text-muted">
               <tr className="border-b border-line">
-                {['Tuần', 'Ngày có học', 'Thời gian', 'Phần đã làm', 'Thẻ từ đã ôn', 'Tỷ lệ đúng'].map(h => (
+                {['Tuần', 'Ngày có học', 'Thời gian', 'Part/Passage đã làm', 'Lượt làm lại, luyện dạng', 'Thẻ từ đã ôn', 'Tỷ lệ đúng'].map(h => (
                   <th key={h} className="px-4 py-2.5 font-semibold whitespace-nowrap">{h}</th>
                 ))}
               </tr>
@@ -142,6 +144,7 @@ export default function Coach({ store, index }: { store: Store | null; index: Te
                   <td className="px-4 py-2.5">{w.active}/7</td>
                   <td className="px-4 py-2.5 whitespace-nowrap">{fmtDuration(w.seconds)}</td>
                   <td className="px-4 py-2.5">{w.units}</td>
+                  <td className="px-4 py-2.5">{w.drills}</td>
                   <td className="px-4 py-2.5">{w.cards}</td>
                   <td className="px-4 py-2.5">{w.acc === null ? '–' : `${w.acc}%`}</td>
                 </tr>
@@ -206,7 +209,8 @@ export default function Coach({ store, index }: { store: Store | null; index: Te
       </section>
 
       <section>
-        <h2 className="mb-3 font-serif text-xl font-semibold">Bài 40 câu (ước tính band)</h2>
+        <h2 className="mb-3 font-serif text-xl font-semibold">Bài 40 câu</h2>
+        <p className="-mt-2 mb-3 text-xs text-muted">Chỉ bài thi thử trên đề chưa gặp mới tính vào band. Bài luyện tập (tua lại được) và đề làm lại chỉ để tham khảo.</p>
         {mocks.length ? (
           <ul className="card divide-y divide-line text-sm">
             {mocks.slice(0, 10).map(a => (
@@ -214,10 +218,12 @@ export default function Coach({ store, index }: { store: Store | null; index: Te
                 <span className="num w-14 text-muted">{fmtDay(dayKey(a.finishedAt))}</span>
                 <span className="flex-1 font-semibold">
                   {testName(a.testId)} · {a.skill === 'listening' ? 'Listening' : 'Reading'}
-                  {a.mode === 'exam' && <span className="ml-2 text-xs font-normal text-muted">thi thử</span>}
+                  <span className="ml-2 text-xs font-normal text-muted">
+                    {countsForBand(store, a) ? 'thi thử · tính band' : a.mode === 'exam' ? 'thi thử · đề đã gặp' : 'luyện tập'}
+                  </span>
                 </span>
                 <span className="num">{a.score}/40</span>
-                <span className="num font-serif text-lg font-semibold text-accent">{fmtBand(bandFor(a.skill, a.score))}</span>
+                <span className={`num font-serif text-lg font-semibold ${countsForBand(store, a) ? 'text-accent' : 'text-muted'}`}>{fmtBand(bandFor(a.skill, a.score))}</span>
               </li>
             ))}
           </ul>

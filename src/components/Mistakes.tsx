@@ -90,7 +90,7 @@ export default function Mistakes() {
         <div>
           <h1 className="font-serif text-[34px] leading-tight font-semibold">Sổ lỗi</h1>
           <p className="mt-1 max-w-2xl text-ink-2">
-            Bé Nhím giữ lại câu sai để quay lại sau 1, 3 rồi 7 ngày. Làm đúng 3 lần liên tiếp thì câu được gạch khỏi sổ. Ghi lý do sai để biết mình hay vấp ở đâu.
+            Bé Nhím giữ lại câu sai để quay lại sau 1, 3 rồi 7 ngày. Làm đúng 3 lần liên tiếp, mỗi lần đúng hạn, thì câu được gạch khỏi sổ. Làm lại sớm hơn hạn vẫn được để sửa ngay, nhưng không tính. Ghi lý do sai để biết mình hay vấp ở đâu.
           </p>
         </div>
         <HedgehogMascot pose="mistakes" size={82} className="hidden sm:block" />

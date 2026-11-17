@@ -4,13 +4,15 @@ import { useSyncExternalStore } from 'react';
 import type { Attempt, DayLog, LessonState, MistakeReason, Profile, Store, Word } from './types';
 import { addDays, dayKey } from './dates';
 import { newSrs } from './srs';
+import { mergeStores } from './merge';
+import { applyMistakes, mistakeKey } from './mistakes';
 
 // Dữ liệu học nằm trong một khoá localStorage (bản làm việc, phản hồi tức thì) và được đồng bộ
 // với một file ở máy chủ (/api/progress) để không mất khi đổi máy và để người kèm xem được.
 // localStorage có thể bị chặn (ẩn danh...) nên mọi thao tác đều bọc try/catch.
 
 const KEY = 'ielts.v1';
-const DAY = 86400000;
+const SYNC_KEY = 'ielts.v1.sync'; // { base, dirty }: bản máy chủ đã biết và có thay đổi chưa gửi không
 
 const empty = (): Store => ({
   version: 1,
@@ -53,23 +55,50 @@ function persist(next: Store) {
 function save(next: Store) {
   next.updatedAt = Date.now();
   persist(next);
-  dirty = true;
+  setSync({ dirty: true });
   schedulePush();
 }
 
 // ---------- Đồng bộ với máy chủ ----------
-// Mở app: kéo bản ở máy chủ về, bản nào sửa sau thì dùng bản đó. Sau đó mỗi thay đổi được đẩy lên,
-// gom lại tối đa 3 phút một lần (kho lưu trữ tính lượt ghi); việc quan trọng (nộp bài…) đẩy gần như ngay.
+// Mở app: đối chiếu với bản ở máy chủ. Sau đó mỗi thay đổi được đẩy lên, gom lại tối đa 3 phút một lần
+// (kho lưu trữ tính lượt ghi); việc quan trọng (nộp bài…) đẩy gần như ngay.
+// Khi cả máy này lẫn máy chủ cùng có thay đổi mới (học trên hai máy), hai bản được GỘP (lib/merge.ts),
+// không bản nào ghi đè bản nào. Trạng thái đồng bộ lưu cạnh dữ liệu để còn nhớ sau khi tắt trình duyệt.
 
 const PUSH_GAP = 180_000;
 let started = false;
 let ready = false; // đã đối chiếu với máy chủ (hoặc đã thử) chưa; trước đó chưa hiển thị dữ liệu
 let pulled = false; // lần kéo gần nhất có thành công không; chưa kéo được thì không đẩy
-let base = 0; // updatedAt của bản ở máy chủ mà trình duyệt này biết
-let dirty = false;
 let lastPush = 0;
 let pushAt = 0;
 let pushTimer: ReturnType<typeof setTimeout> | null = null;
+
+interface SyncState {
+  base: number; // updatedAt của bản ở máy chủ mà máy này đã đồng bộ tới (0 = chưa rõ)
+  dirty: boolean; // có thay đổi trên máy chưa được máy chủ xác nhận
+}
+let syncMem: SyncState = { base: 0, dirty: false }; // dùng khi localStorage bị chặn
+
+function getSync(): SyncState {
+  try {
+    const raw = localStorage.getItem(SYNC_KEY);
+    if (raw) return { ...syncMem, ...(JSON.parse(raw) as SyncState) };
+  } catch {
+    // dùng bản trong bộ nhớ
+  }
+  return syncMem;
+}
+
+function setSync(patch: Partial<SyncState>) {
+  syncMem = { ...getSync(), ...patch };
+  try {
+    localStorage.setItem(SYNC_KEY, JSON.stringify(syncMem));
+  } catch {
+    // Bỏ qua
+  }
+}
+
+const isBlank = (s: Store) => !s.profile && !s.attempts.length && !s.words.length;
 
 async function pull() {
   try {
@@ -77,13 +106,28 @@ async function pull() {
     if (!r.ok) throw new Error(String(r.status));
     const { store: remote } = (await r.json()) as { store: Store | null };
     pulled = true;
-    base = remote?.updatedAt ?? 0;
     const local = load();
-    if (remote && base >= (local.updatedAt ?? 0)) {
+    const sync = getSync();
+    if (!remote) {
+      // Máy chủ chưa có gì: gửi bản trên máy lên (nếu có)
+      if (!isBlank(local)) {
+        setSync({ dirty: true });
+        schedulePush(1000);
+      }
+    } else if (isBlank(local)) {
       persist({ ...empty(), ...remote });
-      dirty = false;
-    } else if (local.profile && (local.updatedAt ?? 0) > base) {
-      dirty = true;
+      setSync({ base: remote.updatedAt ?? 0, dirty: false });
+    } else if (remote.updatedAt === sync.base) {
+      // Máy chủ không đổi từ lần đồng bộ trước: chỉ cần gửi thay đổi của máy này (nếu có)
+      if (sync.dirty) schedulePush(1000);
+    } else if (!sync.dirty && sync.base) {
+      // Máy chủ có bản mới hơn (học trên máy khác), máy này không có gì mới: dùng bản máy chủ
+      persist({ ...empty(), ...remote });
+      setSync({ base: remote.updatedAt ?? 0 });
+    } else {
+      // Cả hai bên cùng có thay đổi (hoặc chưa rõ, như lần đầu sau khi nâng cấp): gộp rồi gửi lên
+      persist(mergeStores({ ...empty(), ...remote }, local));
+      setSync({ base: remote.updatedAt ?? 0, dirty: true });
       schedulePush(1000);
     }
   } catch {
@@ -106,29 +150,27 @@ function schedulePush(delay?: number) {
 }
 
 async function push(leaving = false) {
-  if (!dirty) return;
+  if (!getSync().dirty) return;
   if (!pulled) {
     if (leaving) return;
     await pull();
     if (!pulled) return schedulePush(60_000);
-    if (!dirty) return;
+    if (!getSync().dirty) return;
   }
   const store = load();
-  const body = JSON.stringify({ store, base });
+  const body = JSON.stringify({ store, base: getSync().base });
   try {
     // Khi rời trang chỉ gửi kèm keepalive được nếu gói nhỏ (giới hạn của trình duyệt)
     const r = await fetch('/api/progress', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body, keepalive: leaving && body.length < 60_000 });
     lastPush = Date.now();
-    if (r.status === 409) {
-      // Máy chủ có bản mới hơn (đã học trên máy khác): dùng bản đó
-      const { store: remote } = (await r.json()) as { store: Store };
-      base = remote.updatedAt ?? 0;
-      dirty = false;
-      persist({ ...empty(), ...remote });
-    } else if (r.ok) {
-      base = store.updatedAt ?? 0;
-      if (load().updatedAt === store.updatedAt) dirty = false;
-      else schedulePush();
+    if (r.ok) {
+      // Máy chủ trả về `store` khi đã phải gộp với thay đổi từ máy khác
+      const res = (await r.json()) as { updatedAt: number; store?: Store };
+      const now = load();
+      const unchanged = now.updatedAt === store.updatedAt; // trong lúc gửi, máy này không sửa gì thêm
+      if (res.store) persist(unchanged ? { ...empty(), ...res.store } : mergeStores({ ...empty(), ...res.store }, now));
+      setSync({ base: res.updatedAt, dirty: !unchanged });
+      if (!unchanged) schedulePush();
     } else {
       schedulePush(60_000);
     }
@@ -184,7 +226,7 @@ export const getStore = load;
 
 // ---------- Hoạt động & streak ----------
 
-export const isActive = (d?: DayLog) => !!d && (d.units >= 1 || d.cards >= 10 || d.seconds >= 600);
+export const isActive = (d?: DayLog) => !!d && (d.units >= 1 || (d.drills ?? 0) >= 1 || d.cards >= 10 || d.seconds >= 600);
 
 function touchDay(s: Store, key: string): DayLog {
   return (s.days[key] ??= { seconds: 0, units: 0, cards: 0 });
@@ -275,7 +317,7 @@ export function applyFreezes() {
 
 // ---------- Bài làm ----------
 
-export const mistakeKey = (testId: string, skill: string, n: number) => `${testId}:${skill[0].toUpperCase()}:${n}`;
+export { mistakeKey };
 
 export function recordAttempt(a: Attempt) {
   update(s => {
@@ -283,24 +325,15 @@ export function recordAttempt(a: Attempt) {
     const was = isActive(s.days[k]);
     const d = touchDay(s, k);
     // Thời gian đã được ghi dần trong lúc làm bài. Bài trả lời chưa tới một nửa số câu
-    // không được tính là một phần đã làm (nên cũng không tự giữ chuỗi ngày).
-    if (!a.incomplete) d.units += 1;
+    // không được tính là đã làm (nên cũng không tự giữ chuỗi ngày).
+    // Bài làm thật đếm theo số Part/Passage; làm lại câu sai và luyện theo dạng đếm riêng thành lượt.
+    if (!a.incomplete) {
+      if (a.focus?.length) d.drills = (d.drills ?? 0) + 1;
+      else d.units += a.units.length;
+    }
     s.attempts.push(a);
     delete s.drafts[draftKey(a.testId, a.skill, a.units, a.focus)];
-    // Sổ lỗi: câu sai đưa vào lịch làm lại; câu làm lại đúng thì giãn lịch
-    // Bài bỏ dở: câu chưa đụng tới không phải câu sai, không đưa vào Sổ lỗi
-    const untouched = new Set(a.incomplete ? a.blank : []);
-    for (const [nStr, ok] of Object.entries(a.results)) {
-      if (untouched.has(Number(nStr))) continue;
-      const key = mistakeKey(a.testId, a.skill, Number(nStr));
-      const m = s.mistakes[key];
-      if (!ok) {
-        s.mistakes[key] = { ...m, step: 0, due: a.finishedAt + DAY, resolved: false };
-      } else if (m && !m.resolved && a.focus?.length) {
-        const step = m.step + 1;
-        s.mistakes[key] = step >= 3 ? { ...m, step, resolved: true, due: Number.MAX_SAFE_INTEGER } : { ...m, step, due: a.finishedAt + [1, 3, 7][step] * DAY };
-      }
-    }
+    applyMistakes(s.mistakes, a);
     afterActivity(s, k, was);
   });
   pushSoon();

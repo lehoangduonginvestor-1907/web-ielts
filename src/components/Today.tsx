@@ -98,7 +98,7 @@ export default function Today({ index }: { index: TestIndexEntry[] }) {
       key: 'mistakes',
       icon: NotebookPen,
       title: `Làm lại ${mistakes.length} câu sai`,
-      detail: 'Câu sai hôm trước quay lại. Làm đúng 3 lần là gạch khỏi sổ',
+      detail: 'Câu sai hôm trước quay lại. Đúng 3 lần, mỗi lần đúng hạn, là gạch khỏi sổ',
       href: '/mistakes',
       done: false,
       mins: Math.max(3, mistakes.length * 2),
@@ -278,11 +278,11 @@ export default function Today({ index }: { index: TestIndexEntry[] }) {
                   <>
                     <p className="mt-1 font-serif text-[34px] leading-none font-semibold">{fmtBand(b.avg)}</p>
                     <p className="mt-1 text-xs text-muted">
-                      TB {b.count} đề gần nhất · {b.avg >= p.target ? 'đã chạm mục tiêu' : `còn ${(p.target - b.avg).toFixed(1)} band`}
+                      TB {b.count} lần thi thử đề mới · {b.avg >= p.target ? 'đã chạm mục tiêu' : `còn ${(p.target - b.avg).toFixed(1)} band`}
                     </p>
                   </>
                 ) : (
-                  <TierMeter store={store} skill={name === 'Listening' ? 'listening' : 'reading'} />
+                  <TierMeter store={store} index={index} skill={name === 'Listening' ? 'listening' : 'reading'} />
                 )}
               </div>
             ))}
@@ -348,16 +348,21 @@ function Ring({ pct }: { pct: number }) {
   );
 }
 
-// Chưa có bài 40 câu: cho thấy còn bao xa để mở phần khó hơn của lộ trình (không quy đổi band từ phần lẻ)
-function TierMeter({ store, skill }: { store: Store; skill: Skill }) {
-  const tp = tierProgress(store, skill);
-  if (!tp) return <p className="mt-2 text-sm leading-snug text-muted">Đã mở hết các phần. Làm một bài cả 40 câu để có ước tính band.</p>;
+// Chưa có bài thi thử: cho thấy còn bao xa để mở phần khó hơn của lộ trình (không quy đổi band từ phần lẻ)
+function TierMeter({ store, index, skill }: { store: Store; index: TestIndexEntry[]; skill: Skill }) {
+  const tp = tierProgress(store, skill, index);
+  if (!tp)
+    return (
+      <p className="mt-2 text-sm leading-snug text-muted">
+        Đã mở hết các phần. Làm một bài thi thử cả 40 câu trên đề chưa làm để có band (bài luyện tập và đề đã gặp không tính).
+      </p>
+    );
   const word = skill === 'listening' ? 'Part' : 'Passage';
   const pct = tp.acc === null ? 0 : Math.round(tp.acc * 100);
   return (
     <div className="mt-2">
       <p className="text-sm leading-snug text-ink-2">
-        Mở {word} {tp.next}: cần trung bình 70% ở {word} {tp.unit}
+        Mở {word} {tp.next}: cần trung bình 70% riêng {word} {tp.unit}, trên {tp.need} đề khác nhau
       </p>
       <div className="relative mt-2 h-2 rounded-full bg-sunk">
         <div className={`h-full rounded-full ${pct >= 70 ? 'bg-good' : 'bg-accent'}`} style={{ width: `${Math.min(100, pct)}%` }} />
@@ -365,8 +370,8 @@ function TierMeter({ store, skill }: { store: Store; skill: Skill }) {
       </div>
       <p className="num mt-1 text-xs text-muted">
         {tp.count === 0
-          ? `Chưa làm ${word} ${tp.unit} lần nào`
-          : `${pct}% · ${tp.count} lần gần nhất${tp.count < 3 ? ` · cần thêm ${3 - tp.count} lần nữa` : ''}`}
+          ? `Chưa làm ${word} ${tp.unit} ở đề nào`
+          : `${pct}% · ${tp.count} đề gần nhất (lần đầu làm)${tp.count < tp.need ? ` · cần thêm ${tp.need - tp.count} đề nữa` : ''}`}
       </p>
     </div>
   );

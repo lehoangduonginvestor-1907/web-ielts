@@ -29,8 +29,19 @@ export function fullAttempts(s: Store, skill: Skill): Attempt[] {
   return realAttempts(s).filter(a => a.skill === skill && a.total === 40);
 }
 
+// Bài này có phải lần đầu gặp đề (cùng kỹ năng) không: trước nó chưa có bài làm nào chạm tới đề,
+// kể cả bài bỏ dở, làm lại câu sai hay luyện theo dạng. Làm lại đề đã gặp thì nhớ đáp án nên không tính.
+function firstTimeOnTest(s: Store, a: Attempt): boolean {
+  return !s.attempts.some(x => x !== a && x.testId === a.testId && x.skill === a.skill && x.finishedAt < a.finishedAt);
+}
+
+/** Bài tính vào band: thi thử cả 40 câu (audio không tua được, có giới hạn giờ) trên đề chưa gặp. */
+export function countsForBand(s: Store, a: Attempt): boolean {
+  return a.mode === 'exam' && a.total === 40 && !a.focus?.length && !a.incomplete && !a.resumed && firstTimeOnTest(s, a);
+}
+
 export function bandEstimate(s: Store, skill: Skill) {
-  const full = fullAttempts(s, skill).slice(-3);
+  const full = s.attempts.filter(a => a.skill === skill && countsForBand(s, a)).slice(-3);
   if (!full.length) return null;
   const bands = full.map(a => bandFor(skill, a.score));
   const avg = bands.reduce((x, y) => x + y, 0) / bands.length;
@@ -60,23 +71,56 @@ export function typeStats(s: Store, skill?: Skill) {
 
 // ---------- Lộ trình bậc thang cho người mới (band 5.0–5.5) ----------
 // Bậc 1: Listening Part 1–2, Reading Passage 1. Bậc 2: thêm Part 3, Passage 2. Bậc 3: tất cả.
-// Lên bậc khi 5 lần làm gần nhất ở phần khó nhất của bậc hiện tại đạt trung bình ≥ 70%.
+// Lên bậc khi phần khó nhất của bậc hiện tại đạt trung bình ≥ 70% trên 3–5 đề khác nhau gần nhất.
+// Chỉ tính điểm riêng của phần đó (không lấy điểm cả bài) và chỉ lần đầu làm phần đó ở mỗi đề.
 
 const TIERS: Record<Skill, number[][]> = {
   listening: [[1, 2], [1, 2, 3], [1, 2, 3, 4]],
   reading: [[1], [1, 2], [1, 2, 3]],
 };
 
-export function tierOf(s: Store, skill: Skill): number {
+const TIER_MIN = 3;
+const TIER_WINDOW = 5;
+const TIER_PASS = 0.7;
+
+/** Điểm lần đầu làm phần `n` ở mỗi đề, theo thứ tự thời gian. Đề mà lần đầu chạm tới phần này là
+ *  bài bỏ dở, làm lại câu sai hay luyện theo dạng thì bỏ qua (đã thấy câu hỏi, không còn là lần đầu). */
+export function firstUnitScores(s: Store, index: TestIndexEntry[], skill: Skill, n: number) {
+  const out: { testId: string; score: number; total: number; at: number }[] = [];
+  const seen = new Set<string>();
+  const byTime = [...s.attempts].sort((a, b) => a.finishedAt - b.finishedAt);
+  for (const a of byTime) {
+    if (a.skill !== skill || seen.has(a.testId)) continue;
+    const u = index.find(t => t.id === a.testId)?.[skill].find(x => x.n === n);
+    if (!u) continue;
+    let score = 0;
+    let total = 0;
+    for (let q = u.from; q <= u.to; q++) {
+      if (q in a.results) {
+        total++;
+        if (a.results[q]) score++;
+      }
+    }
+    if (!total) continue; // bài này không chạm tới phần n
+    seen.add(a.testId);
+    if (a.focus?.length || a.incomplete || !a.units.includes(n)) continue;
+    out.push({ testId: a.testId, score, total, at: a.finishedAt });
+  }
+  return out;
+}
+
+function unitAccuracy(s: Store, index: TestIndexEntry[], skill: Skill, n: number) {
+  const recent = firstUnitScores(s, index, skill, n).slice(-TIER_WINDOW);
+  const acc = recent.length ? recent.reduce((x, r) => x + r.score / r.total, 0) / recent.length : null;
+  return { count: recent.length, acc };
+}
+
+export function tierOf(s: Store, skill: Skill, index: TestIndexEntry[]): number {
   let tier = 0;
   while (tier < 2) {
     const hardest = TIERS[skill][tier][TIERS[skill][tier].length - 1];
-    const recent = realAttempts(s)
-      .filter(a => a.skill === skill && a.units.includes(hardest))
-      .slice(-5);
-    if (recent.length < 3) break;
-    const acc = recent.reduce((x, a) => x + a.score / Math.max(1, a.total), 0) / recent.length;
-    if (acc < 0.7) break;
+    const { count, acc } = unitAccuracy(s, index, skill, hardest);
+    if (count < TIER_MIN || acc === null || acc < TIER_PASS) break;
     tier++;
   }
   return tier;
@@ -84,16 +128,13 @@ export function tierOf(s: Store, skill: Skill): number {
 
 export const tierUnits = (skill: Skill, tier: number) => TIERS[skill][tier];
 
-/** Đang ở bậc nào và còn bao xa để mở bậc tiếp theo (null khi đã mở hết). */
-export function tierProgress(s: Store, skill: Skill) {
-  const tier = tierOf(s, skill);
+/** Đang ở bậc nào và còn bao xa để mở bậc tiếp theo (null khi đã mở hết). `count` là số đề khác nhau. */
+export function tierProgress(s: Store, skill: Skill, index: TestIndexEntry[]) {
+  const tier = tierOf(s, skill, index);
   if (tier >= 2) return null;
   const unit = TIERS[skill][tier][TIERS[skill][tier].length - 1];
-  const recent = realAttempts(s)
-    .filter(a => a.skill === skill && a.units.includes(unit))
-    .slice(-5);
-  const acc = recent.length ? recent.reduce((x, a) => x + a.score / Math.max(1, a.total), 0) / recent.length : null;
-  return { tier, unit, next: TIERS[skill][tier + 1][TIERS[skill][tier + 1].length - 1], count: recent.length, acc };
+  const { count, acc } = unitAccuracy(s, index, skill, unit);
+  return { tier, unit, next: TIERS[skill][tier + 1][TIERS[skill][tier + 1].length - 1], count, acc, need: TIER_MIN };
 }
 
 // Đề "để dành" cho thi thử cuối kỳ: cuốn mới nhất, khi đã có từ 4 cuốn trở lên
@@ -112,7 +153,7 @@ export interface Suggestion {
 
 // Phần nên làm tiếp: phần chưa làm, nằm trong bậc hiện tại, ưu tiên phần dễ nhất và đề cũ hơn
 export function nextUnit(s: Store, index: TestIndexEntry[], skill: Skill): Suggestion | null {
-  const tier = tierOf(s, skill);
+  const tier = tierOf(s, skill, index);
   const allowed = tierUnits(skill, tier);
   const reserved = reservedBook(index);
   const drill = drillBooks(index);

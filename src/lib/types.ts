@@ -130,6 +130,16 @@ export interface Attempt {
   total: number;
   blank?: number[]; // các câu bỏ trống lúc nộp
   incomplete?: boolean; // trả lời chưa tới một nửa số câu: lưu để xem lại nhưng không tính là đã làm
+  resumed?: boolean; // làm tiếp từ bản nháp (bị gián đoạn): vẫn chữa bài, nhưng không tính vào band
+}
+
+export interface Draft {
+  answers: Answers;
+  seconds: number;
+  flagged: number[];
+  startedAt: number;
+  mode?: 'practice' | 'exam';
+  unitIdx?: number; // phần đang làm khi bị gián đoạn
 }
 
 export interface Srs {
@@ -167,8 +177,9 @@ export interface JournalEntry {
 
 export interface DayLog {
   seconds: number;
-  units: number; // số phần/bài đã làm xong
+  units: number; // số Part/Passage đã làm xong (một đề Listening cả bài = 4)
   cards: number; // số thẻ từ đã ôn
+  drills?: number; // số lượt làm lại câu sai / luyện theo dạng
 }
 
 export interface LessonState {
@@ -189,7 +200,7 @@ export interface Store {
   updatedAt?: number; // lần sửa gần nhất; dùng để đồng bộ với bản lưu ở máy chủ
   profile?: Profile;
   attempts: Attempt[];
-  drafts: Record<string, { answers: Answers; seconds: number; flagged: number[]; startedAt: number }>;
+  drafts: Record<string, Draft>;
   days: Record<string, DayLog>;
   journal: Record<string, JournalEntry>;
   words: Word[];

@@ -372,6 +372,7 @@ function MultiGroup(p: Props) {
       </p>
       <p className="mt-1 pl-[3.3rem] text-xs text-muted">
         Đã chọn {picked.length}/{pick}
+        {!!p.focus?.length && !p.review && ` · làm lại: chấm cả nhóm, cần đúng cả ${pick} đáp án mới gạch được câu khỏi Sổ lỗi`}
       </p>
       <div className="mt-2 space-y-1.5 pl-[3.3rem]">
         {g.options!.map(o => {
