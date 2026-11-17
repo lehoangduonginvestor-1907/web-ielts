@@ -8,7 +8,8 @@ export type Role = 'learner' | 'coach';
 export const COOKIE = 'deu_session';
 export const COOKIE_MAX_AGE = 60 * 60 * 24 * 180; // 180 ngày
 
-export const authEnabled = () => !!process.env.LEARNER_CODE;
+// Trên Vercel luôn khoá: nếu quên đặt mã thì không ai vào được, thay vì ai cũng vào được.
+export const authEnabled = () => !!process.env.LEARNER_CODE || !!process.env.VERCEL;
 
 const enc = new TextEncoder();
 
