@@ -1,8 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import fs from 'node:fs';
 import Link from 'next/link';
-import { audioPath, getTest } from '@/lib/content';
+import { getIndex, getTest } from '@/lib/content';
 import TestRoom from '@/components/test/TestRoom';
 import type { Skill } from '@/lib/types';
 
@@ -34,7 +33,8 @@ export default async function TestPage({ params, searchParams }: { params: Promi
   if (!units.length) notFound();
 
   if (skill === 'listening') {
-    const missing = test.listening.filter(u => units.includes(u) && !fs.existsSync(audioPath(u.audio)?.path ?? ''));
+    const entry = (await getIndex()).find(t => t.id === test.id);
+    const missing = units.filter(u => entry?.listening.find(x => x.n === u.n)?.audio === false);
     if (missing.length) {
       return (
         <div className="flex min-h-dvh items-center justify-center p-6">

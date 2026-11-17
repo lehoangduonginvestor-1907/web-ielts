@@ -1,17 +1,11 @@
-import fs from 'node:fs/promises';
-import { imagePath } from '@/lib/content';
+import { imageKey } from '@/lib/content';
+import { currentRole } from '@/lib/session';
+import { serveFile } from '@/lib/storage';
 
-// Hình bản đồ / sơ đồ của đề, đọc từ content/images (không nằm trong public/)
+// Hình bản đồ / sơ đồ của đề (không nằm trong public/). Chỉ người học đã đăng nhập mới xem được.
 export async function GET(_req: Request, ctx: { params: Promise<{ file: string }> }) {
-  const { file } = await ctx.params;
-  const img = imagePath(file);
+  if ((await currentRole()) !== 'learner') return new Response('Unauthorized', { status: 401 });
+  const img = imageKey((await ctx.params).file);
   if (!img) return new Response('Not found', { status: 404 });
-  try {
-    const data = await fs.readFile(img.path);
-    return new Response(new Uint8Array(data), {
-      headers: { 'Content-Type': img.type, 'Cache-Control': 'private, max-age=86400' },
-    });
-  } catch {
-    return new Response('Not found', { status: 404 });
-  }
+  return serveFile(img.key, img.type, null);
 }

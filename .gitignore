@@ -13,3 +13,6 @@ next-env.d.ts
 
 # Video/ảnh lạc, không thuộc app
 *.mp4
+
+# Tiến độ học lưu trên máy (khi không chạy trên Vercel)
+/data/

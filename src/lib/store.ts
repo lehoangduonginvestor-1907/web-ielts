@@ -5,7 +5,8 @@ import type { Attempt, DayLog, LessonState, MistakeReason, Profile, Store, Word 
 import { addDays, dayKey } from './dates';
 import { newSrs } from './srs';
 
-// Mọi dữ liệu học của người dùng nằm trong một khoá localStorage.
+// Dữ liệu học nằm trong một khoá localStorage (bản làm việc, phản hồi tức thì) và được đồng bộ
+// với một file ở máy chủ (/api/progress) để không mất khi đổi máy và để người kèm xem được.
 // localStorage có thể bị chặn (ẩn danh...) nên mọi thao tác đều bọc try/catch.
 
 const KEY = 'ielts.v1';
@@ -39,7 +40,7 @@ function load(): Store {
   return cache;
 }
 
-function save(next: Store) {
+function persist(next: Store) {
   cache = next;
   try {
     localStorage.setItem(KEY, JSON.stringify(next));
@@ -47,6 +48,109 @@ function save(next: Store) {
     // Bỏ qua: chỉ mất khả năng ghi nhớ
   }
   listeners.forEach(l => l());
+}
+
+function save(next: Store) {
+  next.updatedAt = Date.now();
+  persist(next);
+  dirty = true;
+  schedulePush();
+}
+
+// ---------- Đồng bộ với máy chủ ----------
+// Mở app: kéo bản ở máy chủ về, bản nào sửa sau thì dùng bản đó. Sau đó mỗi thay đổi được đẩy lên,
+// gom lại tối đa 3 phút một lần (kho lưu trữ tính lượt ghi); việc quan trọng (nộp bài…) đẩy gần như ngay.
+
+const PUSH_GAP = 180_000;
+let started = false;
+let ready = false; // đã đối chiếu với máy chủ (hoặc đã thử) chưa; trước đó chưa hiển thị dữ liệu
+let pulled = false; // lần kéo gần nhất có thành công không; chưa kéo được thì không đẩy
+let base = 0; // updatedAt của bản ở máy chủ mà trình duyệt này biết
+let dirty = false;
+let lastPush = 0;
+let pushAt = 0;
+let pushTimer: ReturnType<typeof setTimeout> | null = null;
+
+async function pull() {
+  try {
+    const r = await fetch('/api/progress', { cache: 'no-store' });
+    if (!r.ok) throw new Error(String(r.status));
+    const { store: remote } = (await r.json()) as { store: Store | null };
+    pulled = true;
+    base = remote?.updatedAt ?? 0;
+    const local = load();
+    if (remote && base >= (local.updatedAt ?? 0)) {
+      persist({ ...empty(), ...remote });
+      dirty = false;
+    } else if (local.profile && (local.updatedAt ?? 0) > base) {
+      dirty = true;
+      schedulePush(1000);
+    }
+  } catch {
+    pulled = false; // mất mạng: dùng tạm bản trên máy, sẽ thử lại khi cần đẩy
+  }
+  ready = true;
+  listeners.forEach(l => l());
+}
+
+function schedulePush(delay?: number) {
+  if (!started) return;
+  const at = Date.now() + (delay ?? Math.max(5000, lastPush + PUSH_GAP - Date.now()));
+  if (pushTimer && pushAt <= at) return;
+  if (pushTimer) clearTimeout(pushTimer);
+  pushAt = at;
+  pushTimer = setTimeout(() => {
+    pushTimer = null;
+    void push();
+  }, at - Date.now());
+}
+
+async function push(leaving = false) {
+  if (!dirty) return;
+  if (!pulled) {
+    if (leaving) return;
+    await pull();
+    if (!pulled) return schedulePush(60_000);
+    if (!dirty) return;
+  }
+  const store = load();
+  const body = JSON.stringify({ store, base });
+  try {
+    // Khi rời trang chỉ gửi kèm keepalive được nếu gói nhỏ (giới hạn của trình duyệt)
+    const r = await fetch('/api/progress', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body, keepalive: leaving && body.length < 60_000 });
+    lastPush = Date.now();
+    if (r.status === 409) {
+      // Máy chủ có bản mới hơn (đã học trên máy khác): dùng bản đó
+      const { store: remote } = (await r.json()) as { store: Store };
+      base = remote.updatedAt ?? 0;
+      dirty = false;
+      persist({ ...empty(), ...remote });
+    } else if (r.ok) {
+      base = store.updatedAt ?? 0;
+      if (load().updatedAt === store.updatedAt) dirty = false;
+      else schedulePush();
+    } else {
+      schedulePush(60_000);
+    }
+  } catch {
+    if (!leaving) schedulePush(60_000);
+  }
+}
+
+/** Đẩy sớm sau một việc đáng giữ (nộp bài, lưu hồ sơ, học xong bài). */
+function pushSoon() {
+  schedulePush(2000);
+}
+
+function startSync() {
+  if (started) return;
+  started = true;
+  void pull();
+  const flush = () => {
+    if (document.visibilityState === 'hidden') void push(true);
+  };
+  document.addEventListener('visibilitychange', flush);
+  window.addEventListener('pagehide', () => void push(true));
 }
 
 export function update(fn: (draft: Store) => void) {
@@ -57,6 +161,7 @@ export function update(fn: (draft: Store) => void) {
 
 function subscribe(l: () => void) {
   listeners.add(l);
+  startSync();
   const onStorage = (e: StorageEvent) => {
     if (e.key === KEY) {
       cache = null;
@@ -70,9 +175,9 @@ function subscribe(l: () => void) {
   };
 }
 
-/** Toàn bộ dữ liệu; null khi đang render phía server / lúc hydrate. */
+/** Toàn bộ dữ liệu; null khi đang render phía server, lúc hydrate, và trong lúc chờ đối chiếu với máy chủ. */
 export function useStore(): Store | null {
-  return useSyncExternalStore(subscribe, load, () => null);
+  return useSyncExternalStore(subscribe, () => (ready ? load() : null), () => null);
 }
 
 export const getStore = load;
@@ -198,6 +303,7 @@ export function recordAttempt(a: Attempt) {
     }
     afterActivity(s, k, was);
   });
+  pushSoon();
 }
 
 export function draftKey(testId: string, skill: string, units: number[], focus?: number[]) {
@@ -243,6 +349,7 @@ export function updateLesson(slug: string, fn: (p: LessonState) => LessonState) 
   update(s => {
     s.lessons[slug] = fn(s.lessons[slug] ?? {});
   });
+  pushSoon();
 }
 
 // ---------- Hồ sơ ----------
@@ -251,6 +358,7 @@ export function saveProfile(p: Profile) {
   update(s => {
     s.profile = p;
   });
+  pushSoon();
 }
 
 // ---------- Sao lưu ----------
@@ -263,4 +371,5 @@ export function importData(json: string) {
   const parsed = JSON.parse(json) as Store;
   if (parsed.version !== 1 || !Array.isArray(parsed.attempts)) throw new Error('File không đúng định dạng');
   save({ ...empty(), ...parsed });
+  pushSoon();
 }

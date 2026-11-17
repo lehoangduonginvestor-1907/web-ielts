@@ -185,6 +185,7 @@ export interface Profile {
 
 export interface Store {
   version: 1;
+  updatedAt?: number; // lần sửa gần nhất; dùng để đồng bộ với bản lưu ở máy chủ
   profile?: Profile;
   attempts: Attempt[];
   drafts: Record<string, { answers: Answers; seconds: number; flagged: number[]; startedAt: number }>;
