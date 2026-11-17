@@ -67,7 +67,18 @@ for (const f of files) {
     skipped++;
     continue;
   }
-  await put(f.key, fs.createReadStream(f.file), { access: 'private', allowOverwrite: true, addRandomSuffix: false, contentType: f.type, multipart: size > 20e6 });
+  // Đọc cả file vào bộ nhớ (file lớn nhất chỉ vài MB): gửi bằng stream thì không thử lại được khi mạng chập chờn
+  const body = fs.readFileSync(f.file);
+  for (let attempt = 1; ; attempt++) {
+    try {
+      await put(f.key, body, { access: 'private', allowOverwrite: true, addRandomSuffix: false, contentType: f.type });
+      break;
+    } catch (e) {
+      if (attempt >= 4) throw e;
+      console.log(`  thử lại ${f.key} (lần ${attempt}): ${e.message}`);
+      await new Promise(r => setTimeout(r, 3000 * attempt));
+    }
+  }
   sent++;
   if (sent % 10 === 0) console.log(`  đã tải ${sent} file…`);
 }

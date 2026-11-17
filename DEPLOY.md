@@ -15,7 +15,7 @@ Kho đề không bao giờ nằm trong git. Trình duyệt chỉ nhận đề v�
 1. **Nén audio** (991 MB → khoảng 400 MB, để vừa 1 GB miễn phí của Blob):
    `D:/ielts-data/whisper-venv/Scripts/python.exe tools/compress_audio.py`
 2. **Tạo project trên Vercel** trỏ vào repo GitHub `web-ielts` (Framework: Next.js, giữ mặc định).
-3. **Tạo kho Blob riêng tư**: project → Storage → Create → Blob → chọn **Private** → nối với project (mọi môi trường). Vercel tự thêm `BLOB_READ_WRITE_TOKEN`.
+3. **Tạo kho Blob riêng tư**: project → Storage → Create → Blob → chọn **Private**, vùng Singapore, và **tick "Add a read-write token env var"** (app cần `BLOB_READ_WRITE_TOKEN`; mặc định Vercel chỉ thêm `BLOB_STORE_ID`).
 4. **Đặt ba biến môi trường** (Settings → Environment Variables): `LEARNER_CODE`, `COACH_CODE`, `AUTH_SECRET` (xem `env.example`). Sau đó Redeploy.
 5. **Đẩy kho đề lên Blob** từ máy này: chép dòng `BLOB_READ_WRITE_TOKEN=...` (Storage → kho Blob → tab `.env.local`) vào file `.env.local`, rồi chạy
    `node scripts/upload-content.mjs` (thử trước bằng `--dry` để xem số file và dung lượng).
