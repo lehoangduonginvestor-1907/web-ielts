@@ -65,6 +65,7 @@ function checkSection(id, label, units, sourceOf) {
 }
 
 let timedParts = 0;
+const unplayable = [];
 let allParts = 0;
 const files = fs.existsSync(dir) ? fs.readdirSync(dir).filter(f => f.endsWith('.json')) : [];
 for (const f of files) {
@@ -95,6 +96,14 @@ for (const f of files) {
     }
     if (ok) timedParts++;
     else err(t.id, `Part ${p.n}: mốc thời gian lệch với transcript`);
+    // Câu dẫn chứng phải tìm được theo đúng cách app tìm (lib/timing.ts) thì mới phát lại được
+    const fold = s => s.toLowerCase().replace(/[‘’`´]/g, "'").replace(/[“”]/g, '"').replace(/[–—−]/g, '-');
+    const joined = fold(segs.map(s => s.text).join(' '));
+    for (const g of p.groups)
+      for (const q of g.questions) {
+        const ev = q.explain?.evidence?.trim();
+        if (ev && !joined.includes(fold(ev))) unplayable.push(`${t.id} L${p.n} #${q.n}`);
+      }
   }
   if (t.listening?.length) {
     checkSection(t.id, 'L', t.listening, p => (p.script || []).map(s => s.text).join(' '));
@@ -105,5 +114,6 @@ for (const f of files) {
   if (t.reading?.length) checkSection(t.id, 'R', t.reading, p => p.paragraphs.map(x => x.text).join(' '));
 }
 console.log(`mốc thời gian audio: ${timedParts}/${allParts} phần nghe`);
+if (unplayable.length) console.log(`câu dẫn chứng chưa phát lại được (${unplayable.length}): ${unplayable.slice(0, 12).join(', ')}${unplayable.length > 12 ? '…' : ''}`);
 console.log(`\n${files.length} đề · ${errors} lỗi · ${warnings} cảnh báo`);
 process.exit(errors ? 1 : 0);
