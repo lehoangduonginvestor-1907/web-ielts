@@ -44,7 +44,7 @@ export async function makeSession(role: Role): Promise<string> {
 /** Vai trò ghi trong cookie; null nếu cookie thiếu hoặc bị sửa. Khi không bật khoá: luôn là người học. */
 export async function roleFromCookie(value: string | undefined): Promise<Role | null> {
   if (!authEnabled()) return 'learner';
-  if (!value) return null;
+  if (!process.env.LEARNER_CODE || !value) return null; // chưa đặt mã thì không cookie nào hợp lệ
   const [role, sig] = value.split('.');
   if ((role !== 'learner' && role !== 'coach') || !sig) return null;
   return same(sig, await hmac(role)) ? role : null;
