@@ -1,11 +1,21 @@
 'use client';
 
-import { ArrowUpRight, Quote } from 'lucide-react';
+import { ArrowUpRight, Headphones, Quote } from 'lucide-react';
 import type { Explanation } from '@/lib/types';
 import { md } from '@/lib/markup';
 
 // Thẻ lời giải của một câu: dẫn chứng → dịch → vì sao → paraphrase → bẫy
-export default function Explain({ ex, onLocate, locateLabel = 'Xem trong bài' }: { ex?: Explanation; onLocate?: () => void; locateLabel?: string }) {
+export default function Explain({
+  ex,
+  onLocate,
+  locateLabel = 'Xem trong bài',
+  onReplay,
+}: {
+  ex?: Explanation;
+  onLocate?: () => void;
+  locateLabel?: string;
+  onReplay?: () => void;
+}) {
   if (!ex) return <p className="mt-3 text-sm text-muted">Câu này chưa có lời giải chi tiết.</p>;
   return (
     <div className="mt-3 space-y-3 rounded-lg border border-line bg-paper/70 p-4 text-[14.5px] leading-relaxed">
@@ -13,11 +23,18 @@ export default function Explain({ ex, onLocate, locateLabel = 'Xem trong bài' }
         <div>
           <div className="flex items-center justify-between gap-2">
             <span className="eyebrow">Dẫn chứng</span>
-            {onLocate && (
-              <button onClick={onLocate} className="inline-flex items-center gap-1 text-xs font-semibold text-accent hover:underline">
-                {locateLabel} <ArrowUpRight size={13} />
-              </button>
-            )}
+            <span className="flex items-center gap-3">
+              {onReplay && (
+                <button onClick={onReplay} className="inline-flex items-center gap-1 text-xs font-semibold text-accent hover:underline">
+                  <Headphones size={13} /> Nghe lại đoạn này
+                </button>
+              )}
+              {onLocate && (
+                <button onClick={onLocate} className="inline-flex items-center gap-1 text-xs font-semibold text-accent hover:underline">
+                  {locateLabel} <ArrowUpRight size={13} />
+                </button>
+              )}
+            </span>
           </div>
           <blockquote className="mt-1.5 flex gap-2 font-serif text-[15px] text-ink">
             <Quote size={14} className="mt-1 shrink-0 text-muted" />

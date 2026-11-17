@@ -5,6 +5,7 @@ Dùng:  python tools/assemble.py <q.json> <text.json> <audio-map.json>
 
 audio-map.json: {"c17t1-l1.mp3": "D:/ielts-data/books/.../audio1.mp3", ...}
 Hình của nhóm câu (trường "image" trong q.json) lấy từ thư mục images/ nằm cạnh q.json.
+Mốc thời gian của transcript lấy từ timing/<id>.json cạnh q.json (sinh bằng work/align_timing.py), nếu có.
 """
 import json
 import os
@@ -33,6 +34,20 @@ def main():
         p["paragraphs"] = paras[p["n"]]
     for part in q["listening"]:
         part["script"] = scripts.get(part["n"], [])
+
+    # Mốc thời gian từng từ: chỉ gắn khi số từ khớp đúng với transcript hiện tại
+    timing_path = os.path.join(os.path.dirname(os.path.abspath(sys.argv[1])), "timing", f"{q['id']}.json")
+    timing = json.load(open(timing_path, encoding="utf-8")) if os.path.exists(timing_path) else {}
+    for part in q["listening"]:
+        arrs = timing.get(str(part["n"]))
+        segs = part["script"]
+        if not arrs:
+            continue
+        if len(arrs) != len(segs) or any(len(a) != len(s["text"].split()) + 1 for a, s in zip(arrs, segs)):
+            print(f"! {q['id']} Part {part['n']}: mốc thời gian không khớp transcript (chạy lại align_timing.py)")
+            continue
+        for s, a in zip(segs, arrs):
+            s["ts"] = a
 
     os.makedirs(os.path.join(ROOT, "tests"), exist_ok=True)
     os.makedirs(os.path.join(ROOT, "audio"), exist_ok=True)

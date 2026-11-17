@@ -64,6 +64,8 @@ function checkSection(id, label, units, sourceOf) {
   if (sorted.join() !== Array.from({ length: 40 }, (_, i) => i + 1).join()) err(id, `${label} không đủ 40 câu (${sorted.length})`);
 }
 
+let timedParts = 0;
+let allParts = 0;
 const files = fs.existsSync(dir) ? fs.readdirSync(dir).filter(f => f.endsWith('.json')) : [];
 for (const f of files) {
   const t = JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8'));
@@ -76,6 +78,24 @@ for (const f of files) {
     const len = p.paragraphs.map(x => x.text).join(' ').length;
     if (len < 2500) err(t.id, `bài đọc Passage ${p.n} quá ngắn (${len} ký tự): kiểm tra lại dải dòng`);
   }
+  // Mốc thời gian (nếu có): mỗi đoạn đủ số từ + 1, không giảm
+  for (const p of t.listening ?? []) {
+    allParts++;
+    const segs = p.script || [];
+    if (!segs.some(s => s.ts)) continue;
+    let ok = true;
+    let prev = 0;
+    for (const s of segs) {
+      const n = (s.text.match(/\S+/g) || []).length;
+      if (!Array.isArray(s.ts) || s.ts.length !== n + 1 || s.ts.some((x, i) => x < (i ? s.ts[i - 1] : prev) - 0.01)) {
+        ok = false;
+        break;
+      }
+      prev = s.ts[s.ts.length - 1];
+    }
+    if (ok) timedParts++;
+    else err(t.id, `Part ${p.n}: mốc thời gian lệch với transcript`);
+  }
   if (t.listening?.length) {
     checkSection(t.id, 'L', t.listening, p => (p.script || []).map(s => s.text).join(' '));
     for (const p of t.listening) {
@@ -84,5 +104,6 @@ for (const f of files) {
   }
   if (t.reading?.length) checkSection(t.id, 'R', t.reading, p => p.paragraphs.map(x => x.text).join(' '));
 }
+console.log(`mốc thời gian audio: ${timedParts}/${allParts} phần nghe`);
 console.log(`\n${files.length} đề · ${errors} lỗi · ${warnings} cảnh báo`);
 process.exit(errors ? 1 : 0);

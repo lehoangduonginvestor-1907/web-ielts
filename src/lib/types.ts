@@ -63,6 +63,7 @@ export interface Passage {
 export interface ScriptSegment {
   speaker?: string;
   text: string;
+  ts?: number[]; // giây bắt đầu của từng từ (tách theo khoảng trắng) + lúc đoạn kết thúc; xem lib/timing.ts
 }
 
 export interface ListeningPart {

@@ -15,6 +15,8 @@ import GroupView from './GroupView';
 import Passage from './Passage';
 import AudioBar, { type AudioHandle } from './AudioBar';
 import Transcript from './Transcript';
+import Dictation, { type DictationItem } from './Dictation';
+import { hasTiming, startBefore, textRange } from '@/lib/timing';
 import ReviewSummary from './ReviewSummary';
 
 export interface RoomProps {
@@ -92,6 +94,14 @@ export default function TestRoom(props: RoomProps) {
   const [confirm, setConfirm] = useState<null | 'submit' | 'exit'>(null);
   const [audioDone, setAudioDone] = useState<number | null>(null); // thi thử nghe: mốc bắt đầu 2 phút kiểm tra
   const audioRef = useRef<AudioHandle>(null);
+  const seekOnStart = useRef<number | null>(null);
+  const [dictating, setDictating] = useState(false);
+  // Làm lại câu sai / luyện theo dạng phần nghe: tua sẵn tới ngay trước đoạn của các câu cần làm
+  const startAt = useMemo(() => {
+    if (isReading || !focus?.length || units.length !== 1) return undefined;
+    const part = units[0] as ListeningPart;
+    return hasTiming(part.script) ? startBefore(part.script, part.groups, Math.min(...focus)) : undefined;
+  }, [isReading, focus, units]);
   const pendingPlay = useRef(false);
   const unloggedSeconds = useRef(0);
 
@@ -197,7 +207,15 @@ export default function TestRoom(props: RoomProps) {
     setUnitIdx(0);
     setPhase('doing');
     if (!isReading && mode === 'exam') pendingPlay.current = true;
+    if (startAt) seekOnStart.current = startAt;
   };
+
+  useEffect(() => {
+    if (phase !== 'doing' || seekOnStart.current === null) return;
+    const t = seekOnStart.current;
+    seekOnStart.current = null;
+    setTimeout(() => audioRef.current?.seek(t), 200);
+  }, [phase]);
 
   // Thi thử nghe: tự phát khi vào bài
   useEffect(() => {
@@ -236,6 +254,30 @@ export default function TestRoom(props: RoomProps) {
     setTimeout(() => setEvidence(ex.evidence ?? null), 10);
     setMobilePane('text');
   };
+  // Xem lại bài nghe: phát lại đúng đoạn chứa đáp án (và tô nó trong transcript)
+  const timedUnit = !isReading && hasTiming((unit as ListeningPart).script);
+  const replay = (ex: Explanation) => {
+    const r = textRange((unit as ListeningPart).script, ex.evidence);
+    if (!r) return;
+    locate(ex);
+    audioRef.current?.playRange(Math.max(0, r.start - 0.4), r.end + 0.5);
+  };
+  // Chép chính tả: câu dẫn chứng của các câu nghe sai (mọi phần trong bài)
+  const dictationItems: DictationItem[] = [];
+  if (!isReading && phase === 'review' && results) {
+    const seen = new Set<string>();
+    for (const u of units as ListeningPart[]) {
+      for (const g of u.groups)
+        for (const q of g.questions) {
+          const ev = q.explain?.evidence;
+          if (results[q.n] !== false || !ev || seen.has(ev)) continue;
+          const r = textRange(u.script, ev);
+          if (!r) continue;
+          seen.add(ev);
+          dictationItems.push({ n: q.n, audio: `/api/audio/${u.audio}`, start: r.start, end: r.end, text: ev });
+        }
+    }
+  }
 
   // ---------- Màn mở đầu ----------
   if (phase === 'intro') {
@@ -251,6 +293,7 @@ export default function TestRoom(props: RoomProps) {
         drill={drill}
         home={home}
         hints={hints}
+        startAt={startAt}
         hasDraft={!!draft && Object.keys(draft.answers).length > 0}
         onStart={start}
       />
@@ -286,6 +329,7 @@ export default function TestRoom(props: RoomProps) {
     onLocate: locate,
     reasonFor: phase === 'review' ? { testId, skill } : undefined,
     wordGuard: phase === 'doing' && mode === 'practice',
+    onReplay: phase === 'review' && timedUnit ? replay : undefined,
   };
   const filterBar =
     phase === 'review' && wrongNums.length > 0 ? (
@@ -302,6 +346,11 @@ export default function TestRoom(props: RoomProps) {
           ))}
         </div>
         {onlyWrong && visibleGroups(unit).length === 0 && <span className="text-muted">{isReading ? 'Passage' : 'Part'} này không có câu sai.</span>}
+        {dictationItems.length > 0 && (
+          <button className="btn-ghost ml-auto" onClick={() => setDictating(true)}>
+            <Headphones size={15} /> Chép chính tả {dictationItems.length} đoạn nghe sai
+          </button>
+        )}
       </div>
     ) : null;
   // Phần nghe có bản đồ: nới rộng khung để hình đủ lớn, các nhóm câu khác giữ bề rộng cũ
@@ -461,7 +510,15 @@ export default function TestRoom(props: RoomProps) {
                 <aside className="order-2 lg:order-1">
                   <div className="lg:scroll-thin rounded-xl border border-line bg-surface p-5 lg:sticky lg:top-24 lg:max-h-[calc(100dvh-8rem)] lg:overflow-y-auto">
                     <p className="eyebrow mb-3">Transcript · Part {unit.n}</p>
-                    <Transcript script={(unit as ListeningPart).script} evidence={evidence} />
+                    <Transcript
+                      script={(unit as ListeningPart).script}
+                      evidence={evidence}
+                      testId={testId}
+                      part={unit.n}
+                      source={`Cam ${book} · Test ${testNo} · Listening ${unit.n}`}
+                      vocab={(unit as ListeningPart).vocab}
+                      player={audioRef}
+                    />
                   </div>
                 </aside>
               )}
@@ -526,6 +583,8 @@ export default function TestRoom(props: RoomProps) {
           </button>
         )}
       </footer>
+
+      {dictating && <Dictation items={dictationItems} onClose={() => setDictating(false)} />}
 
       {confirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/30 p-4" onMouseDown={() => setConfirm(null)}>
@@ -594,6 +653,7 @@ function Intro(p: {
   drill?: boolean;
   home: string;
   hints: LessonDef[];
+  startAt?: number; // phần nghe: audio sẽ được tua sẵn tới đây
   hasDraft: boolean;
   onStart: (resume: boolean) => void;
 }) {
@@ -639,9 +699,15 @@ function Intro(p: {
                 ? `Làm lại ${p.count} câu đã sai: ${p.focus.join(', ')}`
                 : `${p.count} câu hỏi`}
           </p>
-          {p.drill && !reading && (
-            <p className="mt-1 text-sm text-muted">Audio phát từ đầu Part. Nghe tới đoạn của các câu này rồi trả lời.</p>
-          )}
+          {!reading && p.focus?.length ? (
+            <p className="mt-1 text-sm text-muted">
+              {p.startAt === undefined
+                ? 'Audio phát từ đầu Part. Nghe tới đoạn của các câu này rồi trả lời.'
+                : p.startAt > 0
+                  ? `Audio được tua sẵn tới ${fmtClock(p.startAt)}, ngay trước đoạn của các câu này. Bấm phát khi sẵn sàng.`
+                  : 'Các câu này nằm ở đoạn đầu: nghe từ đầu Part.'}
+            </p>
+          ) : null}
           {p.hints.length > 0 && (
             <div className="mt-5 rounded-lg border border-dashed border-line-strong px-4 py-3 text-sm">
               <p className="text-ink-2">Phần này có dạng câu bạn chưa học cách làm:</p>

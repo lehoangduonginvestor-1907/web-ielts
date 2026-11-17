@@ -74,7 +74,7 @@ export default function LessonView({ lesson, blocks, drills }: { lesson: LessonD
             )}
           </div>
           {lesson.skill === 'listening' && (
-            <p className="mt-3 text-xs text-muted">Bài nghe phát từ đầu Part. Nghe tới đoạn của các câu này rồi trả lời; phần còn lại cứ để trôi qua.</p>
+            <p className="mt-3 text-xs text-muted">Audio được tua sẵn tới ngay trước đoạn của nhóm câu này; bấm phát khi sẵn sàng.</p>
           )}
         </section>
       )}

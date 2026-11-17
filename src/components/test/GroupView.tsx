@@ -23,6 +23,7 @@ interface Props {
   locateLabel?: string;
   reasonFor?: { testId: string; skill: Skill }; // xem lại: cho gắn lý do sai ngay dưới lời giải
   wordGuard?: boolean; // luyện tập: nhắc khi gõ quá số từ đề cho phép
+  onReplay?: (ex: Explanation) => void; // xem lại bài nghe: phát lại đúng đoạn dẫn chứng
 }
 
 const TFNG = ['TRUE', 'FALSE', 'NOT GIVEN'];
@@ -147,7 +148,14 @@ function ReviewLine({ g, q, p }: { g: Group; q: Question; p: Props }) {
         <span className="text-xs text-muted">{open ? 'Ẩn' : 'Giải thích'}</span>
         <ChevronDown size={14} className={`text-muted transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
-      {open && <Explain ex={q.explain} onLocate={q.explain?.evidence && p.onLocate ? () => p.onLocate!(q.explain!) : undefined} locateLabel={p.locateLabel} />}
+      {open && (
+        <Explain
+          ex={q.explain}
+          onLocate={q.explain?.evidence && p.onLocate ? () => p.onLocate!(q.explain!) : undefined}
+          locateLabel={p.locateLabel}
+          onReplay={q.explain?.evidence && p.onReplay ? () => p.onReplay!(q.explain!) : undefined}
+        />
+      )}
       {open && !ok && p.reasonFor && <ReasonChips mistakeKey={mistakeKey(p.reasonFor.testId, p.reasonFor.skill, q.n)} label="Vì sao câu này sai?" />}
     </div>
   );
