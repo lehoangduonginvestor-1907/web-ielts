@@ -48,6 +48,7 @@ export interface VocabItem {
   word: string;
   pos?: string;
   vi: string;
+  context?: string;
 }
 
 export interface Passage {
@@ -195,6 +196,183 @@ export interface Profile {
   createdAt: number;
 }
 
+// ---- Writing & Speaking ----
+
+export type WritingTaskType = 'task1' | 'task2';
+
+export type WritingCategory =
+  | 'line'
+  | 'bar'
+  | 'pie'
+  | 'table'
+  | 'process'
+  | 'map'
+  | 'opinion'
+  | 'discussion'
+  | 'advantages'
+  | 'problem_solution'
+  | 'two_part';
+
+export type WritingMode = 'step' | 'full' | 'exam';
+
+export interface WritingScaffoldStep {
+  id: string;
+  label: string;
+  hint: string;
+  starters: string[];
+  minWords: number;
+}
+
+export interface WritingPrompt {
+  id: string;
+  task: WritingTaskType;
+  category: WritingCategory;
+  categoryLabel: string;
+  title: string;
+  book?: number;
+  test?: number;
+  prompt: string;
+  chartSvg?: string;
+  chartSummary?: string;
+  minWords: number;
+  recommendedMinutes: number;
+  scaffold: WritingScaffoldStep[];
+  sampleBand7: string;
+  keyVocab: VocabItem[];
+}
+
+export interface WritingCriteriaScores {
+  task: number;
+  cc: number;
+  lr: number;
+  gra: number;
+  overall: number;
+}
+
+export interface WritingSentenceFix {
+  original: string;
+  improved: string;
+  criterion: 'task' | 'cc' | 'lr' | 'gra';
+  reasonVi: string;
+  errorPattern?: string;
+}
+
+export interface WritingFeedback {
+  scores: WritingCriteriaScores;
+  summaryVi: string;
+  strengthsVi: string[];
+  prioritiesVi: string[];
+  criteriaNotesVi: { task: string; cc: string; lr: string; gra: string };
+  sentenceFixes: WritingSentenceFix[];
+  upgradedParagraphs: { label: string; original: string; upgraded: string; noteVi: string }[];
+  suggestedVocab: { word: string; pos: string; vi: string; context: string }[];
+}
+
+export interface WritingAttempt {
+  id: string;
+  promptId: string;
+  task: WritingTaskType;
+  mode: WritingMode;
+  startedAt: number;
+  finishedAt: number;
+  seconds: number;
+  text: string;
+  wordCount: number;
+  feedback?: WritingFeedback;
+  addedVocab?: boolean;
+  addedMistakes?: boolean;
+}
+
+export interface WritingDraft {
+  promptId: string;
+  mode: WritingMode;
+  text: string;
+  stepTexts: string[];
+  seconds: number;
+  startedAt: number;
+}
+
+export type SpeakingPartNum = 1 | 2 | 3;
+
+export type SpeakingMode = 'part1' | 'part2' | 'part3' | 'full';
+
+export interface SpeakingTopic {
+  id: string;
+  title: string;
+  themeVi: string;
+  book?: number;
+  test?: number;
+  part1: { topic: string; questions: string[] };
+  part2: { cueCardTitle: string; bullets: string[]; followUp: string; prepHintsVi: string[] };
+  part3: { theme: string; questions: string[] };
+  usefulVocab: { word: string; pos: string; vi: string; context: string }[];
+}
+
+export interface SpeakingTurn {
+  role: 'examiner' | 'candidate';
+  text: string;
+  part: SpeakingPartNum;
+  at: number;
+}
+
+export interface SpeakingCriteriaScores {
+  fc: number;
+  lr: number;
+  gra: number;
+  p: number;
+  overall: number;
+}
+
+export interface SpeakingSentenceFix {
+  original: string;
+  improved: string;
+  criterion: 'fc' | 'lr' | 'gra' | 'p';
+  reasonVi: string;
+  errorPattern?: string;
+}
+
+export interface SpeakingFeedback {
+  scores: SpeakingCriteriaScores;
+  summaryVi: string;
+  strengthsVi: string[];
+  prioritiesVi: string[];
+  criteriaNotesVi: { fc: string; lr: string; gra: string; p: string };
+  utteranceFixes: SpeakingSentenceFix[];
+  pronunciationTipsVi: string[];
+  suggestedVocab: { word: string; pos: string; vi: string; context: string }[];
+}
+
+export interface SpeakingAttempt {
+  id: string;
+  topicId: string;
+  mode: SpeakingMode;
+  parts: SpeakingPartNum[];
+  startedAt: number;
+  finishedAt: number;
+  seconds: number;
+  transcript: SpeakingTurn[];
+  notes?: string;
+  hasRecording?: boolean;
+  feedback?: SpeakingFeedback;
+  addedVocab?: boolean;
+  addedMistakes?: boolean;
+}
+
+export interface GrammarMistake {
+  id: string;
+  sourceId: string;
+  skill: 'writing' | 'speaking';
+  original: string;
+  improved: string;
+  criterion: string;
+  reasonVi: string;
+  errorPattern?: string;
+  addedAt: number;
+  step: number;
+  due: number;
+  resolved?: boolean;
+}
+
 export interface Store {
   version: 1;
   updatedAt?: number; // lần sửa gần nhất; dùng để đồng bộ với bản lưu ở máy chủ
@@ -209,4 +387,8 @@ export interface Store {
   freezes: number;
   frozenDays: string[];
   lessons: Record<string, LessonState>; // khoá: slug bài học
+  writingAttempts?: WritingAttempt[];
+  writingDrafts?: Record<string, WritingDraft>;
+  speakingAttempts?: SpeakingAttempt[];
+  grammarMistakes?: GrammarMistake[];
 }

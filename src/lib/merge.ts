@@ -72,5 +72,9 @@ export function mergeStores(x: Store, y: Store): Store {
       done: !!(a?.done || b?.done),
       checks: { ...b?.checks, ...a?.checks },
     })),
+    writingAttempts: byId(x.writingAttempts ?? [], y.writingAttempts ?? []).sort((a, b) => a.finishedAt - b.finishedAt),
+    writingDrafts: perKey(x.writingDrafts ?? {}, y.writingDrafts ?? {}, (a, b) => b ?? a),
+    speakingAttempts: byId(x.speakingAttempts ?? [], y.speakingAttempts ?? []).sort((a, b) => a.finishedAt - b.finishedAt),
+    grammarMistakes: byId(x.grammarMistakes ?? [], y.grammarMistakes ?? []).sort((a, b) => b.addedAt - a.addedAt),
   };
 }

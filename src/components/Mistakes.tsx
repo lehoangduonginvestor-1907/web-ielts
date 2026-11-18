@@ -2,15 +2,15 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { RotateCcw } from 'lucide-react';
-import type { Group, MistakeReason, MistakeState, Test } from '@/lib/types';
-import { useStore } from '@/lib/store';
+import { Check, Eye, RotateCcw } from 'lucide-react';
+import type { GrammarMistake, Group, MistakeReason, MistakeState, Test } from '@/lib/types';
+import { reviewGrammarMistake, useStore } from '@/lib/store';
 import { dayKey, fmtDay } from '@/lib/dates';
 import { correctDisplay, shownAnswer } from '@/lib/scoring';
 import { REASONS } from '@/lib/reasons';
 import ReasonChips from './ReasonChips';
 import { useNow } from '@/lib/hooks';
-import { HedgehogMascot } from './Mascots';
+import { HedgehogMascot, MascotLoading } from './Mascots';
 
 
 interface Item {
@@ -47,14 +47,18 @@ function locate(t: Test | undefined, skill: Item['skill'], n: number) {
 export default function Mistakes() {
   const store = useStore();
   const [tests, setTests] = useState<Record<string, Test>>({});
-  const [tab, setTab] = useState<'due' | 'all'>('due');
+  const [tab, setTab] = useState<'due' | 'all' | 'grammar'>('due');
   const [revealed, setRevealed] = useState<Record<string, boolean>>({});
+  const [gmInputs, setGmInputs] = useState<Record<string, string>>({});
+  const [gmShown, setGmShown] = useState<Record<string, boolean>>({});
 
   const items = useMemo(() => (store ? Object.entries(store.mistakes).map(([k, m]) => parseKey(k, m)) : []), [store]);
   const open = items.filter(i => !i.m.resolved);
   const now = useNow();
   const due = open.filter(i => i.m.due <= now);
   const resolved = items.length - open.length;
+  const gMistakes = (store?.grammarMistakes ?? []).filter(m => !m.resolved);
+  const gDue = gMistakes.filter(m => m.due <= now);
 
   useEffect(() => {
     const ids = [...new Set(items.map(i => i.testId))].filter(id => !tests[id]);
@@ -82,7 +86,7 @@ export default function Mistakes() {
   items.forEach(i => i.m.reason && reasonCount.set(i.m.reason, (reasonCount.get(i.m.reason) ?? 0) + 1));
   const tagged = [...reasonCount.values()].reduce((a, b) => a + b, 0);
 
-  if (!store) return <div className="h-96" />;
+  if (!store) return <MascotLoading character="hedgehog" label="Nhím đang lật sổ lỗi…" />;
 
   return (
     <div>
@@ -159,15 +163,28 @@ export default function Mistakes() {
       )}
 
       <section className="mt-8">
-        <div className="mb-3 inline-flex rounded-lg border border-line-strong bg-surface p-1 text-sm">
-          {(['due', 'all'] as const).map(k => (
+        <div className="mb-3 inline-flex flex-wrap rounded-lg border border-line-strong bg-surface p-1 text-sm">
+          {(['due', 'all', 'grammar'] as const).map(k => (
             <button key={k} onClick={() => setTab(k)} className={`rounded-md px-3 py-1 font-medium ${tab === k ? 'bg-ink text-paper' : 'text-ink-2'}`}>
-              {k === 'due' ? `Đến hạn (${due.length})` : `Tất cả (${open.length})`}
+              {k === 'due'
+                ? `Đến hạn (${due.length})`
+                : k === 'all'
+                  ? `Tất cả Đọc/Nghe (${open.length})`
+                  : `Viết & Nói cần sửa (${gDue.length}/${gMistakes.length})`}
             </button>
           ))}
         </div>
 
-        {list.length ? (
+        {tab === 'grammar' ? (
+          <GrammarMistakeList
+            items={gMistakes}
+            now={now}
+            inputs={gmInputs}
+            setInputs={setGmInputs}
+            shown={gmShown}
+            setShown={setGmShown}
+          />
+        ) : list.length ? (
           <ul className="space-y-3">
             {list
               .sort((a, b) => a.m.due - b.m.due)
@@ -224,5 +241,96 @@ export default function Mistakes() {
         )}
       </section>
     </div>
+  );
+}
+
+function GrammarMistakeList({
+  items,
+  now,
+  inputs,
+  setInputs,
+  shown,
+  setShown,
+}: {
+  items: GrammarMistake[];
+  now: number;
+  inputs: Record<string, string>;
+  setInputs: React.Dispatch<React.SetStateAction<Record<string, string>>>;
+  shown: Record<string, boolean>;
+  setShown: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
+}) {
+  if (!items.length) {
+    return (
+      <div className="rounded-xl border border-dashed border-line-strong px-6 py-10 text-center text-sm text-muted">
+        <HedgehogMascot pose="sleepy" size={84} className="mx-auto mb-2" />
+        Chưa có câu viết hay nói nào cần sửa. Sau khi AI chấm Writing hoặc Speaking, bấm “Đưa câu sai vào Sổ lỗi” để ôn lại ở đây.
+      </div>
+    );
+  }
+
+  return (
+    <ul className="space-y-3">
+      {[...items]
+        .sort((a, b) => a.due - b.due)
+        .map(m => {
+          const isDue = m.due <= now;
+          const isShown = !!shown[m.id];
+          return (
+            <li key={m.id} className="card p-4 sm:p-5">
+              <div className="flex flex-wrap items-center gap-2 text-xs text-muted">
+                <span className="rounded bg-sunk px-2 py-0.5 font-bold text-ink uppercase">
+                  {m.skill === 'writing' ? 'Writing' : 'Speaking'} · {m.criterion}
+                </span>
+                {m.errorPattern && <span className="rounded bg-ember-soft px-2 py-0.5 font-medium text-ember">{m.errorPattern}</span>}
+                <span className="ml-auto">
+                  {isDue ? 'Đến hạn ôn' : `Ôn lại ${fmtDay(dayKey(m.due))}`} · đúng {m.step}/3
+                </span>
+              </div>
+              <p className="mt-2.5 font-serif text-[15px] text-bad line-through decoration-1">{m.original}</p>
+              <p className="mt-1 text-xs leading-relaxed text-ink-2">Gợi ý: {m.reasonVi}</p>
+
+              <div className="mt-3 space-y-2">
+                <input
+                  className="field font-serif text-sm"
+                  placeholder="Tự viết lại câu đúng / tự nhiên hơn trước khi xem đáp án mẫu…"
+                  value={inputs[m.id] ?? ''}
+                  onChange={e => setInputs(prev => ({ ...prev, [m.id]: e.target.value }))}
+                />
+                {isShown ? (
+                  <div className="rounded-lg bg-good-soft/60 p-3">
+                    <p className="text-xs font-bold text-good">Câu gợi ý chuẩn hơn:</p>
+                    <p className="mt-1 font-serif text-[15px] font-medium text-ink">{m.improved}</p>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <button
+                        className="btn-primary px-3 py-1 text-xs"
+                        onClick={() => {
+                          reviewGrammarMistake(m.id, true);
+                          setShown(s => ({ ...s, [m.id]: false }));
+                          setInputs(p => ({ ...p, [m.id]: '' }));
+                        }}
+                      >
+                        <Check size={13} /> Đã sửa được ({isDue ? 'tính +1 lần' : 'ôn sớm'})
+                      </button>
+                      <button
+                        className="btn-ghost px-3 py-1 text-xs"
+                        onClick={() => {
+                          reviewGrammarMistake(m.id, false);
+                          setShown(s => ({ ...s, [m.id]: false }));
+                        }}
+                      >
+                        Cần ôn lại ngày mai
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <button className="btn-ghost px-3 py-1 text-xs" onClick={() => setShown(s => ({ ...s, [m.id]: true }))}>
+                    <Eye size={13} /> Kiểm tra với câu gợi ý
+                  </button>
+                )}
+              </div>
+            </li>
+          );
+        })}
+    </ul>
   );
 }

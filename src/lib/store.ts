@@ -1,7 +1,19 @@
 'use client';
 
 import { useSyncExternalStore } from 'react';
-import type { Attempt, DayLog, LessonState, MistakeReason, Profile, Store, Word } from './types';
+import type {
+  Attempt,
+  DayLog,
+  GrammarMistake,
+  LessonState,
+  MistakeReason,
+  Profile,
+  SpeakingAttempt,
+  Store,
+  Word,
+  WritingAttempt,
+  WritingDraft,
+} from './types';
 import { addDays, dayKey } from './dates';
 import { newSrs } from './srs';
 import { mergeStores } from './merge';
@@ -26,6 +38,10 @@ const empty = (): Store => ({
   freezes: 0,
   frozenDays: [],
   lessons: {},
+  writingAttempts: [],
+  writingDrafts: {},
+  speakingAttempts: [],
+  grammarMistakes: [],
 });
 
 let cache: Store | null = null;
@@ -390,6 +406,115 @@ export function updateLesson(slug: string, fn: (p: LessonState) => LessonState) 
 export function saveProfile(p: Profile) {
   update(s => {
     s.profile = p;
+  });
+  pushSoon();
+}
+
+// ---------- Writing & Speaking ----------
+
+const DAY_MS = 86400000;
+const GRAMMAR_GAPS = [1, 3, 7];
+
+export function recordWritingAttempt(a: WritingAttempt) {
+  update(s => {
+    const k = dayKey(a.finishedAt);
+    const was = isActive(s.days[k]);
+    const d = touchDay(s, k);
+    d.units += 1;
+    (s.writingAttempts ??= []).push(a);
+    if (s.writingDrafts) delete s.writingDrafts[a.promptId];
+    afterActivity(s, k, was);
+  });
+  pushSoon();
+}
+
+export function updateWritingAttempt(id: string, fn: (a: WritingAttempt) => void) {
+  update(s => {
+    const a = s.writingAttempts?.find(x => x.id === id);
+    if (a) fn(a);
+  });
+  pushSoon();
+}
+
+export function saveWritingDraft(d: WritingDraft) {
+  update(s => {
+    (s.writingDrafts ??= {})[d.promptId] = d;
+  });
+}
+
+export function recordSpeakingAttempt(a: SpeakingAttempt) {
+  update(s => {
+    const k = dayKey(a.finishedAt);
+    const was = isActive(s.days[k]);
+    const d = touchDay(s, k);
+    d.units += 1;
+    (s.speakingAttempts ??= []).push(a);
+    afterActivity(s, k, was);
+  });
+  pushSoon();
+}
+
+export function updateSpeakingAttempt(id: string, fn: (a: SpeakingAttempt) => void) {
+  update(s => {
+    const a = s.speakingAttempts?.find(x => x.id === id);
+    if (a) fn(a);
+  });
+  pushSoon();
+}
+
+export function addGrammarMistakes(
+  items: Omit<GrammarMistake, 'id' | 'addedAt' | 'step' | 'due' | 'resolved'>[],
+): number {
+  let added = 0;
+  const now = Date.now();
+  update(s => {
+    const list = (s.grammarMistakes ??= []);
+    for (const item of items) {
+      const orig = item.original.trim();
+      const imp = item.improved.trim();
+      if (!orig || !imp) continue;
+      if (list.some(x => x.original.trim().toLowerCase() === orig.toLowerCase())) continue;
+      list.unshift({
+        ...item,
+        original: orig,
+        improved: imp,
+        id: `gm${now.toString(36)}${Math.random().toString(36).slice(2, 6)}`,
+        addedAt: now,
+        step: 0,
+        due: now + DAY_MS,
+        resolved: false,
+      });
+      added++;
+    }
+  });
+  if (added > 0) pushSoon();
+  return added;
+}
+
+export function reviewGrammarMistake(id: string, ok: boolean) {
+  const now = Date.now();
+  update(s => {
+    const m = s.grammarMistakes?.find(x => x.id === id);
+    if (!m) return;
+    if (!ok) {
+      m.step = 0;
+      m.due = now + DAY_MS;
+      m.resolved = false;
+    } else if (!m.resolved && now >= m.due) {
+      const step = m.step + 1;
+      m.step = step;
+      if (step >= GRAMMAR_GAPS.length) {
+        m.resolved = true;
+        m.due = Number.MAX_SAFE_INTEGER;
+      } else {
+        m.due = now + GRAMMAR_GAPS[step] * DAY_MS;
+      }
+    }
+    const k = dayKey(now);
+    const was = isActive(s.days[k]);
+    const d = touchDay(s, k);
+    d.drills = (d.drills ?? 0) + 1;
+    afterActivity(s, k, was);
   });
   pushSoon();
 }

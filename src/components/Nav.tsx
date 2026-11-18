@@ -2,18 +2,20 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BookOpenText, CalendarDays, GraduationCap, Home, Layers, NotebookPen } from 'lucide-react';
+import { BookOpenText, CalendarDays, GraduationCap, Home, Layers, Mic, NotebookPen, PenTool } from 'lucide-react';
 import { streakOf, useStore } from '@/lib/store';
 import { Flame } from './Flame';
 import { MascotBadge, MascotDuo } from './Mascots';
 
 const ITEMS = [
-  { href: '/', label: 'Hôm nay', icon: Home },
-  { href: '/practice', label: 'Luyện đề', icon: BookOpenText },
-  { href: '/skills', label: 'Kỹ năng', icon: GraduationCap },
-  { href: '/vocab', label: 'Từ vựng', icon: Layers },
-  { href: '/mistakes', label: 'Sổ lỗi', icon: NotebookPen },
-  { href: '/journal', label: 'Nhật ký', icon: CalendarDays },
+  { href: '/', label: 'Hôm nay', short: 'Hôm nay', icon: Home },
+  { href: '/practice', label: 'Đọc & Nghe', short: 'Đọc/Nghe', icon: BookOpenText },
+  { href: '/writing', label: 'Writing', short: 'Viết', icon: PenTool },
+  { href: '/speaking', label: 'Speaking', short: 'Nói', icon: Mic },
+  { href: '/skills', label: 'Kỹ năng', short: 'Kỹ năng', icon: GraduationCap },
+  { href: '/vocab', label: 'Từ vựng', short: 'Từ vựng', icon: Layers },
+  { href: '/mistakes', label: 'Sổ lỗi', short: 'Sổ lỗi', icon: NotebookPen },
+  { href: '/journal', label: 'Nhật ký', short: 'Nhật ký', icon: CalendarDays },
 ];
 
 export function Logo({ className = '' }: { className?: string }) {
@@ -71,17 +73,17 @@ export default function Nav() {
       </aside>
 
       {/* Điện thoại: thanh dưới */}
-      <nav className="fixed inset-x-0 bottom-0 z-30 flex border-t border-line bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden">
-        {ITEMS.map(({ href, label, icon: Icon }) => {
+      <nav className="scroll-thin fixed inset-x-0 bottom-0 z-30 flex overflow-x-auto border-t border-line bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden">
+        {ITEMS.map(({ href, short, icon: Icon }) => {
           const on = isOn(path, href);
           return (
             <Link
               key={href}
               href={href}
-              className={`flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] font-medium ${on ? 'text-accent' : 'text-muted'}`}
+              className={`flex min-w-14 flex-1 flex-col items-center gap-0.5 py-2 text-[10.5px] font-medium whitespace-nowrap ${on ? 'text-accent' : 'text-muted'}`}
             >
-              <Icon size={20} strokeWidth={on ? 2.2 : 1.8} />
-              {label}
+              <Icon size={18} strokeWidth={on ? 2.2 : 1.8} />
+              {short}
             </Link>
           );
         })}

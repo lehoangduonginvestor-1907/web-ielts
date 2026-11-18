@@ -2,16 +2,29 @@
 
 import { Fragment, useEffect } from 'react';
 import Link from 'next/link';
-import { ArrowRight, BookOpen, Check, Headphones, Layers, NotebookPen, PenLine, Snowflake } from 'lucide-react';
+import { ArrowRight, BookOpen, Check, Headphones, Layers, Mic, NotebookPen, PenLine, PenTool, Snowflake } from 'lucide-react';
 import type { Skill, Store, TestIndexEntry } from '@/lib/types';
 import { applyFreezes, isActive, longestStreak, streakOf, useStore } from '@/lib/store';
-import { bandEstimate, dueMistakes, dueWords, nextUnit, tierProgress, typeStats, type Suggestion } from '@/lib/progress';
+import {
+  bandEstimate,
+  dueGrammarMistakes,
+  dueMistakes,
+  dueWords,
+  nextUnit,
+  speakingBandEstimate,
+  tierProgress,
+  typeStats,
+  writingBandEstimate,
+  type Suggestion,
+} from '@/lib/progress';
+import { WRITING_PROMPTS } from '@/lib/writingPrompts';
+import { SPEAKING_TOPICS } from '@/lib/speakingTopics';
 import { CoachNoteCard } from './CoachNote';
 import { addDays, daysBetween, dayKey, dow } from '@/lib/dates';
 import { fmtBand } from '@/lib/band';
 import { lessonFor } from '@/lib/skills';
 import { Flame } from './Flame';
-import { HedgehogMascot, MascotBadge, MascotDuo } from './Mascots';
+import { HedgehogMascot, MascotBadge, MascotDuo, MascotLoading } from './Mascots';
 import Onboarding from './Onboarding';
 
 function greeting() {
@@ -30,7 +43,7 @@ export default function Today({ index }: { index: TestIndexEntry[] }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [!!store]);
 
-  if (!store) return <div className="h-96" />;
+  if (!store) return <MascotLoading character="hedgehog" label="Đang xếp việc hôm nay cho bạn…" />;
   if (!store.profile) return <Onboarding />;
 
   const p = store.profile;
@@ -47,8 +60,18 @@ export default function Today({ index }: { index: TestIndexEntry[] }) {
   const doneToday = (s: Skill) => todayAttempts.findLast(a => a.skill === s);
   const words = dueWords(store);
   const mistakes = dueMistakes(store);
+  const gMistakes = dueGrammarMistakes(store);
   const nextL = nextUnit(store, index, 'listening');
   const nextR = nextUnit(store, index, 'reading');
+
+  // Chọn 1 đề Writing & Speaking chưa làm gần đây để gợi ý nhẹ xen kẽ
+  const doneWritingIds = new Set((store.writingAttempts ?? []).map(a => a.promptId));
+  const nextW = WRITING_PROMPTS.find(w => !doneWritingIds.has(w.id)) ?? WRITING_PROMPTS[0];
+  const writingDoneToday = (store.writingAttempts ?? []).findLast(a => dayKey(a.finishedAt) === today);
+
+  const doneSpeakingIds = new Set((store.speakingAttempts ?? []).map(a => a.topicId));
+  const nextS = SPEAKING_TOPICS.find(t => !doneSpeakingIds.has(t.id)) ?? SPEAKING_TOPICS[0];
+  const speakingDoneToday = (store.speakingAttempts ?? []).findLast(a => dayKey(a.finishedAt) === today);
 
   type Task = { key: string; icon: typeof Layers; title: string; detail: string; href: string; done: boolean; mins: number };
   const tasks: Task[] = [];
@@ -93,15 +116,66 @@ export default function Today({ index }: { index: TestIndexEntry[] }) {
   const tr = unitTask('reading', nextR);
   if (tl) tasks.push(tl);
   if (tr) tasks.push(tr);
-  if (mistakes.length) {
+
+  // Xen kẽ ngày chẵn/lẻ giữa Writing và Speaking (hoặc hiện cả hai nếu đã làm hôm nay)
+  const dayNum = Number(today.slice(8)) || 1;
+  const showWritingToday = !!writingDoneToday || dayNum % 2 === 0;
+  if (writingDoneToday) {
+    const pDone = WRITING_PROMPTS.find(x => x.id === writingDoneToday.promptId);
+    tasks.push({
+      key: 'writing',
+      icon: PenTool,
+      title: `Writing · ${pDone?.task === 'task1' ? 'Task 1' : 'Task 2'}`,
+      detail: `${pDone?.title ?? writingDoneToday.promptId}${writingDoneToday.feedback ? ` · Band ${fmtBand(writingDoneToday.feedback.scores.overall)}` : ''}`,
+      href: `/writing/${writingDoneToday.promptId}?attempt=${writingDoneToday.id}`,
+      done: true,
+      mins: 20,
+    });
+  } else if (showWritingToday) {
+    tasks.push({
+      key: 'writing',
+      icon: PenTool,
+      title: `Writing · ${nextW.task === 'task1' ? 'Task 1' : 'Task 2'}`,
+      detail: `${nextW.title} (${nextW.categoryLabel})`,
+      href: `/writing/${nextW.id}`,
+      done: false,
+      mins: 20,
+    });
+  }
+
+  if (speakingDoneToday) {
+    const tDone = SPEAKING_TOPICS.find(x => x.id === speakingDoneToday.topicId);
+    tasks.push({
+      key: 'speaking',
+      icon: Mic,
+      title: 'Speaking · Examiner trực tiếp',
+      detail: `${tDone?.title ?? speakingDoneToday.topicId}${speakingDoneToday.feedback ? ` · Band ${fmtBand(speakingDoneToday.feedback.scores.overall)}` : ''}`,
+      href: `/speaking/${speakingDoneToday.topicId}?attempt=${speakingDoneToday.id}`,
+      done: true,
+      mins: 10,
+    });
+  } else if (!showWritingToday) {
+    tasks.push({
+      key: 'speaking',
+      icon: Mic,
+      title: 'Speaking · Luyện nói 1-1',
+      detail: `${nextS.title} (${nextS.themeVi})`,
+      href: `/speaking/${nextS.id}`,
+      done: false,
+      mins: 10,
+    });
+  }
+
+  const totalMistakes = mistakes.length + gMistakes.length;
+  if (totalMistakes) {
     tasks.push({
       key: 'mistakes',
       icon: NotebookPen,
-      title: `Làm lại ${mistakes.length} câu sai`,
-      detail: 'Câu sai hôm trước quay lại. Đúng 3 lần, mỗi lần đúng hạn, là gạch khỏi sổ',
+      title: `Làm lại ${totalMistakes} câu sai`,
+      detail: 'Câu trắc nghiệm & câu viết/nói quay lại theo nhịp 1–3–7 ngày',
       href: '/mistakes',
       done: false,
-      mins: Math.max(3, mistakes.length * 2),
+      mins: Math.max(3, totalMistakes * 2),
     });
   }
   const doneCount = tasks.filter(t => t.done).length;
@@ -110,6 +184,8 @@ export default function Today({ index }: { index: TestIndexEntry[] }) {
 
   const bandL = bandEstimate(store, 'listening');
   const bandR = bandEstimate(store, 'reading');
+  const bandW = writingBandEstimate(store);
+  const bandS = speakingBandEstimate(store);
   const weak = typeStats(store).filter(t => t.all >= 5).slice(0, 3);
   const week = Array.from({ length: 7 }, (_, i) => addDays(today, i - 6));
   const duoMood = doneCount === tasks.length && tasks.length > 0 ? 'done' : minutes === 0 ? 'welcome' : 'study';
@@ -219,7 +295,18 @@ export default function Today({ index }: { index: TestIndexEntry[] }) {
         <ol className="card divide-y divide-line">
           {tasks.map((t, i) => {
             const isPersonal = t.key === 'vocab' || t.key === 'mistakes';
-            const badgeVariant = t.key === 'vocab' ? 'vocab' : t.key === 'mistakes' ? 'mistakes' : t.key === 'listening' ? 'listening' : 'reading';
+            const badgeVariant =
+              t.key === 'vocab'
+                ? 'vocab'
+                : t.key === 'mistakes'
+                  ? 'mistakes'
+                  : t.key === 'listening'
+                    ? 'listening'
+                    : t.key === 'writing'
+                      ? 'writing'
+                      : t.key === 'speaking'
+                        ? 'speaking'
+                        : 'reading';
             return (
               <li key={t.key}>
                 <Link href={t.href} className="group flex items-center gap-3.5 px-4 py-4 transition-colors hover:bg-sunk/50 sm:px-5">
@@ -268,7 +355,7 @@ export default function Today({ index }: { index: TestIndexEntry[] }) {
         <div className="card p-5">
           <div className="flex items-center gap-2">
             <MascotBadge character="seal" variant="reading" size={28} />
-            <p className="eyebrow">Band ước tính</p>
+            <p className="eyebrow">Band ước tính 4 kỹ năng</p>
           </div>
           <div className="mt-3 grid grid-cols-2 gap-4">
             {([['Listening', bandL], ['Reading', bandR]] as const).map(([name, b]) => (
@@ -276,9 +363,9 @@ export default function Today({ index }: { index: TestIndexEntry[] }) {
                 <p className="text-sm text-ink-2">{name}</p>
                 {b ? (
                   <>
-                    <p className="mt-1 font-serif text-[34px] leading-none font-semibold">{fmtBand(b.avg)}</p>
+                    <p className="mt-1 font-serif text-[32px] leading-none font-semibold">{fmtBand(b.avg)}</p>
                     <p className="mt-1 text-xs text-muted">
-                      TB {b.count} lần thi thử đề mới · {b.avg >= p.target ? 'đã chạm mục tiêu' : `còn ${(p.target - b.avg).toFixed(1)} band`}
+                      TB {b.count} đề thi thử · {b.avg >= p.target ? 'chạm mục tiêu' : `còn ${(p.target - b.avg).toFixed(1)}`}
                     </p>
                   </>
                 ) : (
@@ -286,6 +373,38 @@ export default function Today({ index }: { index: TestIndexEntry[] }) {
                 )}
               </div>
             ))}
+            <div>
+              <p className="text-sm text-ink-2">Writing</p>
+              {bandW ? (
+                <>
+                  <p className="mt-1 font-serif text-[32px] leading-none font-semibold">{fmtBand(bandW.avg)}</p>
+                  <p className="mt-1 text-xs text-muted">TB {bandW.count} bài chấm AI</p>
+                </>
+              ) : (
+                <p className="mt-1.5 text-xs leading-snug text-muted">
+                  <Link href="/writing" className="font-semibold text-accent hover:underline">
+                    Viết 1 bài
+                  </Link>{' '}
+                  để Gemini 4 Argon ước tính band.
+                </p>
+              )}
+            </div>
+            <div>
+              <p className="text-sm text-ink-2">Speaking</p>
+              {bandS ? (
+                <>
+                  <p className="mt-1 font-serif text-[32px] leading-none font-semibold">{fmtBand(bandS.avg)}</p>
+                  <p className="mt-1 text-xs text-muted">TB {bandS.count} buổi nói AI</p>
+                </>
+              ) : (
+                <p className="mt-1.5 text-xs leading-snug text-muted">
+                  <Link href="/speaking" className="font-semibold text-accent hover:underline">
+                    Nói 1 buổi
+                  </Link>{' '}
+                  với Examiner 3.8 Live.
+                </p>
+              )}
+            </div>
           </div>
         </div>
         <div className="card p-5">

@@ -7,11 +7,13 @@ import { drillSummary, typeStats } from '@/lib/progress';
 import { useStore } from '@/lib/store';
 import { MascotBadge, SealMascot } from './Mascots';
 
-const GROUPS: LessonGroup[] = ['foundation', 'listening', 'reading'];
+const GROUPS: LessonGroup[] = ['foundation', 'listening', 'reading', 'writing', 'speaking'];
 const INTRO: Record<LessonGroup, string> = {
   foundation: 'Bốn thói quen dùng cho mọi dạng câu. Nên đọc trước tiên.',
   listening: 'Cách làm từng dạng câu của bài nghe.',
   reading: 'Cách làm từng dạng câu của bài đọc.',
+  writing: 'Chiến lược viết Task 1 và Task 2 mạch lạc, đúng tiêu chí chấm.',
+  speaking: 'Phản xạ tự nhiên và mở rộng ý cho cả 3 Part khi nói với Examiner.',
 };
 
 export default function Skills({ written, drills }: { written: string[]; drills: DrillGroup[] }) {

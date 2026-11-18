@@ -3,7 +3,7 @@ import type { Skill } from './types';
 // Danh mục bài học "cách làm từng dạng câu" và kho luyện theo dạng.
 // Nội dung bài nằm ở src/content/learn/<slug>.md (tự viết, ví dụ tự soạn, không chép đề Cambridge).
 
-export type LessonGroup = 'foundation' | 'listening' | 'reading';
+export type LessonGroup = 'foundation' | 'listening' | 'reading' | 'writing' | 'speaking';
 
 export interface LessonDef {
   slug: string;
@@ -19,6 +19,8 @@ export const GROUP_LABEL: Record<LessonGroup, string> = {
   foundation: 'Nền tảng',
   listening: 'Listening',
   reading: 'Reading',
+  writing: 'Writing',
+  speaking: 'Speaking',
 };
 
 export const LESSONS: LessonDef[] = [
@@ -43,6 +45,14 @@ export const LESSONS: LessonDef[] = [
   { slug: 'r-mcq', group: 'reading', title: 'Trắc nghiệm trong bài đọc', summary: 'Tìm đúng đoạn, tự trả lời trước, rồi mới so với bốn phương án.', minutes: 7, skill: 'reading', types: ['Multiple choice', 'Multiple choice (two answers)'] },
   { slug: 'r-endings', group: 'reading', title: 'Matching sentence endings', summary: 'Nửa câu đầu cho biết chỗ tìm trong bài; nửa sau phải khớp cả nghĩa lẫn ngữ pháp.', minutes: 6, skill: 'reading', types: ['Matching sentence endings'] },
   { slug: 'r-timing', group: 'reading', title: 'Chia 60 phút cho ba bài đọc', summary: 'Bài 1 dễ nhất nhưng không được ăn hết giờ. Kế hoạch 17–20–23 và khi nào thì bỏ câu.', minutes: 5 },
+  // ---- Writing ----
+  { slug: 'w-task1-overview', group: 'writing', title: 'Task 1: Viết Overview và chọn số liệu nổi bật', summary: 'Không có Overview không thể qua band 5.5 Task Achievement. Học cách gom nhóm và chọn mốc đắt giá.', minutes: 7 },
+  { slug: 'w-task1-map-process', group: 'writing', title: 'Task 1: Tả Bản đồ & Quy trình', summary: 'Dùng thì bị động, từ nối trình tự và giới từ chỉ hướng chuẩn xác khi không có con số để so sánh.', minutes: 7 },
+  { slug: 'w-task2-peel', group: 'writing', title: 'Task 2: Lập luận đoạn văn theo khung PEEL', summary: 'Point → Explain → Example → Link. Cách triển khai ý sâu sắc thay vì liệt kê ý cụt lủn.', minutes: 8 },
+  // ---- Speaking ----
+  { slug: 's-part1-expand', group: 'speaking', title: 'Part 1: Mở rộng câu trả lời tự nhiên trong 2–3 câu', summary: 'Tránh trả lời cộc lốc Yes/No hoặc học thuộc lòng. Dùng công thức Trả lời trực tiếp + Lý do/Ví dụ ngắn.', minutes: 6 },
+  { slug: 's-part2-cuecard', group: 'speaking', title: 'Part 2: Tận dụng 1 phút chuẩn bị Cue Card', summary: 'Ghi từ khóa thay vì viết cả câu. Chia bài nói 2 phút thành 4 chặng để không bao giờ cạn ý giữa chừng.', minutes: 7 },
+  { slug: 's-part3-reasoning', group: 'speaking', title: 'Part 3: Trả lời câu hỏi trừu tượng & so sánh đa chiều', summary: 'Chuyển từ câu chuyện cá nhân sang góc nhìn xã hội bằng cấu trúc so sánh quá khứ-hiện tại và giả định.', minutes: 7 },
 ];
 
 export const findLesson = (slug: string) => LESSONS.find(l => l.slug === slug);

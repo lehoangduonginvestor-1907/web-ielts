@@ -212,3 +212,48 @@ export function activeDaysThisWeek(s: Store) {
   for (let i = 0; i < 7; i++) if (isActive(s.days[addDays(dayKey(), -i)])) n++;
   return n;
 }
+
+// ---------- Writing & Speaking ----------
+
+export function writingBandEstimate(s: Store) {
+  const graded = (s.writingAttempts ?? []).filter(a => a.feedback?.scores.overall !== undefined).slice(-3);
+  if (!graded.length) return null;
+  const bands = graded.map(a => a.feedback!.scores.overall);
+  const avg = bands.reduce((x, y) => x + y, 0) / bands.length;
+  return { latest: bands[bands.length - 1], avg: Math.round(avg * 2) / 2, count: graded.length };
+}
+
+export function speakingBandEstimate(s: Store) {
+  const graded = (s.speakingAttempts ?? []).filter(a => a.feedback?.scores.overall !== undefined).slice(-3);
+  if (!graded.length) return null;
+  const bands = graded.map(a => a.feedback!.scores.overall);
+  const avg = bands.reduce((x, y) => x + y, 0) / bands.length;
+  return { latest: bands[bands.length - 1], avg: Math.round(avg * 2) / 2, count: graded.length };
+}
+
+// Lộ trình bậc thang Writing:
+// Bậc 0: Viết theo khung từng đoạn (step) -> Bậc 1: Viết cả bài (full) sau 2 bài step -> Bậc 2: Thi thử bấm giờ (exam) sau 2 bài full
+export function writingTierOf(s: Store): number {
+  const list = s.writingAttempts ?? [];
+  const stepDone = list.filter(a => a.mode === 'step').length;
+  const fullDone = list.filter(a => a.mode === 'full' || a.mode === 'exam').length;
+  if (stepDone < 2) return 0;
+  if (fullDone < 2) return 1;
+  return 2;
+}
+
+// Lộ trình bậc thang Speaking:
+// Bậc 0: Part 1 & Part 2 -> Bậc 1: Thêm Part 3 sau 2 lượt Part 1/2 -> Bậc 2: Full Test 3 Part sau 2 lượt Part 3
+export function speakingTierOf(s: Store): number {
+  const list = s.speakingAttempts ?? [];
+  const p12 = list.filter(a => a.mode === 'part1' || a.mode === 'part2').length;
+  const p3 = list.filter(a => a.mode === 'part3' || a.mode === 'full').length;
+  if (p12 < 2) return 0;
+  if (p3 < 2) return 1;
+  return 2;
+}
+
+export function dueGrammarMistakes(s: Store) {
+  const now = Date.now();
+  return (s.grammarMistakes ?? []).filter(m => !m.resolved && m.due <= now);
+}

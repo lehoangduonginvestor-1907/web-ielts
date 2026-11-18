@@ -1,12 +1,13 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { Download, Settings2, Snowflake, Upload } from 'lucide-react';
+import { Download, KeyRound, Settings2, Snowflake, Upload } from 'lucide-react';
 import type { Store } from '@/lib/types';
 import { exportData, importData, isActive, longestStreak, streakOf, update, useStore } from '@/lib/store';
 import { addDays, dayKey, dow, fmtDay, weekdayName } from '@/lib/dates';
+import { getGeminiKey, setGeminiKey } from '@/lib/geminiKey';
 import { Flame } from './Flame';
-import { HedgehogMascot, HedgehogMood } from './Mascots';
+import { HedgehogMascot, HedgehogMood, MascotLoading } from './Mascots';
 import Onboarding from './Onboarding';
 
 const MOODS = [
@@ -34,6 +35,8 @@ export default function Journal() {
   const [note, setNote] = useState('');
   const [settings, setSettings] = useState(false);
   const [msg, setMsg] = useState('');
+  const [apiKey, setApiKey] = useState(() => getGeminiKey());
+  const [keySaved, setKeySaved] = useState(false);
   const loaded = useRef(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -55,7 +58,7 @@ export default function Journal() {
     return () => clearTimeout(t);
   }, [note, today]);
 
-  if (!store) return <div className="h-96" />;
+  if (!store) return <MascotLoading character="hedgehog" label="Nhím đang mở cuốn nhật ký…" />;
 
   const streak = streakOf(store);
   const best = longestStreak(store);
@@ -107,6 +110,48 @@ export default function Journal() {
       {settings && (
         <section className="card p-5 sm:p-6">
           <Onboarding initial={store.profile} onDone={() => setSettings(false)} />
+          <div className="mt-6 border-t border-line pt-5">
+            <p className="flex items-center gap-1.5 text-sm font-semibold">
+              <KeyRound size={15} className="text-accent" /> Gemini API Key (cho Writing &amp; Speaking)
+            </p>
+            <p className="mt-1 text-sm text-muted">
+              Dùng nếu bạn chưa cấu hình biến môi trường <code>GEMINI_API_KEY</code> trên máy chủ. Key chỉ lưu trong trình duyệt này để gọi Gemini 4 Argon và 3.8 Live.
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <input
+                type="password"
+                className="field min-w-60 flex-1"
+                placeholder="AIza..."
+                value={apiKey}
+                onChange={e => {
+                  setApiKey(e.target.value);
+                  setKeySaved(false);
+                }}
+              />
+              <button
+                className="btn-primary"
+                onClick={() => {
+                  setGeminiKey(apiKey);
+                  setKeySaved(true);
+                }}
+              >
+                Lưu Key
+              </button>
+              {apiKey && (
+                <button
+                  className="btn-quiet"
+                  onClick={() => {
+                    setApiKey('');
+                    setGeminiKey('');
+                    setKeySaved(false);
+                  }}
+                >
+                  Xoá
+                </button>
+              )}
+            </div>
+            {keySaved && <p className="mt-1.5 text-xs text-good">Đã lưu Gemini API Key trên trình duyệt.</p>}
+          </div>
           <div className="mt-6 border-t border-line pt-5">
             <p className="text-sm font-semibold">Sao lưu</p>
             <p className="mt-1 text-sm text-muted">Dữ liệu học đang nằm trong trình duyệt này. Tải file sao lưu để chuyển sang máy khác hoặc phòng khi xoá lịch sử duyệt web.</p>

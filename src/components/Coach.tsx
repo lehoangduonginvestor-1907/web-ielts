@@ -1,11 +1,13 @@
 'use client';
 
 import type { MistakeReason, Store, TestIndexEntry } from '@/lib/types';
-import { bandEstimate, countsForBand, fullAttempts, typeStats } from '@/lib/progress';
+import { bandEstimate, countsForBand, fullAttempts, speakingBandEstimate, typeStats, writingBandEstimate } from '@/lib/progress';
 import { isActive, longestStreak, streakOf } from '@/lib/store';
 import { addDays, dayKey, daysBetween, fmtDay, fmtDuration, weekdayName } from '@/lib/dates';
 import { bandFor, fmtBand } from '@/lib/band';
 import { LESSONS } from '@/lib/skills';
+import { WRITING_PROMPTS } from '@/lib/writingPrompts';
+import { SPEAKING_TOPICS } from '@/lib/speakingTopics';
 import { CoachNoteEditor } from './CoachNote';
 import { HedgehogMood, MascotDuo } from './Mascots';
 
@@ -98,13 +100,23 @@ export default function Coach({ store, index }: { store: Store | null; index: Te
 
       <CoachNoteEditor />
 
-      <section className="grid gap-4 sm:grid-cols-4">
+      <section className="grid gap-4 sm:grid-cols-3 lg:grid-cols-6">
         <Stat label="Chuỗi ngày" value={`${streakOf(store)}`} note={`kỷ lục ${longestStreak(store)}`} />
         <Stat label="7 ngày qua" value={fmtDuration(weeks[0].seconds)} note={`${weeks[0].active}/7 ngày có học`} />
         {(['listening', 'reading'] as const).map(skill => {
           const b = bandEstimate(store, skill);
-          return <Stat key={skill} label={`Band ${skill === 'listening' ? 'Listening' : 'Reading'}`} value={b ? fmtBand(b.avg) : '–'} note={b ? `TB ${b.count} lần thi thử đề mới` : 'chưa có bài thi thử đề mới'} />;
+          return <Stat key={skill} label={`Band ${skill === 'listening' ? 'Listening' : 'Reading'}`} value={b ? fmtBand(b.avg) : '–'} note={b ? `TB ${b.count} đề mới` : 'chưa đủ dữ liệu'} />;
         })}
+        {(() => {
+          const bw = writingBandEstimate(store);
+          const bs = speakingBandEstimate(store);
+          return (
+            <>
+              <Stat label="Band Writing" value={bw ? fmtBand(bw.avg) : '–'} note={bw ? `TB ${bw.count} bài chấm` : 'chưa có bài'} />
+              <Stat label="Band Speaking" value={bs ? fmtBand(bs.avg) : '–'} note={bs ? `TB ${bs.count} buổi nói` : 'chưa có buổi'} />
+            </>
+          );
+        })()}
       </section>
 
       <section>
@@ -253,6 +265,42 @@ export default function Coach({ store, index }: { store: Store | null; index: Te
           </ul>
         ) : (
           <p className="card p-5 text-sm text-muted">Chưa có bài làm nào.</p>
+        )}
+      </section>
+
+      <section>
+        <h2 className="mb-3 font-serif text-xl font-semibold">Writing &amp; Speaking gần đây</h2>
+        {(store.writingAttempts?.length || store.speakingAttempts?.length) ? (
+          <ul className="card divide-y divide-line text-sm">
+            {[
+              ...(store.writingAttempts ?? []).map(w => ({
+                id: w.id,
+                at: w.finishedAt,
+                label: `Writing ${w.task === 'task1' ? 'T1' : 'T2'} · ${WRITING_PROMPTS.find(p => p.id === w.promptId)?.title ?? w.promptId}`,
+                meta: `${w.wordCount} từ`,
+                band: w.feedback?.scores.overall,
+              })),
+              ...(store.speakingAttempts ?? []).map(s => ({
+                id: s.id,
+                at: s.finishedAt,
+                label: `Speaking (${s.mode}) · ${SPEAKING_TOPICS.find(t => t.id === s.topicId)?.title ?? s.topicId}`,
+                meta: `${s.transcript.filter(x => x.role === 'candidate').length} lượt nói`,
+                band: s.feedback?.scores.overall,
+              })),
+            ]
+              .sort((a, b) => b.at - a.at)
+              .slice(0, 10)
+              .map(item => (
+                <li key={item.id} className="flex flex-wrap items-baseline gap-x-4 gap-y-1 px-4 py-2.5">
+                  <span className="num w-14 text-muted">{fmtDay(dayKey(item.at))}</span>
+                  <span className="flex-1 font-medium">{item.label}</span>
+                  <span className="text-xs text-muted">{item.meta}</span>
+                  <span className="num font-serif font-semibold text-accent">{item.band !== undefined ? fmtBand(item.band) : '–'}</span>
+                </li>
+              ))}
+          </ul>
+        ) : (
+          <p className="card p-5 text-sm text-muted">Chưa có bài Writing hoặc buổi Speaking nào.</p>
         )}
       </section>
 

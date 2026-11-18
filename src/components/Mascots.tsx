@@ -16,6 +16,35 @@ const HEDGE_QUILL = '#8c6249';
 const HEDGE_DEEP = '#6e4934';
 const HEDGE_FACE = '#faeedc';
 
+/** Đôi mắt long lanh (2 đốm sáng) biết chớp. */
+function SparkleEyes({ lx, rx, y, r = 4.2, delay = '0s' }: { lx: number; rx: number; y: number; r?: number; delay?: string }) {
+  return (
+    <g className="m-blink" style={{ animationDelay: delay }}>
+      {[lx, rx].map((x) => (
+        <g key={x}>
+          <circle cx={x} cy={y} r={r} fill={INK} />
+          <circle cx={x + r * 0.34} cy={y - r * 0.38} r={r * 0.38} fill="#ffffff" />
+          <circle cx={x - r * 0.36} cy={y + r * 0.36} r={r * 0.16} fill="#ffffff" />
+        </g>
+      ))}
+    </g>
+  );
+}
+
+/** Má hồng có 3 nét gạch nhỏ kiểu sticker. */
+function Blush({ cx, cy, rx = 5.5, ry = 3.2 }: { cx: number; cy: number; rx?: number; ry?: number }) {
+  return (
+    <g>
+      <ellipse cx={cx} cy={cy} rx={rx} ry={ry} fill={BLUSH} opacity="0.82" />
+      <g stroke="#e0806f" strokeWidth="0.9" strokeLinecap="round" opacity="0.75">
+        <path d={`M${cx - 2.8} ${cy - 1.1} l-1 2`} />
+        <path d={`M${cx} ${cy - 1.1} l-1 2`} />
+        <path d={`M${cx + 2.8} ${cy - 1.1} l-1 2`} />
+      </g>
+    </g>
+  );
+}
+
 export type SealPose = 'listening' | 'reading' | 'writing' | 'speaking' | 'skills' | 'celebrate' | 'encourage';
 export type HedgehogPose = 'journal' | 'mistakes' | 'vocab' | 'goal' | 'sleepy' | 'celebrate';
 export type DuoMood = 'welcome' | 'done' | 'study';
@@ -37,17 +66,20 @@ export function SealMascot({
   const isCelebrate = pose === 'celebrate';
   const isEncourage = pose === 'encourage';
   const hasGlasses = pose === 'reading' || pose === 'skills';
+  const hasCurl = pose === 'reading' || pose === 'speaking' || isCelebrate || isEncourage;
 
   return (
     <svg
       width={size}
       height={size}
       viewBox="0 0 120 112"
-      className={`shrink-0 ${animate ? 'mascot-bob' : ''} ${className}`}
+      className={`mascot shrink-0 ${animate ? 'mascot-bob' : ''} ${className}`}
       aria-hidden="true"
     >
       {/* Bóng nền sách tranh nhẹ */}
       <ellipse cx="60" cy="99" rx="34" ry="5.5" fill="rgb(59 46 40 / 0.09)" />
+
+      <g className="m-body">
 
       {/* Đuôi hải cẩu */}
       <path
@@ -73,9 +105,14 @@ export function SealMascot({
       <ellipse cx="45" cy="42" rx="2.6" ry="1.6" fill="#9fb2bf" transform="rotate(-12 45 42)" />
       <ellipse cx="75" cy="42" rx="2.6" ry="1.6" fill="#9fb2bf" transform="rotate(12 75 42)" />
 
+      {/* Lọn tóc xoăn nhỏ trên đỉnh đầu */}
+      {hasCurl && (
+        <path d="M58 28 Q55 20 61 19 Q66 19 64 24" fill="none" stroke={INK} strokeWidth="2" strokeLinecap="round" />
+      )}
+
       {/* Má hồng phúng phính */}
-      <ellipse cx="37" cy="59" rx="5.5" ry="3.2" fill={BLUSH} opacity="0.82" />
-      <ellipse cx="83" cy="59" rx="5.5" ry="3.2" fill={BLUSH} opacity="0.82" />
+      <Blush cx={37} cy={59} />
+      <Blush cx={83} cy={59} />
 
       {/* Mõm tròn & ria */}
       <ellipse cx="55.5" cy="58.5" rx="5" ry="3.8" fill="#ffffff" />
@@ -94,12 +131,7 @@ export function SealMascot({
           <path d="M70 53 Q75 46 80 53" />
         </g>
       ) : (
-        <g>
-          <circle cx="45" cy="51.5" r="3.6" fill={INK} />
-          <circle cx="46.2" cy="50.2" r="1.2" fill="#ffffff" />
-          <circle cx="75" cy="51.5" r="3.6" fill={INK} />
-          <circle cx="76.2" cy="50.2" r="1.2" fill="#ffffff" />
-        </g>
+        <SparkleEyes lx={45} rx={75} y={51.5} />
       )}
 
       {/* Mũi & miệng */}
@@ -151,13 +183,13 @@ export function SealMascot({
       {/* Vây hai bên */}
       {isCelebrate ? (
         <g>
-          <path d="M29 66 Q16 55 23 48 Q31 48 35 60 Z" fill={SEAL_BODY} stroke={INK} strokeWidth="2.1" strokeLinejoin="round" />
-          <path d="M91 66 Q104 55 97 48 Q89 48 85 60 Z" fill={SEAL_BODY} stroke={INK} strokeWidth="2.1" strokeLinejoin="round" />
+          <path className="m-wave-l" d="M29 66 Q16 55 23 48 Q31 48 35 60 Z" fill={SEAL_BODY} stroke={INK} strokeWidth="2.1" strokeLinejoin="round" />
+          <path className="m-wave-r" d="M91 66 Q104 55 97 48 Q89 48 85 60 Z" fill={SEAL_BODY} stroke={INK} strokeWidth="2.1" strokeLinejoin="round" />
         </g>
       ) : (
         <g>
           <path d="M29 70 Q18 75 23 82 Q31 84 35 76 Z" fill={SEAL_BODY} stroke={INK} strokeWidth="2.1" strokeLinejoin="round" />
-          <path d="M91 70 Q102 75 97 82 Q89 84 85 76 Z" fill={SEAL_BODY} stroke={INK} strokeWidth="2.1" strokeLinejoin="round" />
+          <path className="m-flip-r" d="M91 70 Q102 75 97 82 Q89 84 85 76 Z" fill={SEAL_BODY} stroke={INK} strokeWidth="2.1" strokeLinejoin="round" />
         </g>
       )}
 
@@ -233,8 +265,8 @@ export function SealMascot({
 
       {isCelebrate && (
         <g fill={GOLD}>
-          <path d="M18 32 L20 26 L22 32 L28 34 L22 36 L20 42 L18 36 L12 34 Z" />
-          <path d="M98 28 L99.5 23 L101 28 L106 29.5 L101 31 L99.5 36 L98 31 L93 29.5 Z" />
+          <path className="m-twinkle" d="M18 32 L20 26 L22 32 L28 34 L22 36 L20 42 L18 36 L12 34 Z" />
+          <path className="m-twinkle" style={{ animationDelay: '0.5s' }} d="M98 28 L99.5 23 L101 28 L106 29.5 L101 31 L99.5 36 L98 31 L93 29.5 Z" />
           <circle cx="30" cy="20" r="2.5" fill={EMBER} />
           <circle cx="90" cy="18" r="2.5" fill={SCARF_1} />
         </g>
@@ -242,6 +274,7 @@ export function SealMascot({
 
       {isEncourage && (
         <path
+          className="m-beat"
           d="M60 88 C60 88 51 82 51 77 C51 74 53.5 72 56 72 C58 72 59.5 73.5 60 74.5 C60.5 73.5 62 72 64 72 C66.5 72 69 74 69 77 C69 82 60 88 60 88 Z"
           fill={EMBER}
           stroke={INK}
@@ -249,6 +282,7 @@ export function SealMascot({
           strokeLinejoin="round"
         />
       )}
+      </g>
     </svg>
   );
 }
@@ -275,10 +309,12 @@ export function HedgehogMascot({
       width={size}
       height={size}
       viewBox="0 0 120 112"
-      className={`shrink-0 ${animate && !isSleepy ? 'mascot-bob' : ''} ${className}`}
+      className={`mascot shrink-0 ${animate ? (isSleepy ? 'mascot-breathe' : 'mascot-bob') : ''} ${className}`}
       aria-hidden="true"
     >
       <ellipse cx="60" cy="99" rx="34" ry="5.5" fill="rgb(59 46 40 / 0.09)" />
+
+      <g className="m-body">
 
       {/* Bộ lông gai sách tranh mềm mại */}
       <path
@@ -297,6 +333,12 @@ export function HedgehogMascot({
         <line x1="95" y1="53" x2="89" y2="55" />
       </g>
 
+      {/* Chiếc lá nhỏ cài trên gai */}
+      <g className="m-leaf">
+        <path d="M63 19 Q66 9 76 10 Q74 19 63 19 Z" fill={SCARF_2} stroke={INK} strokeWidth="1.6" strokeLinejoin="round" />
+        <path d="M64.5 17.5 Q69 14 73 12" fill="none" stroke={SCARF_1} strokeWidth="1.1" strokeLinecap="round" />
+      </g>
+
       {/* Tai tròn ấm */}
       <circle cx="32" cy="46" r="6.5" fill={HEDGE_FACE} stroke={INK} strokeWidth="2.1" />
       <circle cx="32" cy="46" r="3" fill={BLUSH} opacity="0.72" />
@@ -312,8 +354,8 @@ export function HedgehogMascot({
       />
 
       {/* Má hồng */}
-      <ellipse cx="38" cy="64" rx="5.5" ry="3.2" fill={BLUSH} opacity="0.82" />
-      <ellipse cx="82" cy="64" rx="5.5" ry="3.2" fill={BLUSH} opacity="0.82" />
+      <Blush cx={38} cy={65} />
+      <Blush cx={82} cy={65} />
 
       {/* Mắt theo trạng thái */}
       {isSleepy ? (
@@ -327,12 +369,7 @@ export function HedgehogMascot({
           <path d="M71 57 Q75.5 50 80 57" />
         </g>
       ) : (
-        <g>
-          <circle cx="44.5" cy="56" r="3.6" fill={INK} />
-          <circle cx="45.7" cy="54.7" r="1.2" fill="#ffffff" />
-          <circle cx="75.5" cy="56" r="3.6" fill={INK} />
-          <circle cx="76.7" cy="54.7" r="1.2" fill="#ffffff" />
-        </g>
+        <SparkleEyes lx={44.5} rx={75.5} y={56} r={4} delay="1.7s" />
       )}
 
       {/* Kính gọng tròn đặc trưng */}
@@ -361,9 +398,21 @@ export function HedgehogMascot({
         />
       )}
 
-      {/* Tay nhỏ */}
-      <ellipse cx="42" cy="83" rx="5.5" ry="4" fill={HEDGE_FACE} stroke={INK} strokeWidth="1.8" />
-      <ellipse cx="78" cy="83" rx="5.5" ry="4" fill={HEDGE_FACE} stroke={INK} strokeWidth="1.8" />
+      {/* Tay nhỏ (giơ lên khi ăn mừng) */}
+      {isCelebrate ? (
+        <>
+          <ellipse className="m-wave-l" cx="27" cy="62" rx="5" ry="5.5" fill={HEDGE_FACE} stroke={INK} strokeWidth="1.8" />
+          <ellipse className="m-wave-r" cx="93" cy="62" rx="5" ry="5.5" fill={HEDGE_FACE} stroke={INK} strokeWidth="1.8" />
+        </>
+      ) : (
+        <>
+          <ellipse cx="42" cy="83" rx="5.5" ry="4" fill={HEDGE_FACE} stroke={INK} strokeWidth="1.8" />
+          <ellipse className="m-flip-r" cx="78" cy="83" rx="5.5" ry="4" fill={HEDGE_FACE} stroke={INK} strokeWidth="1.8" />
+        </>
+      )}
+      {/* Đôi chân tròn xíu */}
+      <ellipse cx="49" cy="94" rx="6" ry="3.4" fill={HEDGE_DEEP} stroke={INK} strokeWidth="1.6" />
+      <ellipse cx="71" cy="94" rx="6" ry="3.4" fill={HEDGE_DEEP} stroke={INK} strokeWidth="1.6" />
 
       {/* Phụ kiện theo vai trò cá nhân */}
       {pose === 'journal' && (
@@ -426,13 +475,13 @@ export function HedgehogMascot({
 
       {isSleepy && (
         <g fill={INK} opacity="0.6" fontFamily="sans-serif" fontWeight="700">
-          <text x="86" y="34" fontSize="10">
+          <text className="m-zzz" x="86" y="34" fontSize="10">
             z
           </text>
-          <text x="93" y="26" fontSize="12">
+          <text className="m-zzz" style={{ animationDelay: '0.7s' }} x="93" y="26" fontSize="12">
             Z
           </text>
-          <text x="102" y="19" fontSize="9">
+          <text className="m-zzz" style={{ animationDelay: '1.4s' }} x="102" y="19" fontSize="9">
             z
           </text>
         </g>
@@ -440,12 +489,13 @@ export function HedgehogMascot({
 
       {isCelebrate && (
         <g fill={GOLD}>
-          <path d="M18 30 L20 24 L22 30 L28 32 L22 34 L20 40 L18 34 L12 32 Z" />
-          <path d="M98 28 L99.5 23 L101 28 L106 29.5 L101 31 L99.5 36 L98 31 L93 29.5 Z" />
+          <path className="m-twinkle" d="M18 30 L20 24 L22 30 L28 32 L22 34 L20 40 L18 34 L12 32 Z" />
+          <path className="m-twinkle" style={{ animationDelay: '0.5s' }} d="M98 28 L99.5 23 L101 28 L106 29.5 L101 31 L99.5 36 L98 31 L93 29.5 Z" />
           <circle cx="30" cy="18" r="2.5" fill={EMBER} />
           <circle cx="91" cy="17" r="2.5" fill={SCARF_1} />
         </g>
       )}
+      </g>
     </svg>
   );
 }
@@ -521,31 +571,27 @@ export function MascotDuo({
   const height = Math.round(size * 0.56);
   const isDone = mood === 'done';
   return (
-    <svg width={size} height={height} viewBox="0 0 210 118" className={`shrink-0 ${className}`} aria-hidden="true">
+    <svg width={size} height={height} viewBox="0 0 210 118" className={`mascot mascot-duo shrink-0 ${className}`} aria-hidden="true">
       {/* Nền bóng chung */}
       <ellipse cx="105" cy="105" rx="84" ry="7" fill="rgb(59 46 40 / 0.09)" />
 
       {/* Bé Hải Cẩu bên trái (đeo tai nghe + khăn len) */}
       <g transform="translate(4, 4)">
+        <g className="m-body">
         <path d="M84 81 Q98 74 96 86 Q90 91 82 87 Z" fill={SEAL_SHADE} stroke={INK} strokeWidth="2.1" strokeLinejoin="round" />
         <path d="M24 68 C24 42, 38 27, 57 27 C76 27, 90 42, 90 68 C90 85, 78 94, 57 94 C36 94, 24 85, 24 68 Z" fill={SEAL_BODY} stroke={INK} strokeWidth="2.1" />
         <ellipse cx="57" cy="80" rx="20" ry="9" fill={SEAL_SHADE} opacity="0.65" />
         <ellipse cx="43" cy="42" rx="2.4" ry="1.5" fill="#9fb2bf" transform="rotate(-12 43 42)" />
         <ellipse cx="71" cy="42" rx="2.4" ry="1.5" fill="#9fb2bf" transform="rotate(12 71 42)" />
-        <ellipse cx="35" cy="59" rx="5" ry="3" fill={BLUSH} opacity="0.82" />
-        <ellipse cx="79" cy="59" rx="5" ry="3" fill={BLUSH} opacity="0.82" />
+        <Blush cx={35} cy={59} rx={5} ry={3} />
+        <Blush cx={79} cy={59} rx={5} ry={3} />
         {isDone ? (
           <g fill="none" stroke={INK} strokeWidth="2.2" strokeLinecap="round">
             <path d="M38 53 Q43 46 48 53" />
             <path d="M66 53 Q71 46 76 53" />
           </g>
         ) : (
-          <g>
-            <circle cx="43" cy="51.5" r="3.5" fill={INK} />
-            <circle cx="44.2" cy="50.3" r="1.1" fill="#ffffff" />
-            <circle cx="71" cy="51.5" r="3.5" fill={INK} />
-            <circle cx="72.2" cy="50.3" r="1.1" fill="#ffffff" />
-          </g>
+          <SparkleEyes lx={43} rx={71} y={51.5} r={4} />
         )}
         <ellipse cx="57" cy="55.5" rx="3.4" ry="2.2" fill={INK} />
         <path d="M52 60.5 Q54.5 63.5 57 60.5 Q59.5 63.5 62 60.5" fill="none" stroke={INK} strokeWidth="1.7" strokeLinecap="round" />
@@ -558,11 +604,13 @@ export function MascotDuo({
         <rect x="88" y="43" width="9" height="16" rx="4.2" fill={EMBER} stroke={INK} strokeWidth="1.8" />
         {/* Vây vẫy */}
         <path d="M26 70 Q15 75 20 82 Q28 83 32 76 Z" fill={SEAL_BODY} stroke={INK} strokeWidth="2" />
-        <path d="M88 70 Q98 67 96 76 Q90 80 84 75 Z" fill={SEAL_BODY} stroke={INK} strokeWidth="2" />
+        <path className="m-wave-r" d="M88 70 Q98 67 96 76 Q90 80 84 75 Z" fill={SEAL_BODY} stroke={INK} strokeWidth="2" />
+        </g>
       </g>
 
       {/* Bé Nhím bên phải (đeo kính + cầm sổ) */}
       <g transform="translate(96, 4)">
+        <g className="m-body m-body-2">
         <path
           d="M21 65 L13 53 L23 46 L19 33 L32 34 L36 20 L48 26 L58 15 L68 26 L80 20 L84 34 L97 33 L93 46 L103 53 L95 65 C95 85, 79 95, 58 95 C37 95, 21 85, 21 65 Z"
           fill={HEDGE_QUILL}
@@ -573,20 +621,15 @@ export function MascotDuo({
         <circle cx="30" cy="46" r="6" fill={HEDGE_FACE} stroke={INK} strokeWidth="2" />
         <circle cx="86" cy="46" r="6" fill={HEDGE_FACE} stroke={INK} strokeWidth="2" />
         <path d="M27 66 C27 45, 40 36, 58 36 C76 36, 89 45, 89 66 C89 84, 76 94, 58 94 C40 94, 27 84, 27 66 Z" fill={HEDGE_FACE} stroke={INK} strokeWidth="2.1" />
-        <ellipse cx="36" cy="64" rx="5" ry="3" fill={BLUSH} opacity="0.82" />
-        <ellipse cx="80" cy="64" rx="5" ry="3" fill={BLUSH} opacity="0.82" />
+        <Blush cx={36} cy={64} rx={5} ry={3} />
+        <Blush cx={80} cy={64} rx={5} ry={3} />
         {isDone ? (
           <g fill="none" stroke={INK} strokeWidth="2.1" strokeLinecap="round">
             <path d="M38 57 Q43 50 48 57" />
             <path d="M68 57 Q73 50 78 57" />
           </g>
         ) : (
-          <g>
-            <circle cx="43" cy="56" r="3.5" fill={INK} />
-            <circle cx="44.2" cy="54.8" r="1.1" fill="#ffffff" />
-            <circle cx="73" cy="56" r="3.5" fill={INK} />
-            <circle cx="74.2" cy="54.8" r="1.1" fill="#ffffff" />
-          </g>
+          <SparkleEyes lx={43} rx={73} y={56} r={3.8} delay="1.7s" />
         )}
         <g stroke={INK} strokeWidth="1.6" fill="rgb(255 255 255 / 0.22)">
           <circle cx="43" cy="56" r="7.5" />
@@ -599,17 +642,21 @@ export function MascotDuo({
         <rect x="44" y="73" width="28" height="20" rx="3" fill={SCARF_1} stroke={INK} strokeWidth="1.8" />
         <rect x="44" y="73" width="5" height="20" rx="1.5" fill="#246353" stroke={INK} strokeWidth="1.5" />
         <rect x="52" y="78" width="14" height="6" rx="1.2" fill="#fffdf8" />
+        {/* Lá nhỏ trên gai */}
+        <path className="m-leaf" d="M61 19 Q64 9 74 10 Q72 19 61 19 Z" fill={SCARF_2} stroke={INK} strokeWidth="1.5" strokeLinejoin="round" />
+        </g>
       </g>
 
       {/* Chi tiết trạng thái giữa hai bé */}
       {isDone ? (
         <g fill={GOLD}>
-          <path d="M105 14 L107 8 L109 14 L115 16 L109 18 L107 24 L105 18 L99 16 Z" />
+          <path className="m-twinkle" d="M105 14 L107 8 L109 14 L115 16 L109 18 L107 24 L105 18 L99 16 Z" />
           <circle cx="88" cy="18" r="2.4" fill={EMBER} />
           <circle cx="123" cy="18" r="2.4" fill={SCARF_1} />
         </g>
       ) : mood === 'welcome' ? (
         <path
+          className="m-beat"
           d="M105 26 C105 26 98 21 98 17 C98 14.5 100 13 102 13 C103.5 13 104.6 14 105 15 C105.4 14 106.5 13 108 13 C110 13 112 14.5 112 17 C112 21 105 26 105 26 Z"
           fill={EMBER}
           stroke={INK}
@@ -630,20 +677,27 @@ export function MascotBadge({
   className = '',
 }: {
   character: 'seal' | 'hedgehog';
-  variant?: 'listening' | 'reading' | 'skills' | 'vocab' | 'mistakes' | 'journal';
+  variant?: 'listening' | 'reading' | 'writing' | 'speaking' | 'skills' | 'vocab' | 'mistakes' | 'journal';
   size?: number;
   className?: string;
 }) {
   const bg =
     character === 'seal'
-      ? variant === 'listening'
+      ? variant === 'listening' || variant === 'speaking'
         ? '#fde6df'
-        : '#dff0eb'
+        : variant === 'writing'
+          ? '#f2e8dc'
+          : '#dff0eb'
       : variant === 'vocab'
         ? '#dff0eb'
         : variant === 'mistakes'
           ? '#fde6df'
           : '#f2e8dc';
+
+  const sealPose: SealPose =
+    variant === 'listening' || variant === 'reading' || variant === 'writing' || variant === 'speaking' || variant === 'skills'
+      ? variant
+      : 'reading';
 
   return (
     <span
@@ -652,11 +706,7 @@ export function MascotBadge({
       aria-hidden="true"
     >
       {character === 'seal' ? (
-        <SealMascot
-          pose={variant === 'listening' ? 'listening' : variant === 'skills' ? 'skills' : 'reading'}
-          size={Math.round(size * 0.92)}
-          animate={false}
-        />
+        <SealMascot pose={sealPose} size={Math.round(size * 0.92)} animate={false} />
       ) : (
         <HedgehogMascot
           pose={variant === 'vocab' ? 'vocab' : variant === 'mistakes' ? 'mistakes' : 'journal'}
@@ -665,5 +715,33 @@ export function MascotBadge({
         />
       )}
     </span>
+  );
+}
+
+/**
+ * Màn chờ dễ thương thay cho khoảng trống khi dữ liệu đang tải.
+ * Hiện dần sau ~0.3s để lần tải nhanh không bị nháy.
+ */
+export function MascotLoading({
+  character = 'seal',
+  label = 'Đang chuẩn bị cho bạn…',
+  className = 'h-96',
+}: {
+  character?: 'seal' | 'hedgehog';
+  label?: string;
+  className?: string;
+}) {
+  return (
+    <div role="status" className={`mascot-fade-in flex flex-col items-center justify-center gap-2 ${className}`}>
+      {character === 'seal' ? <SealMascot pose="reading" size={84} /> : <HedgehogMascot pose="journal" size={84} />}
+      <div className="flex items-center gap-1.5 text-sm text-muted">
+        {label}
+        <span className="m-dots" aria-hidden="true">
+          <i />
+          <i />
+          <i />
+        </span>
+      </div>
+    </div>
   );
 }

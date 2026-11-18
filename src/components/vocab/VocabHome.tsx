@@ -8,7 +8,7 @@ import { addWord, update, useStore } from '@/lib/store';
 import { speak } from '@/lib/speech';
 import { dayKey, fmtDay } from '@/lib/dates';
 import { useNow } from '@/lib/hooks';
-import { HedgehogMascot } from '../Mascots';
+import { HedgehogMascot, MascotLoading } from '../Mascots';
 
 const stage = (w: Word) => (w.srs.reps === 0 ? 'new' : w.srs.interval >= 21 ? 'known' : 'learning');
 const STAGE_LABEL = { new: 'Mới', learning: 'Đang học', known: 'Đã thuộc' } as const;
@@ -56,7 +56,7 @@ export default function VocabHome() {
     }
   };
 
-  if (!store) return <div className="h-96" />;
+  if (!store) return <MascotLoading character="hedgehog" label="Nhím đang xếp thẻ từ…" />;
 
   return (
     <div>

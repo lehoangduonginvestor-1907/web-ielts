@@ -340,3 +340,242 @@ mark.ev {
   border-color: var(--color-ember);
   box-shadow: 0 0 0 3px var(--color-ember-soft);
 }
+
+/* ---------- Linh vật: chớp mắt, vẫy tay, nhún nhảy ---------- */
+
+.mascot .m-body,
+.mascot .m-blink,
+.mascot .m-flip-r,
+.mascot .m-wave-l,
+.mascot .m-wave-r,
+.mascot .m-twinkle,
+.mascot .m-beat,
+.mascot .m-leaf,
+.mascot .m-zzz {
+  transform-box: fill-box;
+}
+
+.m-blink {
+  transform-origin: center;
+  animation: m-blink 5.2s ease-in-out infinite;
+}
+@keyframes m-blink {
+  0%,
+  91%,
+  97%,
+  100% {
+    transform: scaleY(1);
+  }
+  94% {
+    transform: scaleY(0.08);
+  }
+}
+
+.m-body {
+  transform-origin: 50% 100%;
+}
+.mascot:hover .m-body,
+.m-hop .m-body {
+  animation: m-hop 0.7s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+.mascot-duo:hover .m-body-2 {
+  animation-delay: 0.12s;
+}
+@keyframes m-hop {
+  0% {
+    transform: translateY(0) scale(1, 1);
+  }
+  25% {
+    transform: translateY(0) scale(1.08, 0.9);
+  }
+  55% {
+    transform: translateY(-9%) scale(0.95, 1.06);
+  }
+  80% {
+    transform: translateY(0) scale(1.04, 0.96);
+  }
+  100% {
+    transform: translateY(0) scale(1, 1);
+  }
+}
+
+.m-flip-r {
+  transform-origin: 0% 30%;
+}
+.mascot:hover .m-flip-r {
+  animation: m-wave 0.45s ease-in-out 4 alternate;
+}
+.m-wave-l {
+  transform-origin: 100% 100%;
+  animation: m-wave-l 0.9s ease-in-out infinite alternate;
+}
+.m-wave-r {
+  transform-origin: 0% 100%;
+  animation: m-wave 0.9s ease-in-out infinite alternate;
+}
+@keyframes m-wave {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(-22deg);
+  }
+}
+@keyframes m-wave-l {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(22deg);
+  }
+}
+
+.m-twinkle {
+  transform-origin: center;
+  animation: m-twinkle 1.6s ease-in-out infinite;
+}
+@keyframes m-twinkle {
+  0%,
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(0.55) rotate(20deg);
+    opacity: 0.6;
+  }
+}
+
+.m-beat {
+  transform-origin: center;
+  animation: m-beat 1.4s ease-in-out infinite;
+}
+@keyframes m-beat {
+  0%,
+  60%,
+  100% {
+    transform: scale(1);
+  }
+  20% {
+    transform: scale(1.18);
+  }
+  40% {
+    transform: scale(0.96);
+  }
+}
+
+.m-leaf {
+  transform-origin: 0% 100%;
+  animation: m-leaf 3.8s ease-in-out infinite;
+}
+@keyframes m-leaf {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(-10deg);
+  }
+}
+
+.m-zzz {
+  animation: m-zzz 2.4s ease-in-out infinite;
+}
+@keyframes m-zzz {
+  0% {
+    opacity: 0;
+    transform: translate(0, 3px);
+  }
+  40% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(4px, -6px);
+  }
+}
+
+@keyframes mascot-breathe {
+  0%,
+  100% {
+    transform: scale(1, 1);
+  }
+  50% {
+    transform: scale(1.025, 0.975);
+  }
+}
+.mascot-breathe {
+  transform-origin: 50% 90%;
+  animation: mascot-breathe 3.2s ease-in-out infinite;
+}
+
+.mascot-fade-in {
+  animation: mascot-fade-in 0.4s ease-out 0.3s both;
+}
+@keyframes mascot-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.m-dots {
+  display: inline-flex;
+  gap: 3px;
+}
+.m-dots i {
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--color-accent);
+  animation: m-dot 1s ease-in-out infinite;
+}
+.m-dots i:nth-child(2) {
+  animation-delay: 0.15s;
+  background: var(--color-ember);
+}
+.m-dots i:nth-child(3) {
+  animation-delay: 0.3s;
+}
+@keyframes m-dot {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translateY(-4px);
+    opacity: 1;
+  }
+}
+
+/* Bong bóng thoại của bạn nhỏ nổi */
+.buddy-bubble {
+  animation: buddy-pop 0.35s cubic-bezier(0.3, 1.5, 0.5, 1) both;
+  transform-origin: 90% 100%;
+}
+@keyframes buddy-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.6) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+.buddy-peek {
+  animation: buddy-peek 0.5s cubic-bezier(0.3, 1.4, 0.5, 1) both;
+}
+@keyframes buddy-peek {
+  from {
+    transform: translateY(110%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
