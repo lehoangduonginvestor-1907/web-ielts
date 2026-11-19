@@ -1,7 +1,7 @@
 import type { WritingPrompt } from './types';
 
-// Kho đề IELTS Writing (Task 1 & Task 2), có khung viết từng đoạn (scaffold),
-// số liệu / hình minh hoạ SVG tự dựng, từ vựng chủ đề và bài mẫu tham khảo Band 7.5.
+// IELTS Writing prompt bank (Task 1 & Task 2) with paragraph scaffolds,
+// custom SVG charts/diagrams, topic vocabulary, and Band 7.5 model essays.
 
 const MAP_NORBITON_SVG = `<svg viewBox="0 0 680 320" xmlns="http://www.w3.org/2000/svg" font-family="system-ui, sans-serif">
   <rect width="680" height="320" fill="#faf5ee" rx="8"/>
@@ -181,29 +181,29 @@ const TABLE_SUBWAY_SVG = `<svg viewBox="0 0 680 280" xmlns="http://www.w3.org/20
 const TASK1_SCAFFOLD = [
   {
     id: 'intro',
-    label: '1. Introduction (Mở bài)',
-    hint: 'Paraphrase lại câu đề bài trong 1–2 câu: biểu đồ cho thấy gì, ở đâu và vào mốc thời gian nào.',
+    label: '1. Introduction',
+    hint: 'Paraphrase the prompt in 1–2 sentences: state what the visual shows, where, and over what time period.',
     starters: ['The given diagrams illustrate...', 'The chart compares the percentage of...', 'The table provides data regarding...'],
     minWords: 22,
   },
   {
     id: 'overview',
-    label: '2. Overview (Tổng quan — Bắt buộc)',
-    hint: 'Nêu 2 đặc điểm lớn nhất (xu hướng chung, chênh lệch nổi bật nhất) mà không đưa số liệu chi tiết.',
+    label: '2. Overview (Essential)',
+    hint: 'Highlight the 2 most noticeable big-picture features (overall trends or largest contrasts) without citing specific figures.',
     starters: ['Overall, it is clear that...', 'In general, the most noticeable trend is that...', 'Overall, significant changes are planned...'],
     minWords: 32,
   },
   {
     id: 'body1',
-    label: '3. Body 1 (Nhóm chi tiết 1)',
-    hint: 'Mô tả nhóm dữ liệu hoặc khu vực đầu tiên kèm số liệu đối chiếu chính xác.',
+    label: '3. Body 1 (Key Group 1)',
+    hint: 'Describe the first group of data or area in detail, backing up comparisons with accurate figures.',
     starters: ['Looking at the details, ...', 'In terms of ..., the figure stood at...', 'To the north of the area, ...'],
     minWords: 48,
   },
   {
     id: 'body2',
-    label: '4. Body 2 (Nhóm chi tiết 2)',
-    hint: 'Trình bày phần còn lại, so sánh điểm tương phản, mốc giao nhau hoặc bước kết thúc.',
+    label: '4. Body 2 (Key Group 2)',
+    hint: 'Cover the remaining categories or stages, highlighting contrasts, intersections, or final outcomes.',
     starters: ['By contrast, ...', 'Turning to the remaining categories, ...', 'In the subsequent stages, ...'],
     minWords: 48,
   },
@@ -212,29 +212,29 @@ const TASK1_SCAFFOLD = [
 const TASK2_SCAFFOLD = [
   {
     id: 'intro',
-    label: '1. Introduction (Mở bài)',
-    hint: 'Câu 1: Paraphrase bối cảnh của đề. Câu 2: Trả lời thẳng câu hỏi/lập trường của bạn.',
+    label: '1. Introduction',
+    hint: 'Sentence 1: Paraphrase the topic context. Sentence 2: Directly answer the question or state your thesis clearly.',
     starters: ['In recent years, ... has sparked considerable debate.', 'While some argue that..., I believe that...', 'This essay will examine the reasons behind...'],
     minWords: 35,
   },
   {
     id: 'body1',
-    label: '2. Body 1 (Luận điểm 1 — Khung PEEL)',
-    hint: 'Point (câu chủ đề) → Explain (vì sao/cơ chế) → Example (ví dụ thực tế) → Link.',
+    label: '2. Body 1 (Main Argument 1 — PEEL)',
+    hint: 'Point (topic sentence) → Explain (why/mechanism) → Example (concrete illustration) → Link back to your thesis.',
     starters: ['On the one hand, there are compelling reasons why...', 'One primary factor driving this trend is that...', 'To illustrate, ...'],
     minWords: 85,
   },
   {
     id: 'body2',
-    label: '3. Body 2 (Luận điểm 2 — Khung PEEL)',
-    hint: 'Phát triển mặt còn lại hoặc luận điểm mạnh hơn của bạn theo đúng cấu trúc PEEL.',
+    label: '3. Body 2 (Main Argument 2 — PEEL)',
+    hint: 'Develop the opposing view or your stronger argument following the same PEEL structure.',
     starters: ['On the other hand, I would contend that...', 'Furthermore, effective solutions require...', 'For instance, ...'],
     minWords: 85,
   },
   {
     id: 'conclusion',
-    label: '4. Conclusion (Kết bài)',
-    hint: 'Nhắc lại lập trường và tóm tắt hai ý chính bằng từ ngữ khác. Không đưa ý mới.',
+    label: '4. Conclusion',
+    hint: 'Restate your position and summarize your two main ideas in fresh words. Do not introduce new arguments.',
     starters: ['In conclusion, although..., I firmly believe that...', 'To sum up, this issue stems from..., and can be addressed by...'],
     minWords: 30,
   },
@@ -246,8 +246,8 @@ export const WRITING_PROMPTS: WritingPrompt[] = [
     id: 'w-c17t1-t1',
     task: 'task1',
     category: 'map',
-    categoryLabel: 'Map (Bản đồ)',
-    title: 'Norbiton Industrial Area: Hiện tại & Quy hoạch',
+    categoryLabel: 'Map',
+    title: 'Norbiton Industrial Area: Present & Future Plan',
     book: 17,
     test: 1,
     prompt:
@@ -261,18 +261,18 @@ export const WRITING_PROMPTS: WritingPrompt[] = [
     sampleBand7:
       'The two maps illustrate the current layout of the Norbiton industrial site and the proposed redevelopment plans for the area in the future.\n\nOverall, the site is set to undergo a complete transformation from an industrial zone into a predominantly residential neighbourhood, with all existing factories demolished to make way for housing and community facilities.\n\nCurrently, the area is bordered by a river to the north, with farmland occupying the north-western corner. A vertical road runs southward from the river to a roundabout connecting with the main east-west road. All four existing factories are clustered to the east of this vertical road.\n\nUnder the future plan, the factories and farmland will be cleared entirely. A bridge will be constructed over the river, leading north to newly built housing and a playground. Inside the central area, additional housing will replace the western farmland, supported by a smaller roundabout, shops, a medical centre, and a school in the east.',
     keyVocab: [
-      { word: 'undergo a transformation', pos: 'v.phr', vi: 'trải qua sự biến đổi lớn', context: 'The site is set to undergo a complete transformation.' },
-      { word: 'make way for', pos: 'v.phr', vi: 'nhường chỗ cho', context: 'Old factories will be demolished to make way for housing.' },
-      { word: 'predominantly residential', pos: 'adj.phr', vi: 'chủ yếu là khu dân cư', context: 'It will become a predominantly residential neighbourhood.' },
-      { word: 'clustered', pos: 'adj', vi: 'tập trung thành cụm', context: 'All four factories are clustered to the east of the road.' },
+      { word: 'undergo a transformation', pos: 'v.phr', vi: 'experience a major change in appearance or function', context: 'The site is set to undergo a complete transformation.' },
+      { word: 'make way for', pos: 'v.phr', vi: 'clear space so something new can be built', context: 'Old factories will be demolished to make way for housing.' },
+      { word: 'predominantly residential', pos: 'adj.phr', vi: 'mostly consisting of homes and housing', context: 'It will become a predominantly residential neighbourhood.' },
+      { word: 'clustered', pos: 'adj', vi: 'grouped closely together in one area', context: 'All four factories are clustered to the east of the road.' },
     ],
   },
   {
     id: 'w-c17t2-t1',
     task: 'task1',
     category: 'table',
-    categoryLabel: 'Table & Chart (Hỗn hợp)',
-    title: 'Nguồn thu & Chi tiêu Ngân sách Cảnh sát (2017–2018)',
+    categoryLabel: 'Table & Chart (Mixed)',
+    title: 'Police Budget: Funding Sources & Expenditure (2017–2018)',
     book: 17,
     test: 2,
     prompt:
@@ -286,18 +286,18 @@ export const WRITING_PROMPTS: WritingPrompt[] = [
     sampleBand7:
       'The table details the funding sources for a British police force in 2017 and 2018, while the bar charts compare how the budget was allocated across three expenditure categories.\n\nOverall, the total police budget rose modestly over the two-year period, driven primarily by local taxes. In terms of spending, staff salaries consistently consumed the vast majority of funds, though the share devoted to technology nearly doubled.\n\nIn 2017, total revenue stood at £304.7 million, increasing to £318.6 million in 2018. National government funding remained the largest contributor, edging up slightly from £175.5 million to £177.8 million. Meanwhile, income from local taxes saw the sharpest growth, rising by over £11 million to £102.3 million, whereas other grants stayed almost flat around £38 million.\n\nRegarding distribution, officers and staff salaries fell from 75% in 2017 to 69% in 2018. Conversely, spending on technology surged from 8% to 14%, while buildings and transport remained unchanged at 17%.',
     keyVocab: [
-      { word: 'allocate', pos: 'v', vi: 'phân bổ (ngân sách, nguồn lực)', context: 'The charts show how the budget was allocated across categories.' },
-      { word: 'consume the vast majority', pos: 'v.phr', vi: 'chiếm phần lớn áp đảo', context: 'Staff salaries consistently consumed the vast majority of funds.' },
-      { word: 'edge up slightly', pos: 'v.phr', vi: 'tăng nhẹ từng chút', context: 'Government funding edged up slightly from £175.5m to £177.8m.' },
-      { word: 'remain unchanged', pos: 'v.phr', vi: 'giữ nguyên không đổi', context: 'Spending on buildings and transport remained unchanged at 17%.' },
+      { word: 'allocate', pos: 'v', vi: 'distribute funds or resources for a specific purpose', context: 'The charts show how the budget was allocated across categories.' },
+      { word: 'consume the vast majority', pos: 'v.phr', vi: 'account for the overwhelming share of something', context: 'Staff salaries consistently consumed the vast majority of funds.' },
+      { word: 'edge up slightly', pos: 'v.phr', vi: 'increase by a very small margin', context: 'Government funding edged up slightly from £175.5m to £177.8m.' },
+      { word: 'remain unchanged', pos: 'v.phr', vi: 'stay at the exact same level without shifting', context: 'Spending on buildings and transport remained unchanged at 17%.' },
     ],
   },
   {
     id: 'w-c17t3-t1',
     task: 'task1',
     category: 'bar',
-    categoryLabel: 'Bar Chart (Biểu đồ cột)',
-    title: 'Chi tiêu hàng tuần của gia đình (1968 vs 2018)',
+    categoryLabel: 'Bar Chart',
+    title: 'Average Family Weekly Expenditure (1968 vs 2018)',
     book: 17,
     test: 3,
     prompt:
@@ -311,18 +311,18 @@ export const WRITING_PROMPTS: WritingPrompt[] = [
     sampleBand7:
       'The bar chart compares the proportion of weekly income that households in a particular nation allocated to six categories in 1968 and 2018.\n\nOverall, spending patterns shifted markedly over the half-century: while food dominated budgets in 1968, leisure and housing became the leading areas of expenditure by 2018.\n\nIn 1968, food accounted for 35% of weekly income, more than triple the share of any other item. By 2018, however, this figure had more than halved to 17%. Similarly, proportions spent on clothing and footwear fell by half from 10% to 5%, and fuel and power declined slightly from 6% to 4%.\n\nIn contrast, expenditure on non-essential and accommodation items grew substantially. Leisure experienced the steepest rise, jumping from 9% in 1968 to 22% in 2018 to become the largest single category. Housing nearly doubled from 10% to 19%, while transport rose from 8% to 14%.',
     keyVocab: [
-      { word: 'proportion of', pos: 'n.phr', vi: 'tỷ lệ của', context: 'The chart compares the proportion of weekly income spent on six items.' },
-      { word: 'more than halve', pos: 'v.phr', vi: 'giảm hơn một nửa', context: 'The figure for food more than halved over the period.' },
-      { word: 'spending patterns', pos: 'n.phr', vi: 'xu hướng / mô hình chi tiêu', context: 'Household spending patterns shifted markedly between 1968 and 2018.' },
-      { word: 'steepest rise', pos: 'n.phr', vi: 'mức tăng dốc / mạnh nhất', context: 'Leisure experienced the steepest rise, jumping from 9% to 22%.' },
+      { word: 'proportion of', pos: 'n.phr', vi: 'share or percentage of a whole', context: 'The chart compares the proportion of weekly income spent on six items.' },
+      { word: 'more than halve', pos: 'v.phr', vi: 'drop by more than 50 percent', context: 'The figure for food more than halved over the period.' },
+      { word: 'spending patterns', pos: 'n.phr', vi: 'overall habits or trends in how money is spent', context: 'Household spending patterns shifted markedly between 1968 and 2018.' },
+      { word: 'steepest rise', pos: 'n.phr', vi: 'sharpest or largest upward increase', context: 'Leisure experienced the steepest rise, jumping from 9% to 22%.' },
     ],
   },
   {
     id: 'w-c17t4-t1',
     task: 'task1',
     category: 'line',
-    categoryLabel: 'Line Graph (Biểu đồ đường)',
-    title: 'Số cửa hàng đóng cửa và mở mới (2011–2018)',
+    categoryLabel: 'Line Graph',
+    title: 'Shop Closures and New Openings (2011–2018)',
     book: 17,
     test: 4,
     prompt:
@@ -336,18 +336,18 @@ export const WRITING_PROMPTS: WritingPrompt[] = [
     sampleBand7:
       'The line graph tracks annual shop closures and openings in one country over an eight-year period from 2011 to 2018.\n\nOverall, both figures saw an overall downward trend, with shop openings declining much more sharply than closures. From 2012 onwards, closures consistently outnumbered new openings.\n\nIn 2011, approximately 8,500 new shops opened, outstripping closures at around 6,400. However, openings plummeted by more than half to roughly 4,000 in 2012. Although they rebounded to about 6,000 by 2014, the figure fell back to 4,000 in 2015 and ended at a low of around 3,000 in 2018.\n\nMeanwhile, shop closures fluctuated more moderately between 6,000 and just over 7,000 from 2011 to 2015, reaching their highest levels in 2013 and 2015. Thereafter, closures dropped markedly to around 5,100 in 2016 and remained steady near 5,000 until 2018.',
     keyVocab: [
-      { word: 'outnumber', pos: 'v', vi: 'nhiều hơn về số lượng', context: 'From 2012 onwards, closures consistently outnumbered new openings.' },
-      { word: 'plummet', pos: 'v', vi: 'rơi tự do / giảm mạnh đột ngột', context: 'Shop openings plummeted by more than half in 2012.' },
-      { word: 'rebound', pos: 'v', vi: 'phục hồi / tăng trở lại', context: 'They rebounded to roughly 6,000 by 2014.' },
-      { word: 'downward trend', pos: 'n.phr', vi: 'xu hướng đi xuống', context: 'Both metrics followed a downward trend over the eight-year span.' },
+      { word: 'outnumber', pos: 'v', vi: 'be greater in quantity or count than', context: 'From 2012 onwards, closures consistently outnumbered new openings.' },
+      { word: 'plummet', pos: 'v', vi: 'fall steeply and suddenly', context: 'Shop openings plummeted by more than half in 2012.' },
+      { word: 'rebound', pos: 'v', vi: 'recover or bounce back after a drop', context: 'They rebounded to roughly 6,000 by 2014.' },
+      { word: 'downward trend', pos: 'n.phr', vi: 'general pattern of decline over time', context: 'Both metrics followed a downward trend over the eight-year span.' },
     ],
   },
   {
     id: 'w-process-01',
     task: 'task1',
     category: 'process',
-    categoryLabel: 'Process (Quy trình)',
-    title: 'Quy trình tái chế chai nhựa đã qua sử dụng',
+    categoryLabel: 'Process Diagram',
+    title: 'Process of Recycling Used Plastic Bottles',
     prompt:
       'The diagram below shows the process of recycling used plastic bottles.\n\nSummarise the information by selecting and reporting the main features, and make comparisons where relevant.',
     chartSvg: PROCESS_PLASTIC_SVG,
@@ -359,18 +359,18 @@ export const WRITING_PROMPTS: WritingPrompt[] = [
     sampleBand7:
       'The diagram outlines the sequential stages involved in recycling used plastic bottles into new commercial products.\n\nOverall, this man-made linear process comprises eight main stages, progressing from waste collection and sorting to mechanical processing and remoulding into usable raw material.\n\nInitially, discarded plastic bottles are placed in dedicated recycling bins before being collected by trucks and transported to a processing facility. Upon arrival, the bottles undergo manual sorting according to colour and plastic grade to ensure purity. Next, the sorted items are compressed into large, dense blocks for easier handling.\n\nIn the subsequent phase, these blocks are fed into a crusher to produce tiny plastic flakes, which are thoroughly washed and dried to remove impurities. Once clean, the flakes are melted down and shaped into pellets. Finally, these recycled pellets serve as raw material to manufacture brand-new products.',
     keyVocab: [
-      { word: 'sequential stages', pos: 'n.phr', vi: 'các giai đoạn nối tiếp nhau', context: 'The diagram outlines eight sequential stages of recycling.' },
-      { word: 'remove impurities', pos: 'v.phr', vi: 'loại bỏ tạp chất', context: 'The crushed flakes are washed thoroughly to remove impurities.' },
-      { word: 'subsequent phase', pos: 'n.phr', vi: 'giai đoạn tiếp theo', context: 'In the subsequent phase, the compressed blocks are crushed.' },
-      { word: 'serve as raw material', pos: 'v.phr', vi: 'đóng vai trò làm nguyên liệu thô', context: 'The pellets serve as raw material for manufacturing new items.' },
+      { word: 'sequential stages', pos: 'n.phr', vi: 'steps occurring in a fixed logical order', context: 'The diagram outlines eight sequential stages of recycling.' },
+      { word: 'remove impurities', pos: 'v.phr', vi: 'clean out dirt or unwanted contaminants', context: 'The crushed flakes are washed thoroughly to remove impurities.' },
+      { word: 'subsequent phase', pos: 'n.phr', vi: 'the following stage in a process', context: 'In the subsequent phase, the compressed blocks are crushed.' },
+      { word: 'serve as raw material', pos: 'v.phr', vi: 'be used as the base input to make new goods', context: 'The pellets serve as raw material for manufacturing new items.' },
     ],
   },
   {
     id: 'w-table-01',
     task: 'task1',
     category: 'table',
-    categoryLabel: 'Table (Bảng số liệu)',
-    title: 'Hệ thống tàu điện ngầm tại sáu thành phố lớn',
+    categoryLabel: 'Table',
+    title: 'Underground Railway Systems in Six Major Cities',
     prompt:
       'The table below gives information about the underground railway systems in six cities.\n\nSummarise the information by selecting and reporting the main features, and make comparisons where relevant.',
     chartSvg: TABLE_SUBWAY_SVG,
@@ -382,10 +382,10 @@ export const WRITING_PROMPTS: WritingPrompt[] = [
     sampleBand7:
       'The table compares six major cities in terms of the opening dates, route lengths, and annual passenger numbers of their underground railway networks.\n\nOverall, the three older systems in London, Paris, and Tokyo are substantially larger and far busier than the newer networks in Washington DC, Kyoto, and Los Angeles. Notably, Tokyo serves the largest volume of passengers despite having a shorter track than London or Paris.\n\nLondon boasts the oldest and most extensive network, having opened in 1863 and spanning 394 km, serving 775 million riders annually. Paris, built in 1900, covers roughly half London’s length at 199 km yet carries significantly more commuters at 1,191 million. Tokyo’s system (1927), though measuring only 155 km, handles a record 1,927 million passengers per year.\n\nConversely, the three networks established after 1975 are much smaller. Washington DC operates 126 km with 144 million annual riders, whereas Kyoto (11 km) and Los Angeles (28 km) carry just 45 and 50 million passengers respectively.',
     keyVocab: [
-      { word: 'extensive network', pos: 'n.phr', vi: 'mạng lưới rộng lớn', context: 'London operates the oldest and most extensive underground network.' },
-      { word: 'annual passenger volume', pos: 'n.phr', vi: 'lượng hành khách hàng năm', context: 'Tokyo records the highest annual passenger volume at 1,927 million.' },
-      { word: 'respectively', pos: 'adv', vi: 'lần lượt là', context: 'Kyoto and Los Angeles carry 45 and 50 million passengers respectively.' },
-      { word: 'span', pos: 'v', vi: 'trải dài (khoảng cách)', context: 'The network spans 394 kilometres across the capital.' },
+      { word: 'extensive network', pos: 'n.phr', vi: 'large, wide-reaching system of routes', context: 'London operates the oldest and most extensive underground network.' },
+      { word: 'annual passenger volume', pos: 'n.phr', vi: 'total number of riders carried per year', context: 'Tokyo records the highest annual passenger volume at 1,927 million.' },
+      { word: 'respectively', pos: 'adv', vi: 'in the exact order previously mentioned', context: 'Kyoto and Los Angeles carry 45 and 50 million passengers respectively.' },
+      { word: 'span', pos: 'v', vi: 'extend across a given distance or length', context: 'The network spans 394 kilometres across the capital.' },
     ],
   },
 
@@ -394,8 +394,8 @@ export const WRITING_PROMPTS: WritingPrompt[] = [
     id: 'w-c17t1-t2',
     task: 'task2',
     category: 'opinion',
-    categoryLabel: 'Opinion (Ưu / Nhược)',
-    title: 'Chấp nhận rủi ro trong công việc và cuộc sống',
+    categoryLabel: 'Opinion (Advantages / Disadvantages)',
+    title: 'Taking Risks in Professional and Personal Life',
     book: 17,
     test: 1,
     prompt:
@@ -406,10 +406,10 @@ export const WRITING_PROMPTS: WritingPrompt[] = [
     sampleBand7:
       'Taking calculated risks is often viewed as essential for growth in both career and personal development. Although stepping into uncertainty carries clear downsides such as financial loss or emotional stress, I firmly believe the long-term benefits far outweigh these drawbacks.\n\nOn the one hand, reckless risk-taking can expose individuals to severe setbacks. In professional life, quitting a stable job to launch a business without adequate preparation may lead to debt and prolonged anxiety. Similarly, making impulsive personal decisions—such as relocating abroad without researching the local job market—can isolate people from their support networks. Therefore, risks undertaken without foresight clearly threaten stability.\n\nOn the other hand, measured risks drive progress, innovation, and self-confidence. Professionally, employees who volunteer for unfamiliar projects or switch industries often acquire rare skills and accelerate their promotion prospects. For example, many successful founders had to leave secure corporate roles before discovering viable business ideas. On a personal level, embracing unfamiliar experiences helps individuals overcome self-doubt and build resilience that cannot be gained inside a comfort zone.\n\nIn conclusion, while poorly planned risks can result in financial or emotional harm, the rewards of taking thoughtful risks—namely career advancement and personal resilience—are significantly greater.',
     keyVocab: [
-      { word: 'calculated risk', pos: 'n.phr', vi: 'rủi ro đã được tính toán kỹ', context: 'Taking calculated risks is essential for long-term career growth.' },
-      { word: 'outweigh the drawbacks', pos: 'v.phr', vi: 'vượt trội hơn các mặt hạn chế', context: 'The personal and professional benefits outweigh the drawbacks.' },
-      { word: 'build resilience', pos: 'v.phr', vi: 'rèn luyện sự kiên cường', context: 'Stepping outside one’s comfort zone helps build resilience.' },
-      { word: 'severe setbacks', pos: 'n.phr', vi: 'những thất bại / trở ngại lớn', context: 'Reckless decisions can expose individuals to severe setbacks.' },
+      { word: 'calculated risk', pos: 'n.phr', vi: 'a risk taken after carefully weighing possible outcomes', context: 'Taking calculated risks is essential for long-term career growth.' },
+      { word: 'outweigh the drawbacks', pos: 'v.phr', vi: 'be more significant than the disadvantages', context: 'The personal and professional benefits outweigh the drawbacks.' },
+      { word: 'build resilience', pos: 'v.phr', vi: 'develop the strength to recover from setbacks', context: 'Stepping outside one’s comfort zone helps build resilience.' },
+      { word: 'severe setbacks', pos: 'n.phr', vi: 'serious failures or major obstacles', context: 'Reckless decisions can expose individuals to severe setbacks.' },
     ],
   },
   {
@@ -417,7 +417,7 @@ export const WRITING_PROMPTS: WritingPrompt[] = [
     task: 'task2',
     category: 'two_part',
     categoryLabel: 'Two-Part Question',
-    title: 'Trẻ em dành nhiều giờ dùng điện thoại thông minh',
+    title: 'Children Spending Hours on Smartphones',
     book: 17,
     test: 2,
     prompt:
@@ -428,10 +428,10 @@ export const WRITING_PROMPTS: WritingPrompt[] = [
     sampleBand7:
       'It is increasingly common to see young children spending several hours a day glued to smartphone screens. This trend stems mainly from algorithmic app design and busy parenting schedules, and despite minor educational benefits, I consider it a largely negative development.\n\nTwo key factors explain children’s excessive screen time. Firstly, social media and gaming platforms are engineered to trigger instant dopamine rewards through endless short videos and notifications, making it hard for young users with developing self-control to stop. Secondly, overworked parents frequently hand smartphones to children as a convenient digital babysitter during meals or commutes, inadvertently reinforcing daily dependency.\n\nAlthough smartphones provide quick access to language apps and educational videos, the harms to physical and mental wellbeing are far more concerning. Prolonged sedentary screen use contributes to poor posture, eye strain, and sleep disruption caused by blue light. Furthermore, replacing face-to-face play with virtual interaction can hinder social skills and shorten attention spans, leaving children struggling to focus on traditional classroom tasks.\n\nIn conclusion, children’s heavy smartphone use is driven by addictive app design and parental convenience. Because it impairs physical health, sleep, and real-world social development, it should be viewed as an overwhelmingly negative trend.',
     keyVocab: [
-      { word: 'excessive screen time', pos: 'n.phr', vi: 'thời gian nhìn màn hình quá mức', context: 'Two major factors drive children’s excessive screen time.' },
-      { word: 'develop self-control', pos: 'v.phr', vi: 'phát triển khả năng tự kiểm soát', context: 'Children are still developing self-control against addictive feeds.' },
-      { word: 'sedentary lifestyle', pos: 'n.phr', vi: 'lối sống ít vận động', context: 'Prolonged phone use encourages a sedentary lifestyle.' },
-      { word: 'attention span', pos: 'n.phr', vi: 'khoảng thời gian tập trung', context: 'Short-form videos can noticeably shorten children’s attention spans.' },
+      { word: 'excessive screen time', pos: 'n.phr', vi: 'too many hours spent looking at digital screens', context: 'Two major factors drive children’s excessive screen time.' },
+      { word: 'develop self-control', pos: 'v.phr', vi: 'build the discipline to regulate impulses', context: 'Children are still developing self-control against addictive feeds.' },
+      { word: 'sedentary lifestyle', pos: 'n.phr', vi: 'daily routine with very little physical movement', context: 'Prolonged phone use encourages a sedentary lifestyle.' },
+      { word: 'attention span', pos: 'n.phr', vi: 'length of time someone can stay focused on one task', context: 'Short-form videos can noticeably shorten children’s attention spans.' },
     ],
   },
   {
@@ -439,7 +439,7 @@ export const WRITING_PROMPTS: WritingPrompt[] = [
     task: 'task2',
     category: 'discussion',
     categoryLabel: 'Discussion + Opinion',
-    title: 'Bác sĩ & Kỹ sư có nên bị ràng buộc làm việc trong nước?',
+    title: 'Should Doctors & Engineers Work Where They Trained?',
     book: 17,
     test: 3,
     prompt:
@@ -450,10 +450,10 @@ export const WRITING_PROMPTS: WritingPrompt[] = [
     sampleBand7:
       'Whether skilled graduates such as doctors and engineers should be obligated to serve in the nation that trained them remains a contentious issue. While compelling professionals to stay helps protect domestic public services, I believe individuals should retain the freedom to work abroad, provided reasonable incentives are used instead of strict bans.\n\nSupporters of mandatory domestic service emphasize public investment and brain drain. In many countries, university education—especially medical school—is heavily subsidized by taxpayers. When top graduates emigrate immediately for higher salaries, local hospitals and infrastructure projects suffer acute skill shortages. Requiring graduates to work locally for a few years seems a fair return on national investment.\n\nHowever, restricting labour mobility infringes on personal autonomy and can backfire on career quality. Doctors and engineers often seek overseas posts to access advanced research equipment, specialized training, and better working conditions. Forcing unwilling professionals to remain in under-resourced workplaces may lower motivation and service quality. Instead, governments can retain talent more effectively by improving pay, upgrading facilities, or offering loan forgiveness for local service.\n\nIn conclusion, although protecting domestic workforces against brain drain is vital, freedom of movement should be respected. Positive incentives, rather than legal restrictions, offer a fairer and more sustainable solution.',
     keyVocab: [
-      { word: 'brain drain', pos: 'n.phr', vi: 'chảy máu chất xám', context: 'Developing nations often suffer from severe brain drain.' },
-      { word: 'heavily subsidized', pos: 'adj.phr', vi: 'được trợ cấp lớn (từ nhà nước)', context: 'Medical degrees are heavily subsidized by taxpayers.' },
-      { word: 'infringe on personal autonomy', pos: 'v.phr', vi: 'xâm phạm quyền tự do cá nhân', context: 'Strict travel bans infringe on personal autonomy.' },
-      { word: 'retain talent', pos: 'v.phr', vi: 'giữ chân nhân tài', context: 'Better working conditions help countries retain top talent.' },
+      { word: 'brain drain', pos: 'n.phr', vi: 'emigration of highly skilled workers to other countries', context: 'Developing nations often suffer from severe brain drain.' },
+      { word: 'heavily subsidized', pos: 'adj.phr', vi: 'largely funded by public or government money', context: 'Medical degrees are heavily subsidized by taxpayers.' },
+      { word: 'infringe on personal autonomy', pos: 'v.phr', vi: 'limit or violate an individual’s freedom of choice', context: 'Strict travel bans infringe on personal autonomy.' },
+      { word: 'retain talent', pos: 'v.phr', vi: 'keep skilled professionals from leaving', context: 'Better working conditions help countries retain top talent.' },
     ],
   },
   {
@@ -461,7 +461,7 @@ export const WRITING_PROMPTS: WritingPrompt[] = [
     task: 'task2',
     category: 'advantages',
     categoryLabel: 'Positive / Negative',
-    title: 'Xu hướng dùng y học thay thế thay vì đi khám bác sĩ',
+    title: 'Choosing Alternative Medicine Over Regular Doctors',
     book: 17,
     test: 4,
     prompt:
@@ -472,10 +472,10 @@ export const WRITING_PROMPTS: WritingPrompt[] = [
     sampleBand7:
       'In recent years, an increasing proportion of patients have turned to alternative therapies—such as herbal remedies and acupuncture—rather than consulting conventional doctors. Although complementary practices can support mild symptom relief, relying on them as a replacement for clinical care is largely a negative development.\n\nAdmittedly, certain alternative approaches offer genuine benefits when used sensibly. Practices like acupuncture, yoga, and herbal teas often help patients manage chronic stress, minor aches, or sleep problems with fewer chemical side effects than prescription drugs. Moreover, holistic practitioners typically spend more time listening to patients, which can foster emotional reassurance.\n\nNevertheless, substituting unproven treatments for evidence-based medicine poses serious health risks. Modern diagnostic tools—including blood tests and imaging scans—allow physicians to detect life-threatening illnesses such as cancer or heart disease at an early stage. Delaying standard medical care while relying solely on alternative remedies can allow treatable conditions to worsen irreversibly. Furthermore, many unregulated supplements lack clinical safety testing and may interact dangerously with existing medications.\n\nIn conclusion, while complementary therapies have value alongside standard care, abandoning conventional doctors in favour of alternative treatments carries unacceptable medical risks and is therefore a negative trend.',
     keyVocab: [
-      { word: 'evidence-based medicine', pos: 'n.phr', vi: 'y học dựa trên bằng chứng khoa học', context: 'Patients should not replace evidence-based medicine with unproven remedies.' },
-      { word: 'life-threatening illness', pos: 'n.phr', vi: 'căn bệnh đe dọa tính mạng', context: 'Early scans help doctors detect life-threatening illnesses.' },
-      { word: 'unregulated supplements', pos: 'n.phr', vi: 'thực phẩm bổ sung không được kiểm soát', context: 'Unregulated supplements may cause unexpected side effects.' },
-      { word: 'complementary therapy', pos: 'n.phr', vi: 'liệu pháp bổ trợ', context: 'Acupuncture works best as a complementary therapy.' },
+      { word: 'evidence-based medicine', pos: 'n.phr', vi: 'clinical treatments backed by rigorous scientific research', context: 'Patients should not replace evidence-based medicine with unproven remedies.' },
+      { word: 'life-threatening illness', pos: 'n.phr', vi: 'a serious disease that can be fatal if untreated', context: 'Early scans help doctors detect life-threatening illnesses.' },
+      { word: 'unregulated supplements', pos: 'n.phr', vi: 'health products sold without strict safety oversight', context: 'Unregulated supplements may cause unexpected side effects.' },
+      { word: 'complementary therapy', pos: 'n.phr', vi: 'supportive treatment used alongside standard medical care', context: 'Acupuncture works best as a complementary therapy.' },
     ],
   },
   {
@@ -483,7 +483,7 @@ export const WRITING_PROMPTS: WritingPrompt[] = [
     task: 'task2',
     category: 'problem_solution',
     categoryLabel: 'Causes & Solutions',
-    title: 'Ùn tắc giao thông và ô nhiễm không khí ở đô thị',
+    title: 'Urban Traffic Congestion and Air Pollution',
     prompt:
       'In many cities, traffic congestion and air pollution are growing worse.\n\nWhat are the main causes of these problems, and what measures can governments and individuals take to tackle them?',
     minWords: 250,
@@ -492,10 +492,10 @@ export const WRITING_PROMPTS: WritingPrompt[] = [
     sampleBand7:
       'Worsening traffic congestion and urban air pollution have become urgent challenges in major cities worldwide. These issues stem largely from rising private vehicle ownership and inadequate public transit, and addressing them requires coordinated government investment alongside shifts in commuter habits.\n\nTwo primary causes drive urban gridlock and poor air quality. First, rapid urbanization and rising disposable incomes have enabled more residents to purchase private cars and motorbikes, saturating roads built decades ago. Second, when bus and metro networks are unreliable, overcrowded, or poorly connected to suburbs, citizens feel compelled to commute by private transport, releasing huge volumes of exhaust fumes daily.\n\nTackling these problems demands action from both authorities and individuals. Governments should prioritize expanding clean, punctual public transport—such as electric buses and underground lines—while introducing congestion charges or low-emission zones in city centres to discourage unnecessary driving. On an individual level, commuters can carpool with colleagues, cycle for short trips, or work remotely where possible to reduce peak-hour traffic.\n\nIn conclusion, urban congestion and pollution are fuelled by car dependency and weak transit infrastructure. Only through improved public transport policies and responsible daily travel choices can cities restore cleaner air and smoother mobility.',
     keyVocab: [
-      { word: 'private vehicle ownership', pos: 'n.phr', vi: 'tỷ lệ sở hữu phương tiện cá nhân', context: 'Rising private vehicle ownership overwhelms narrow city streets.' },
-      { word: 'inadequate public transit', pos: 'n.phr', vi: 'giao thông công cộng chưa đáp ứng', context: 'Inadequate public transit forces commuters to rely on cars.' },
-      { word: 'congestion charge', pos: 'n.phr', vi: 'phí chống ùn tắc giao thông', context: 'Congestion charges discourage unnecessary driving into city centres.' },
-      { word: 'exhaust fumes', pos: 'n.phr', vi: 'khí thải xe cộ', context: 'Heavy traffic produces toxic exhaust fumes every morning.' },
+      { word: 'private vehicle ownership', pos: 'n.phr', vi: 'rate of residents owning personal cars or motorbikes', context: 'Rising private vehicle ownership overwhelms narrow city streets.' },
+      { word: 'inadequate public transit', pos: 'n.phr', vi: 'insufficient or unreliable bus and rail services', context: 'Inadequate public transit forces commuters to rely on cars.' },
+      { word: 'congestion charge', pos: 'n.phr', vi: 'a fee paid to drive into busy city centres', context: 'Congestion charges discourage unnecessary driving into city centres.' },
+      { word: 'exhaust fumes', pos: 'n.phr', vi: 'polluting gases emitted by vehicle engines', context: 'Heavy traffic produces toxic exhaust fumes every morning.' },
     ],
   },
   {
@@ -503,7 +503,7 @@ export const WRITING_PROMPTS: WritingPrompt[] = [
     task: 'task2',
     category: 'two_part',
     categoryLabel: 'Two-Part Question',
-    title: 'Tiêu dùng hàng hóa ngày càng tăng và hạnh phúc',
+    title: 'Rising Consumerism and Personal Happiness',
     prompt:
       'In many countries today, people buy more household goods and clothes than ever before.\n\nWhy is this happening? Does it make people’s lives happier?',
     minWords: 250,
@@ -512,10 +512,10 @@ export const WRITING_PROMPTS: WritingPrompt[] = [
     sampleBand7:
       'Modern consumers purchase far more clothing and household items than previous generations. This surge in consumption is fuelled by fast-fashion pricing and targeted digital marketing, yet beyond meeting basic comfort, it rarely delivers lasting happiness.\n\nAggressive marketing and falling production costs largely explain why people buy so much. Globalized supply chains allow retailers to sell trendy garments and gadgets at remarkably low prices, encouraging impulsive replacement rather than repair. Simultaneously, social media influencers and personalized advertisements constantly expose shoppers to curated lifestyles, manufacturing artificial desires for the newest products.\n\nWhile owning practical appliances saves household time and improves physical comfort, excessive shopping fails to generate genuine wellbeing. Psychologists note that the excitement of acquiring a new item fades quickly—a phenomenon known as hedonic adaptation—leaving consumers craving the next purchase. Worse still, chasing material status often pushes households into debt and creates clutter and environmental guilt, which undermines overall life satisfaction.\n\nIn conclusion, cheap mass production and persuasive digital advertising drive record levels of consumption. Although essential goods improve convenience, perpetual shopping offers only fleeting pleasure rather than true happiness.',
     keyVocab: [
-      { word: 'impulsive purchase', pos: 'n.phr', vi: 'mua sắm bốc đồng', context: 'Flash sales encourage impulsive purchases online.' },
-      { word: 'fleeting pleasure', pos: 'n.phr', vi: 'niềm vui thoáng qua', context: 'Material possessions bring only fleeting pleasure.' },
-      { word: 'targeted marketing', pos: 'n.phr', vi: 'tiếp thị nhắm đúng đối tượng', context: 'Targeted marketing constantly tempts shoppers with new trends.' },
-      { word: 'life satisfaction', pos: 'n.phr', vi: 'sự hài lòng với cuộc sống', context: 'Debt and clutter can gradually erode life satisfaction.' },
+      { word: 'impulsive purchase', pos: 'n.phr', vi: 'buying something spontaneously without planning', context: 'Flash sales encourage impulsive purchases online.' },
+      { word: 'fleeting pleasure', pos: 'n.phr', vi: 'brief enjoyment that quickly fades away', context: 'Material possessions bring only fleeting pleasure.' },
+      { word: 'targeted marketing', pos: 'n.phr', vi: 'ads tailored to specific consumer interests', context: 'Targeted marketing constantly tempts shoppers with new trends.' },
+      { word: 'life satisfaction', pos: 'n.phr', vi: 'overall sense of fulfilment and contentment with life', context: 'Debt and clutter can gradually erode life satisfaction.' },
     ],
   },
 ];

@@ -26,7 +26,9 @@ const maxDay = (a?: DayLog, b?: DayLog): DayLog => ({
   seconds: Math.max(a?.seconds ?? 0, b?.seconds ?? 0),
   units: Math.max(a?.units ?? 0, b?.units ?? 0),
   cards: Math.max(a?.cards ?? 0, b?.cards ?? 0),
+  ...(a?.newCards || b?.newCards ? { newCards: Math.max(a?.newCards ?? 0, b?.newCards ?? 0) } : {}),
   ...(a?.drills || b?.drills ? { drills: Math.max(a?.drills ?? 0, b?.drills ?? 0) } : {}),
+  ...(a?.lessons || b?.lessons ? { lessons: Math.max(a?.lessons ?? 0, b?.lessons ?? 0) } : {}),
 });
 
 export function mergeStores(x: Store, y: Store): Store {

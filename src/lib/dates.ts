@@ -17,7 +17,7 @@ export function daysBetween(a: string, b: string): number {
   return Math.round((Date.UTC(y2, m2 - 1, d2) - Date.UTC(y1, m1 - 1, d1)) / 86400000);
 }
 
-const WEEKDAYS = ['Chủ nhật', 'Thứ hai', 'Thứ ba', 'Thứ tư', 'Thứ năm', 'Thứ sáu', 'Thứ bảy'];
+const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 export function weekdayName(key: string): string {
   const [y, m, d] = key.split('-').map(Number);
@@ -31,8 +31,8 @@ export function fmtDay(key: string): string {
 
 export function fmtDuration(seconds: number): string {
   const m = Math.round(seconds / 60);
-  if (m < 60) return `${m} phút`;
-  return `${Math.floor(m / 60)} giờ ${m % 60 ? `${m % 60} phút` : ''}`.trim();
+  if (m < 60) return `${m} min`;
+  return `${Math.floor(m / 60)}h ${m % 60 ? `${m % 60}m` : ''}`.trim();
 }
 
 export function fmtClock(seconds: number): string {

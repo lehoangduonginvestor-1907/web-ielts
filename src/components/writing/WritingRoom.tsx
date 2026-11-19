@@ -1,13 +1,16 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   ArrowLeft,
   BookOpen,
   Check,
+  ChevronDown,
+  ClipboardPaste,
   Clock,
+  Copy,
   Eye,
   Layers,
   Loader2,
@@ -28,7 +31,14 @@ import {
 } from '@/lib/store';
 import { fmtBand } from '@/lib/band';
 import { fmtClock, fmtDuration } from '@/lib/dates';
+import { writingTierOf } from '@/lib/progress';
 import { geminiHeaders } from '@/lib/geminiKey';
+import {
+  buildWritingManualPrompt,
+  buildWritingSocraticPrompt,
+  summarizeGrammarMistakes,
+} from '@/lib/manualGrade';
+import GeminiContextPanel, { ChromeSkillsTip } from '../GeminiContextPanel';
 import { MascotLoading, SealMascot } from '../Mascots';
 
 type Phase = 'intro' | 'writing' | 'review';
@@ -52,7 +62,9 @@ export default function WritingRoom({ prompt, attemptId }: { prompt: WritingProm
   );
 
   const [phase, setPhase] = useState<Phase>(attemptId ? 'review' : 'intro');
-  const [mode, setMode] = useState<WritingMode>('step');
+  const [pickedMode, setMode] = useState<WritingMode | null>(null);
+  const wTier = store ? writingTierOf(store) : 0;
+  const mode: WritingMode = pickedMode ?? (wTier >= 2 ? 'exam' : wTier === 1 ? 'full' : 'step');
   const [text, setText] = useState('');
   const [stepTexts, setStepTexts] = useState<string[]>(() => prompt.scaffold.map(() => ''));
   const [seconds, setSeconds] = useState(0);
@@ -66,6 +78,37 @@ export default function WritingRoom({ prompt, attemptId }: { prompt: WritingProm
   const [showSupport, setShowSupport] = useState(true);
   const [vocabToast, setVocabToast] = useState<string | null>(null);
   const [mistakeToast, setMistakeToast] = useState<string | null>(null);
+  const [socraticToast, setSocraticToast] = useState<{ key: string; msg: string; fallbackText?: string } | null>(null);
+  const [manualOpen, setManualOpen] = useState(false);
+  const [manualPromptCopied, setManualPromptCopied] = useState(false);
+  const [manualPromptFallback, setManualPromptFallback] = useState<string | null>(null);
+  const [manualJsonText, setManualJsonText] = useState('');
+  const [manualGrading, setManualGrading] = useState(false);
+  const [manualErr, setManualErr] = useState('');
+  const [manualHint, setManualHint] = useState('');
+  const manualTextareaRef = useRef<HTMLTextAreaElement | null>(null);
+
+  const topErrorPatterns = useMemo(
+    () => summarizeGrammarMistakes(store, 'writing').topPatterns.map(p => p.pattern),
+    [store],
+  );
+
+  const copySocratic = async (key: string, sectionLabel: string, draftText: string) => {
+    const promptText = buildWritingSocraticPrompt({ prompt, sectionLabel, draftText, topErrorPatterns });
+    try {
+      await navigator.clipboard.writeText(promptText);
+      setSocraticToast({ key, msg: 'Socratic prompt copied — paste it into the Gemini side panel' });
+      setTimeout(() => {
+        setSocraticToast(cur => (cur?.key === key ? null : cur));
+      }, 3000);
+    } catch {
+      setSocraticToast({
+        key,
+        msg: 'Your browser blocked automatic copying — select and press Ctrl+C below:',
+        fallbackText: promptText,
+      });
+    }
+  };
 
   const currentAttempt: WritingAttempt | undefined = useMemo(() => {
     if (!store) return undefined;
@@ -81,7 +124,7 @@ export default function WritingRoom({ prompt, attemptId }: { prompt: WritingProm
   const limit = mode === 'exam' ? prompt.recommendedMinutes * 60 : null;
   const remaining = limit !== null ? Math.max(0, limit - seconds) : null;
 
-  // Đồng hồ đếm giờ khi viết
+  // Timer while writing
   useEffect(() => {
     if (phase !== 'writing') return;
     let unlogged = 0;
@@ -102,7 +145,7 @@ export default function WritingRoom({ prompt, attemptId }: { prompt: WritingProm
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase]);
 
-  // Tự lưu nháp
+  // Auto-save draft
   useEffect(() => {
     if (phase !== 'writing') return;
     const t = setTimeout(() => {
@@ -125,10 +168,13 @@ export default function WritingRoom({ prompt, attemptId }: { prompt: WritingProm
       setStartedAt(Date.now());
     }
     setGradeErr('');
+    setManualErr('');
+    setManualHint('');
+    setManualJsonText('');
+    setManualPromptFallback(null);
     setPhase('writing');
   };
 
-  const targetBand = store?.profile?.target ?? 6.5;
   const runGrading = useCallback(
     async (attempt: WritingAttempt) => {
       setGrading(true);
@@ -138,27 +184,98 @@ export default function WritingRoom({ prompt, attemptId }: { prompt: WritingProm
           method: 'POST',
           headers: { 'Content-Type': 'application/json', ...geminiHeaders() },
           body: JSON.stringify({
-            prompt,
+            promptId: prompt.id,
             essay: attempt.text,
-            mode: attempt.mode,
-            targetBand,
           }),
         });
         const data = (await res.json()) as { feedback?: WritingFeedback; error?: string };
         if (!res.ok || !data.feedback) {
-          throw new Error(data.error || 'Không thể chấm bài lúc này.');
+          throw new Error(data.error || 'Unable to grade your essay right now.');
         }
         updateWritingAttempt(attempt.id, a => {
           a.feedback = data.feedback;
         });
       } catch (err) {
-        setGradeErr(err instanceof Error ? err.message : 'Lỗi kết nối Gemini 4 Argon');
+        setGradeErr(err instanceof Error ? err.message : 'Failed to connect to the grading service.');
+        setManualOpen(true);
       } finally {
         setGrading(false);
       }
     },
-    [prompt, targetBand],
+    [prompt.id],
   );
+
+  const copyManualPrompt = async (attempt: WritingAttempt) => {
+    const promptText = buildWritingManualPrompt({ prompt, essay: attempt.text, attemptId: attempt.id });
+    setManualErr('');
+    try {
+      await navigator.clipboard.writeText(promptText);
+      setManualPromptFallback(null);
+      setManualPromptCopied(true);
+      setTimeout(() => setManualPromptCopied(false), 3000);
+    } catch {
+      setManualPromptFallback(promptText);
+    }
+  };
+
+  const runManualGrading = useCallback(
+    async (attempt: WritingAttempt, rawJson: string) => {
+      const trimmed = rawJson.trim();
+      if (!trimmed) {
+        setManualErr('Please paste the JSON grading output from Gemini into the box below first.');
+        return;
+      }
+      setManualGrading(true);
+      setManualErr('');
+      setManualHint('');
+      try {
+        const res = await fetch('/api/writing/grade', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            promptId: prompt.id,
+            essay: attempt.text,
+            attemptId: attempt.id,
+            manualJson: trimmed,
+          }),
+        });
+        const data = (await res.json().catch(() => ({}))) as { feedback?: WritingFeedback; error?: string };
+        if (!res.ok || !data.feedback) {
+          throw new Error(data.error || 'Could not parse this JSON result.');
+        }
+        updateWritingAttempt(attempt.id, a => {
+          a.feedback = data.feedback;
+        });
+        setGradeErr('');
+        setManualJsonText('');
+        setManualOpen(false);
+      } catch (err) {
+        setManualErr(err instanceof Error ? err.message : 'Failed to submit the grading JSON.');
+      } finally {
+        setManualGrading(false);
+      }
+    },
+    [prompt.id],
+  );
+
+  const pasteAndGradeManual = async (attempt: WritingAttempt) => {
+    setManualErr('');
+    setManualHint('');
+    try {
+      if (!navigator.clipboard?.readText) throw new Error('no-clipboard');
+      const clip = await navigator.clipboard.readText();
+      if (!clip.trim()) {
+        setManualHint('Your clipboard is empty. Copy the JSON from Gemini, then press Ctrl+V in the box below.');
+        manualTextareaRef.current?.focus();
+        return;
+      }
+      setManualJsonText(clip);
+      await runManualGrading(attempt, clip);
+    } catch {
+      setManualHint('Your browser blocked direct clipboard access — click the box below, press Ctrl+V, then click "Grade from pasted JSON".');
+      manualTextareaRef.current?.focus();
+    }
+  };
 
   const submitEssay = useCallback(async () => {
     const essayText = combinedText.trim();
@@ -182,26 +299,26 @@ export default function WritingRoom({ prompt, attemptId }: { prompt: WritingProm
     await runGrading(attempt);
   }, [combinedText, prompt.id, prompt.task, mode, startedAt, seconds, router, runGrading]);
 
-  // Hết giờ ở chế độ Thi thử thì tự nộp
+  // Auto-submit when time runs out in Timed Mock Exam mode
   useEffect(() => {
     if (phase !== 'writing' || remaining === null || remaining > 0 || !combinedText.trim()) return;
     const t = setTimeout(() => void submitEssay(), 0);
     return () => clearTimeout(t);
   }, [phase, remaining, combinedText, submitEssay]);
 
-  if (!store) return <MascotLoading character="seal" label="Hải Cẩu đang gọt bút…" />;
+  if (!store) return <MascotLoading character="seal" label="Seal is sharpening the pencil…" />;
 
   if (phase === 'intro') {
     const modes: { k: WritingMode; name: string; desc: string }[] = [
-      { k: 'step', name: 'Từng đoạn có khung (Người mới)', desc: 'Chia sẵn 4 đoạn kèm mục tiêu từng đoạn và câu mở đầu gợi ý.' },
-      { k: 'full', name: 'Viết cả bài (Luyện tập)', desc: 'Khung soạn thảo tự do, không giới hạn giờ, có nút xem gợi ý dàn ý.' },
-      { k: 'exam', name: `Thi thử (${prompt.recommendedMinutes} phút)`, desc: 'Ẩn toàn bộ gợi ý & từ vựng, đếm ngược đúng thời gian thi thật.' },
+      { k: 'step', name: 'Guided Paragraphs (Beginner)', desc: 'Split into 4 clear sections with paragraph goals and starter phrases.' },
+      { k: 'full', name: 'Full Essay (Practice)', desc: 'Freeform editor with no time limit and optional outline/vocab support.' },
+      { k: 'exam', name: `Timed Mock Exam (${prompt.recommendedMinutes} min)`, desc: 'Hides all hints & vocabulary and counts down under real exam timing.' },
     ];
     return (
       <div className="flex min-h-dvh items-center justify-center bg-paper p-4">
         <div className="w-full max-w-2xl">
           <Link href="/writing" className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-ink">
-            <ArrowLeft size={15} /> Kho đề Writing
+            <ArrowLeft size={15} /> Writing Prompt Bank
           </Link>
           <div className="card mt-4 p-6 sm:p-8">
             <div className="flex items-start justify-between gap-4">
@@ -217,8 +334,8 @@ export default function WritingRoom({ prompt, attemptId }: { prompt: WritingProm
               {prompt.prompt}
             </p>
             <p className="mt-3 text-xs text-muted">
-              Yêu cầu tối thiểu: <strong className="text-ink">{prompt.minWords} từ</strong> · Thời gian chuẩn: {prompt.recommendedMinutes} phút ·
-              Chấm tự động 4 tiêu chí bằng Gemini 4 Argon.
+              Minimum requirement: <strong className="text-ink">{prompt.minWords} words</strong> · Recommended time: {prompt.recommendedMinutes} min ·
+              Automatically graded across all 4 IELTS band criteria.
             </p>
 
             <div className="mt-5 grid gap-2">
@@ -239,11 +356,11 @@ export default function WritingRoom({ prompt, attemptId }: { prompt: WritingProm
             <div className="mt-6 flex flex-wrap gap-2">
               {hasDraft && (
                 <button className="btn-primary" onClick={() => start(true)}>
-                  Viết tiếp bài dở
+                  Resume draft
                 </button>
               )}
               <button className={hasDraft ? 'btn-ghost' : 'btn-primary'} onClick={() => start(false)}>
-                {hasDraft ? 'Viết mới từ đầu' : 'Bắt đầu viết'}
+                {hasDraft ? 'Start fresh' : 'Start writing'}
               </button>
             </div>
           </div>
@@ -257,9 +374,9 @@ export default function WritingRoom({ prompt, attemptId }: { prompt: WritingProm
     return (
       <div className="flex min-h-dvh items-center justify-center p-6 text-center text-muted">
         <div>
-          <p>Không tìm thấy bài viết này trên máy.</p>
+          <p>This essay attempt could not be found on this device.</p>
           <Link href="/writing" className="btn-ghost mt-4">
-            Về kho đề Writing
+            Back to Writing Bank
           </Link>
         </div>
       </div>
@@ -281,7 +398,7 @@ export default function WritingRoom({ prompt, attemptId }: { prompt: WritingProm
     updateWritingAttempt(attempt.id, a => {
       a.addedVocab = true;
     });
-    setVocabToast(added > 0 ? `Đã thêm ${added} từ/cụm từ vào bộ thẻ ôn tập.` : 'Các từ này đều đã có trong bộ thẻ.');
+    setVocabToast(added > 0 ? `Added ${added} words/phrases to your flashcard deck.` : 'All of these expressions are already in your deck.');
   };
 
   const saveFixesToMistakes = () => {
@@ -300,21 +417,21 @@ export default function WritingRoom({ prompt, attemptId }: { prompt: WritingProm
     updateWritingAttempt(attempt.id, a => {
       a.addedMistakes = true;
     });
-    setMistakeToast(count > 0 ? `Đã đưa ${count} câu cần sửa vào Sổ lỗi (quay lại sau 1–3–7 ngày).` : 'Các câu này đã có trong Sổ lỗi.');
+    setMistakeToast(count > 0 ? `Saved ${count} sentence fixes to your Mistake Log (review in 1–3–7 days).` : 'These sentences are already in your Mistake Log.');
   };
 
   return (
     <div className="flex h-dvh flex-col bg-paper">
       {/* Header */}
       <header className="flex h-14 shrink-0 items-center gap-3 border-b border-line bg-surface px-3 sm:px-5">
-        <Link href="/writing" className="btn-quiet" aria-label="Quay lại">
+        <Link href="/writing" className="btn-quiet" aria-label="Back">
           <ArrowLeft size={18} />
         </Link>
         <div className="min-w-0 flex-1">
           <div className="truncate text-sm font-semibold">{prompt.title}</div>
           <div className="text-xs text-muted">
             {prompt.task === 'task1' ? 'Task 1' : 'Task 2'} · {prompt.categoryLabel} ·{' '}
-            {phase === 'review' ? 'Xem chấm điểm' : mode === 'step' ? 'Khung từng đoạn' : mode === 'exam' ? 'Thi thử' : 'Luyện tập'}
+            {phase === 'review' ? 'Review & Band Score' : mode === 'step' ? 'Guided Paragraphs' : mode === 'exam' ? 'Timed Mock Exam' : 'Practice'}
           </div>
         </div>
         {phase === 'writing' ? (
@@ -324,7 +441,7 @@ export default function WritingRoom({ prompt, attemptId }: { prompt: WritingProm
                 wc >= prompt.minWords ? 'bg-good-soft text-good' : 'bg-sunk text-ink-2'
               }`}
             >
-              {wc}/{prompt.minWords} từ
+              {wc}/{prompt.minWords} words
             </span>
             <span
               className={`num flex items-center gap-1 rounded-md px-2 py-1 text-xs font-semibold ${
@@ -335,32 +452,32 @@ export default function WritingRoom({ prompt, attemptId }: { prompt: WritingProm
               {remaining !== null ? fmtClock(remaining) : fmtClock(seconds)}
             </span>
             <button className="btn-primary whitespace-nowrap" disabled={wc < 20} onClick={() => void submitEssay()}>
-              Nộp &amp; Chấm điểm
+              Submit &amp; Grade
             </button>
           </div>
         ) : (
           <Link href={`/writing/${prompt.id}`} className="btn-ghost whitespace-nowrap" onClick={() => setPhase('intro')}>
-            Viết bài mới
+            Write new essay
           </Link>
         )}
       </header>
 
       {/* Main Split Workspace */}
       <div className="grid min-h-0 flex-1 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.25fr)]">
-        {/* Cột trái: Đề bài + Biểu đồ + Gợi ý / Bài mẫu */}
+        {/* Left column: Prompt + Chart + Vocab / Sample Essay */}
         <aside className="scroll-thin min-h-0 overflow-y-auto border-b border-line bg-surface p-5 lg:border-r lg:border-b-0 sm:p-7">
           <div className="mx-auto max-w-xl space-y-5">
             <div>
-              <p className="eyebrow">Đề bài</p>
+              <p className="eyebrow">Prompt</p>
               <p className="mt-2 font-serif text-[16px] leading-relaxed whitespace-pre-line text-ink">{prompt.prompt}</p>
             </div>
 
             {prompt.chartSvg && (
               <div>
                 <div className="mb-1.5 flex items-center justify-between">
-                  <span className="eyebrow">Biểu đồ / Bản đồ</span>
+                  <span className="eyebrow">Chart / Diagram</span>
                   <button onClick={() => setZoomChart(true)} className="inline-flex items-center gap-1 text-xs font-semibold text-accent hover:underline">
-                    <ZoomIn size={13} /> Phóng to
+                    <ZoomIn size={13} /> Zoom in
                   </button>
                 </div>
                 <div
@@ -378,9 +495,9 @@ export default function WritingRoom({ prompt, attemptId }: { prompt: WritingProm
                   className="flex w-full items-center justify-between text-left text-sm font-semibold"
                 >
                   <span className="flex items-center gap-2">
-                    <BookOpen size={15} className="text-accent" /> Từ vựng chủ đề ({prompt.keyVocab.length})
+                    <BookOpen size={15} className="text-accent" /> Topic Vocabulary ({prompt.keyVocab.length})
                   </span>
-                  <span className="text-xs text-muted">{showSupport ? 'Thu gọn' : 'Mở xem'}</span>
+                  <span className="text-xs text-muted">{showSupport ? 'Hide' : 'Show'}</span>
                 </button>
                 {showSupport && (
                   <ul className="mt-3 space-y-2 border-t border-line pt-3 text-sm">
@@ -396,10 +513,10 @@ export default function WritingRoom({ prompt, attemptId }: { prompt: WritingProm
                             className="shrink-0 text-xs font-semibold text-accent hover:underline"
                             onClick={() => addWord({ word: v.word, vi: v.vi, pos: v.pos, context: v.context, source: `Writing · ${prompt.title}` })}
                           >
-                            + Lưu từ
+                            + Save word
                           </button>
                         ) : (
-                          <span className="shrink-0 text-xs text-good">Đã lưu</span>
+                          <span className="shrink-0 text-xs text-good">Saved</span>
                         )}
                       </li>
                     ))}
@@ -408,16 +525,25 @@ export default function WritingRoom({ prompt, attemptId }: { prompt: WritingProm
               </div>
             )}
 
+            {(phase === 'review' || mode !== 'exam') && (
+              <GeminiContextPanel
+                store={store}
+                skill="writing"
+                prompt={prompt}
+                essayText={phase === 'review' ? attempt?.text : combinedText}
+              />
+            )}
+
             {phase === 'review' && (
               <div className="rounded-xl border border-dashed border-line-strong bg-paper/40 p-4">
-                <p className="eyebrow">Bài mẫu tham khảo Band 7.5</p>
+                <p className="eyebrow">Band 7.5 Model Essay</p>
                 <p className="mt-2 font-serif text-[14.5px] leading-relaxed whitespace-pre-line text-ink-2">{prompt.sampleBand7}</p>
               </div>
             )}
           </div>
         </aside>
 
-        {/* Cột phải: Vùng soạn thảo hoặc Kết quả chấm Gemini 4 Argon */}
+        {/* Right column: Editor or Gemini 4 Grading Results */}
         <section className="scroll-thin min-h-0 overflow-y-auto p-5 sm:p-7">
           {phase === 'writing' ? (
             <div className="mx-auto max-w-2xl space-y-4">
@@ -425,12 +551,14 @@ export default function WritingRoom({ prompt, attemptId }: { prompt: WritingProm
                 <>
                   {prompt.scaffold.map((step, idx) => {
                     const swc = countWords(stepTexts[idx] ?? '');
+                    const stepText = stepTexts[idx] ?? '';
+                    const toastHere = socraticToast?.key === step.id ? socraticToast : null;
                     return (
                       <div key={step.id} className="card p-4 sm:p-5">
                         <div className="flex items-baseline justify-between gap-2">
                           <h3 className="text-sm font-bold text-ink">{step.label}</h3>
                           <span className={`num text-xs font-semibold ${swc >= step.minWords ? 'text-good' : 'text-muted'}`}>
-                            {swc}/{step.minWords}+ từ
+                            {swc}/{step.minWords}+ words
                           </span>
                         </div>
                         <p className="mt-1 text-xs leading-relaxed text-ink-2">{step.hint}</p>
@@ -452,24 +580,74 @@ export default function WritingRoom({ prompt, attemptId }: { prompt: WritingProm
                         </div>
                         <textarea
                           className="field mt-3 min-h-28 resize-y font-serif text-[16px] leading-relaxed"
-                          placeholder="Viết đoạn này bằng tiếng Anh…"
-                          value={stepTexts[idx] ?? ''}
+                          placeholder="Write this paragraph in English…"
+                          value={stepText}
                           onChange={e => setStepTexts(prev => prev.map((v, i) => (i === idx ? e.target.value : v)))}
                           spellCheck={false}
                         />
+                        {swc >= 10 && (
+                          <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+                            <button
+                              type="button"
+                              onClick={() => void copySocratic(step.id, step.label, stepText)}
+                              className="inline-flex items-center gap-1.5 text-xs font-semibold text-accent hover:underline"
+                            >
+                              <Sparkles size={13} /> Ask Gemini for Socratic feedback (no rewriting)
+                            </button>
+                            {toastHere && !toastHere.fallbackText && (
+                              <span className="text-xs font-medium text-good">{toastHere.msg}</span>
+                            )}
+                          </div>
+                        )}
+                        {toastHere?.fallbackText && (
+                          <div className="mt-2 rounded-lg border border-line bg-paper p-2.5 text-xs">
+                            <p className="font-medium text-ink-2">{toastHere.msg}</p>
+                            <textarea
+                              readOnly
+                              rows={3}
+                              value={toastHere.fallbackText}
+                              onFocus={e => e.currentTarget.select()}
+                              className="field mt-1.5 text-xs"
+                            />
+                          </div>
+                        )}
                       </div>
                     );
                   })}
                 </>
               ) : (
                 <div className="card p-4 sm:p-5">
-                  <div className="mb-2 flex items-center justify-between text-xs text-muted">
-                    <span>Soạn thảo bài viết</span>
-                    <span>{combinedText.split(/\n\s*\n/).filter(Boolean).length} đoạn</span>
+                  <div className="mb-2 flex flex-wrap items-center justify-between gap-2 text-xs text-muted">
+                    <span>Essay editor · {combinedText.split(/\n\s*\n/).filter(Boolean).length} paragraphs</span>
+                    {mode !== 'exam' && wc >= 10 && (
+                      <button
+                        type="button"
+                        onClick={() => void copySocratic('full', 'Full Essay', combinedText)}
+                        className="inline-flex items-center gap-1.5 font-semibold text-accent hover:underline"
+                      >
+                        <Sparkles size={13} /> Ask Gemini for outline &amp; error hints (no rewriting)
+                      </button>
+                    )}
                   </div>
+                  {socraticToast?.key === 'full' && (
+                    <div className="mb-2 rounded-lg border border-line bg-paper p-2.5 text-xs">
+                      <p className={socraticToast.fallbackText ? 'font-medium text-ink-2' : 'font-medium text-good'}>
+                        {socraticToast.msg}
+                      </p>
+                      {socraticToast.fallbackText && (
+                        <textarea
+                          readOnly
+                          rows={3}
+                          value={socraticToast.fallbackText}
+                          onFocus={e => e.currentTarget.select()}
+                          className="field mt-1.5 text-xs"
+                        />
+                      )}
+                    </div>
+                  )}
                   <textarea
                     className="field min-h-[62dvh] resize-y font-serif text-[16.5px] leading-[1.8]"
-                    placeholder="Bắt đầu viết bài của bạn tại đây… Chia đoạn rõ ràng bằng phím Enter hai lần."
+                    placeholder="Start writing your essay here… Separate paragraphs clearly by pressing Enter twice."
                     value={text}
                     onChange={e => setText(e.target.value)}
                     spellCheck={false}
@@ -484,9 +662,9 @@ export default function WritingRoom({ prompt, attemptId }: { prompt: WritingProm
                 <div className="card flex items-center gap-4 border-accent/40 bg-accent-soft/50 p-5">
                   <Loader2 size={24} className="shrink-0 animate-spin text-accent" />
                   <div>
-                    <p className="font-semibold text-ink">Gemini 4 Argon đang chấm bài viết của bạn…</p>
+                    <p className="font-semibold text-ink">AI Examiner is grading your essay… (usually 1–2 min)</p>
                     <p className="mt-0.5 text-sm text-ink-2">
-                      Đang phân tích 4 tiêu chí IELTS, đối chiếu số liệu, tìm lỗi ngữ pháp và gợi ý cách nâng cấp câu văn.
+                      Evaluating all 4 IELTS criteria, verifying chart data, spotting grammar issues, and drafting sentence upgrades.
                     </p>
                   </div>
                 </div>
@@ -494,31 +672,156 @@ export default function WritingRoom({ prompt, attemptId }: { prompt: WritingProm
 
               {gradeErr && (
                 <div className="card border-bad/40 bg-bad-soft/60 p-5">
-                  <p className="font-semibold text-bad">Chưa chấm được bài viết</p>
+                  <p className="font-semibold text-bad">Could not grade your essay</p>
                   <p className="mt-1 text-sm text-ink-2">{gradeErr}</p>
                   <div className="mt-3 flex flex-wrap gap-2">
                     <button className="btn-primary" onClick={() => attempt && void runGrading(attempt)}>
-                      Thử chấm lại
+                      Retry grading
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-ghost border-accent/40 text-accent"
+                      onClick={() => {
+                        setManualOpen(true);
+                        setTimeout(() => manualTextareaRef.current?.focus(), 60);
+                      }}
+                    >
+                      <Sparkles size={15} /> Open Grade with My Gemini
                     </button>
                     <Link href="/journal" className="btn-ghost">
-                      Kiểm tra API Key trong Cài đặt
+                      Check API Key in Settings
                     </Link>
                   </div>
                 </div>
               )}
 
+              {attempt && (
+                <div className="card p-4 sm:p-5">
+                  <button
+                    type="button"
+                    onClick={() => setManualOpen(o => !o)}
+                    aria-expanded={manualOpen}
+                    className="flex w-full items-center justify-between gap-2 text-left text-sm font-semibold"
+                  >
+                    <span className="flex flex-wrap items-center gap-2">
+                      <Sparkles size={15} className="shrink-0 text-accent" />
+                      <span>Grade with My Gemini (Chrome Side Panel / AI Pro)</span>
+                      <code className="rounded bg-sunk px-1.5 py-0.5 text-[11px] font-normal text-muted">
+                        Attempt ID: {attempt.id}
+                      </code>
+                    </span>
+                    <span className="inline-flex shrink-0 items-center gap-1 text-xs font-normal text-muted">
+                      {manualOpen ? 'Hide' : 'Open bridge'}
+                      <ChevronDown size={14} className={`transition-transform ${manualOpen ? 'rotate-180' : ''}`} />
+                    </span>
+                  </button>
+
+                  {manualOpen && (
+                    <div className="mt-4 space-y-4 border-t border-line pt-4 text-sm">
+                      <ol className="list-decimal space-y-1.5 pl-4 text-xs leading-relaxed text-ink-2">
+                        <li>
+                          Click <strong className="text-ink">✦ Ask Gemini</strong> in the top-right corner of Chrome (or open{' '}
+                          <a href="https://gemini.google.com" target="_blank" rel="noreferrer" className="font-semibold text-accent underline">
+                            gemini.google.com
+                          </a>
+                          ), and select <strong className="text-ink">Hydrogen</strong> or <strong className="text-ink">Argon</strong>.
+                        </li>
+                        <li>
+                          Click <strong className="text-ink">1. Copy grading prompt</strong> below → paste it into Gemini with{' '}
+                          <strong className="text-ink">Ctrl+V</strong> and send.
+                        </li>
+                        <li>
+                          Once Gemini returns the <code>json</code> block, click <strong className="text-ink">Copy</strong> on Gemini’s code block → return here and click{' '}
+                          <strong className="text-ink">2. Paste from Clipboard &amp; Grade</strong> (or paste into the box below).
+                        </li>
+                      </ol>
+
+                      <div className="space-y-2">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <button
+                            type="button"
+                            className="btn-ghost"
+                            onClick={() => void copyManualPrompt(attempt)}
+                          >
+                            {manualPromptCopied ? <Check size={15} className="text-good" /> : <Copy size={15} />}
+                            {manualPromptCopied ? 'Prompt copied (with Attempt ID)' : '1. Copy grading prompt'}
+                          </button>
+                          <span className="text-xs text-muted">
+                            Attempt ID: <code className="rounded bg-sunk px-1.5 py-0.5">{attempt.id}</code>
+                          </span>
+                        </div>
+                        {manualPromptFallback && (
+                          <div className="rounded-lg border border-line bg-paper p-3 text-xs">
+                            <p className="font-medium text-ink-2">
+                              Your browser blocked automatic copying — click the box below and press Ctrl+C to copy the prompt:
+                            </p>
+                            <textarea
+                              readOnly
+                              rows={4}
+                              value={manualPromptFallback}
+                              onFocus={e => e.currentTarget.select()}
+                              className="field mt-1.5 font-mono text-xs"
+                            />
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="space-y-2 border-t border-line pt-3">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <button
+                            type="button"
+                            className="btn-primary"
+                            disabled={manualGrading}
+                            onClick={() => void pasteAndGradeManual(attempt)}
+                          >
+                            {manualGrading ? <Loader2 size={15} className="animate-spin" /> : <ClipboardPaste size={15} />}
+                            2. Paste from Clipboard &amp; Grade
+                          </button>
+                        </div>
+
+                        {manualHint && <p className="text-xs font-medium text-ember">{manualHint}</p>}
+
+                        <textarea
+                          ref={manualTextareaRef}
+                          rows={4}
+                          className="field font-mono text-xs leading-relaxed"
+                          placeholder="Or manually paste the JSON returned by Gemini here…"
+                          value={manualJsonText}
+                          onChange={e => setManualJsonText(e.target.value)}
+                          spellCheck={false}
+                        />
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <button
+                            type="button"
+                            className="btn-ghost"
+                            disabled={manualGrading || !manualJsonText.trim()}
+                            onClick={() => void runManualGrading(attempt, manualJsonText)}
+                          >
+                            {manualGrading ? <Loader2 size={15} className="animate-spin" /> : <Check size={15} />}
+                            Grade from pasted JSON
+                          </button>
+                          {manualErr && <p className="text-xs font-medium text-bad">{manualErr}</p>}
+                        </div>
+                      </div>
+
+                      <ChromeSkillsTip skillIds={['writing-grade', 'writing-socratic']} />
+                    </div>
+                  )}
+                </div>
+              )}
+
               {fb && attempt && (
                 <>
-                  {/* Scorecard 4 tiêu chí */}
+                  {/* 4-Criteria Scorecard */}
                   <div className="card overflow-hidden">
                     <div className="flex flex-wrap items-center gap-6 p-5 sm:p-6">
                       <div>
-                        <p className="eyebrow text-accent">Band ước tính · Gemini 4 Argon</p>
+                        <p className="eyebrow text-accent">Estimated Band · {fb.gradedBy ?? 'Gemini 4'}</p>
                         <p className="num mt-1 font-serif text-[46px] leading-none font-semibold text-accent">
                           {fmtBand(fb.scores.overall)}
                         </p>
                         <p className="mt-1 text-xs text-muted">
-                          {attempt.wordCount} từ · {fmtDuration(attempt.seconds)}
+                          {attempt.wordCount} words · {fmtDuration(attempt.seconds)}
                         </p>
                       </div>
                       <div className="grid flex-1 grid-cols-2 gap-2.5 sm:grid-cols-4">
@@ -540,7 +843,7 @@ export default function WritingRoom({ prompt, attemptId }: { prompt: WritingProm
                       <p className="text-[14.5px] leading-relaxed text-ink">{fb.summaryVi}</p>
                       <div className="mt-3 grid gap-3 sm:grid-cols-2">
                         <div>
-                          <p className="text-xs font-bold text-good">Điểm làm tốt</p>
+                          <p className="text-xs font-bold text-good">Strengths</p>
                           <ul className="mt-1 list-disc space-y-1 pl-4 text-xs leading-relaxed text-ink-2">
                             {fb.strengthsVi.map((s, i) => (
                               <li key={i}>{s}</li>
@@ -548,7 +851,7 @@ export default function WritingRoom({ prompt, attemptId }: { prompt: WritingProm
                           </ul>
                         </div>
                         <div>
-                          <p className="text-xs font-bold text-ember">Ưu tiên sửa ngay</p>
+                          <p className="text-xs font-bold text-ember">Top Priorities</p>
                           <ul className="mt-1 list-disc space-y-1 pl-4 text-xs leading-relaxed text-ink-2">
                             {fb.prioritiesVi.map((s, i) => (
                               <li key={i}>{s}</li>
@@ -565,7 +868,7 @@ export default function WritingRoom({ prompt, attemptId }: { prompt: WritingProm
                         disabled={!fb.suggestedVocab.length || !!attempt.addedVocab}
                       >
                         <Layers size={15} />{' '}
-                        {attempt.addedVocab ? 'Đã lưu từ vựng vào thẻ' : `Lưu ${fb.suggestedVocab.length} collocation vào SRS`}
+                        {attempt.addedVocab ? 'Vocab saved to deck' : `Save ${fb.suggestedVocab.length} collocations to SRS`}
                       </button>
                       <button
                         className="btn-ghost"
@@ -573,9 +876,16 @@ export default function WritingRoom({ prompt, attemptId }: { prompt: WritingProm
                         disabled={!fb.sentenceFixes.length || !!attempt.addedMistakes}
                       >
                         <NotebookPen size={15} />{' '}
-                        {attempt.addedMistakes ? 'Đã đưa lỗi vào Sổ lỗi' : `Đưa ${fb.sentenceFixes.length} câu sai vào Sổ lỗi`}
+                        {attempt.addedMistakes ? 'Saved to Mistake Log' : `Add ${fb.sentenceFixes.length} fixes to Mistake Log`}
                       </button>
                     </div>
+                    {fb.gradingNotesVi && fb.gradingNotesVi.length > 0 && (
+                      <ul className="list-disc space-y-0.5 border-t border-line px-5 py-3 pl-9 text-xs text-ink-2 sm:px-6 sm:pl-10">
+                        {fb.gradingNotesVi.map((n, i) => (
+                          <li key={i}>{n}</li>
+                        ))}
+                      </ul>
+                    )}
                     {(vocabToast || mistakeToast) && (
                       <div className="border-t border-line bg-good-soft/50 px-5 py-2 text-xs text-good sm:px-6">
                         {vocabToast && <p>{vocabToast}</p>}
@@ -584,7 +894,7 @@ export default function WritingRoom({ prompt, attemptId }: { prompt: WritingProm
                     )}
                   </div>
 
-                  {/* Giải thích 4 tiêu chí */}
+                  {/* 4 Criteria Breakdown */}
                   <div className="grid gap-3 sm:grid-cols-2">
                     {[
                       [prompt.task === 'task1' ? 'Task Achievement' : 'Task Response', fb.scores.task, fb.criteriaNotesVi.task],
@@ -602,13 +912,13 @@ export default function WritingRoom({ prompt, attemptId }: { prompt: WritingProm
                     ))}
                   </div>
 
-                  {/* Tabs: Bài viết có tô lỗi / Nâng cấp từng đoạn / Từ vựng hay */}
+                  {/* Tabs: Highlighted Essay / Paragraph Upgrades / Suggested Vocab */}
                   <div>
                     <div className="mb-3 inline-flex rounded-lg border border-line-strong bg-surface p-1 text-xs font-semibold">
                       {[
-                        ['fixes', `Chữa từng câu (${fb.sentenceFixes.length})`],
-                        ['paragraphs', 'Nâng cấp theo đoạn'],
-                        ['sample', `Từ vựng đề xuất (${fb.suggestedVocab.length})`],
+                        ['fixes', `Sentence Fixes (${fb.sentenceFixes.length})`],
+                        ['paragraphs', 'Paragraph Upgrades'],
+                        ['sample', `Suggested Vocab (${fb.suggestedVocab.length})`],
                       ].map(([k, label]) => (
                         <button
                           key={k}
@@ -623,7 +933,7 @@ export default function WritingRoom({ prompt, attemptId }: { prompt: WritingProm
                     {reviewTab === 'fixes' && (
                       <div className="space-y-4">
                         <div className="card p-5">
-                          <p className="eyebrow mb-2">Bài viết của bạn (bấm vào phần tô màu để xem cách sửa)</p>
+                          <p className="eyebrow mb-2">Your Essay (click highlighted text to inspect fixes)</p>
                           <HighlightedEssay
                             text={attempt.text}
                             fixes={fb.sentenceFixes}
@@ -661,11 +971,11 @@ export default function WritingRoom({ prompt, attemptId }: { prompt: WritingProm
                             <p className="eyebrow text-accent">{p.label}</p>
                             <div className="mt-3 grid gap-3 sm:grid-cols-2">
                               <div className="rounded-lg bg-paper p-3">
-                                <p className="text-[11px] font-bold text-muted">Bản gốc của bạn</p>
+                                <p className="text-[11px] font-bold text-muted">Your Original</p>
                                 <p className="mt-1 font-serif text-[14px] leading-relaxed text-ink-2">{p.original}</p>
                               </div>
                               <div className="rounded-lg bg-good-soft/45 p-3">
-                                <p className="text-[11px] font-bold text-good">Phiên bản nâng cấp (+0.5–1.0 Band)</p>
+                                <p className="text-[11px] font-bold text-good">Upgraded Version (+0.5–1.0 Band)</p>
                                 <p className="mt-1 font-serif text-[14px] leading-relaxed text-ink">{p.upgraded}</p>
                               </div>
                             </div>
@@ -691,14 +1001,14 @@ export default function WritingRoom({ prompt, attemptId }: { prompt: WritingProm
                             </div>
                             {hasWord(store, v.word) ? (
                               <span className="inline-flex items-center gap-1 text-xs font-semibold text-good">
-                                <Check size={13} /> Đã lưu
+                                <Check size={13} /> Saved
                               </span>
                             ) : (
                               <button
                                 className="btn-ghost px-2.5 py-1 text-xs"
                                 onClick={() => addWord({ word: v.word, vi: v.vi, pos: v.pos, context: v.context, source: `Writing · ${prompt.title}` })}
                               >
-                                + Lưu thẻ
+                                + Save card
                               </button>
                             )}
                           </li>
@@ -711,10 +1021,10 @@ export default function WritingRoom({ prompt, attemptId }: { prompt: WritingProm
 
               {!fb && !grading && !gradeErr && attempt && (
                 <div className="card p-5">
-                  <p className="eyebrow">Bài đã nộp ({attempt.wordCount} từ)</p>
+                  <p className="eyebrow">Submitted Essay ({attempt.wordCount} words)</p>
                   <p className="mt-2 font-serif text-[15.5px] leading-relaxed whitespace-pre-line">{attempt.text}</p>
                   <button className="btn-primary mt-4" onClick={() => void runGrading(attempt)}>
-                    <Eye size={15} /> Chấm bài với Gemini 4 Argon
+                    <Eye size={15} /> Grade across 4 criteria
                   </button>
                 </div>
               )}

@@ -579,3 +579,57 @@ mark.ev {
     transform: translateY(0);
   }
 }
+
+/* Thẻ chúc mừng cột mốc (Peak-End celebration) */
+.cel-card {
+  animation: cel-in 0.42s cubic-bezier(0.22, 1.35, 0.45, 1) both;
+}
+@keyframes cel-in {
+  from {
+    opacity: 0;
+    transform: translateY(-16px) scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.cel-bar {
+  transform-origin: left center;
+  animation: cel-drain 5.6s linear forwards;
+}
+@keyframes cel-drain {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+.cel-spark {
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  pointer-events: none;
+  opacity: 0;
+}
+.cel-s1 { top: 14%; left: 10%; background: var(--color-ember); animation: cel-burst 1.1s ease-out 0.05s forwards; --dx: -16px; --dy: -14px; }
+.cel-s2 { top: 20%; left: 22%; background: #f7b538; animation: cel-burst 1.2s ease-out 0.1s forwards; --dx: 14px; --dy: -18px; }
+.cel-s3 { top: 68%; left: 12%; background: var(--color-accent); animation: cel-burst 1.15s ease-out 0.08s forwards; --dx: -18px; --dy: 10px; }
+.cel-s4 { top: 18%; right: 20%; background: #f7b538; animation: cel-burst 1.25s ease-out 0.14s forwards; --dx: 16px; --dy: -12px; }
+.cel-s5 { top: 72%; right: 14%; background: var(--color-ember); animation: cel-burst 1.1s ease-out 0.12s forwards; --dx: 18px; --dy: 12px; }
+@keyframes cel-burst {
+  0% { opacity: 0; transform: translate(0, 0) scale(0.4); }
+  25% { opacity: 0.95; }
+  100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(1.1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cel-card,
+  .cel-spark,
+  .buddy-bubble,
+  .buddy-peek {
+    animation: none !important;
+  }
+}

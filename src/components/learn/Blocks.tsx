@@ -3,9 +3,10 @@
 import React, { useState } from 'react';
 import { BookMarked, Check, Lightbulb, ListOrdered, TriangleAlert, X } from 'lucide-react';
 import type { Block, BoxKind } from '@/lib/learnParse';
+import { playSfx } from '@/lib/sfx';
 import { MascotBadge } from '../Mascots';
 
-// Định dạng trong dòng: **đậm**, *nghiêng*, [[gạch chân]] (phần đang xét), ~~gạch bỏ~~, ____ (ô trống)
+// Inline formatting: **bold**, *italic*, [[underline]] (focus span), ~~strike~~, ____ (blank)
 const TOKEN = /(\*\*.+?\*\*|\[\[.+?\]\]|~~.+?~~|\*[^*\s][^*]*?\*|_{4,})/g;
 
 export function Inline({ text }: { text: string }) {
@@ -16,7 +17,7 @@ export function Inline({ text }: { text: string }) {
         if (part.startsWith('**') && part.endsWith('**')) return <strong key={i}><Inline text={part.slice(2, -2)} /></strong>;
         if (part.startsWith('[[') && part.endsWith(']]')) return <u key={i} className="decoration-accent decoration-2 underline-offset-[3px]"><Inline text={part.slice(2, -2)} /></u>;
         if (part.startsWith('~~') && part.endsWith('~~')) return <s key={i} className="text-muted"><Inline text={part.slice(2, -2)} /></s>;
-        if (/^_{4,}$/.test(part)) return <span key={i} className="lesson-blank" aria-label="ô trống" />;
+        if (/^_{4,}$/.test(part)) return <span key={i} className="lesson-blank" aria-label="blank" />;
         if (part.length > 2 && part.startsWith('*') && part.endsWith('*')) return <em key={i}><Inline text={part.slice(1, -1)} /></em>;
         return <React.Fragment key={i}>{part}</React.Fragment>;
       })}
@@ -25,11 +26,11 @@ export function Inline({ text }: { text: string }) {
 }
 
 const BOX: Record<BoxKind, { label: string; icon: React.ReactNode }> = {
-  rule: { label: 'Quy tắc', icon: <BookMarked size={16} /> },
-  tip: { label: 'Mẹo', icon: <Lightbulb size={16} /> },
-  trap: { label: 'Coi chừng', icon: <TriangleAlert size={16} /> },
-  note: { label: 'Ghi nhớ', icon: <BookMarked size={16} /> },
-  steps: { label: 'Các bước', icon: <ListOrdered size={16} /> },
+  rule: { label: 'Rule', icon: <BookMarked size={16} /> },
+  tip: { label: 'Tip', icon: <Lightbulb size={16} /> },
+  trap: { label: 'Watch out', icon: <TriangleAlert size={16} /> },
+  note: { label: 'Key takeaway', icon: <BookMarked size={16} /> },
+  steps: { label: 'Steps', icon: <ListOrdered size={16} /> },
 };
 
 export function Blocks({ blocks, onCheck }: { blocks: Block[]; onCheck: (n: number, correct: boolean) => void }) {
@@ -77,7 +78,7 @@ export function Blocks({ blocks, onCheck }: { blocks: Block[]; onCheck: (n: numb
               <ul key={i} className="lesson-examples">
                 {b.items.map((ex, j) => (
                   <li key={j} className={ex.ok ? 'is-ok' : 'is-bad'}>
-                    <span className="lesson-ex-icon" aria-label={ex.ok ? 'Đúng' : 'Sai'}>
+                    <span className="lesson-ex-icon" aria-label={ex.ok ? 'Correct' : 'Incorrect'}>
                       {ex.ok ? <Check size={14} strokeWidth={3} /> : <X size={14} strokeWidth={3} />}
                     </span>
                     <div>
@@ -96,20 +97,20 @@ export function Blocks({ blocks, onCheck }: { blocks: Block[]; onCheck: (n: numb
   );
 }
 
-// Câu hỏi nhanh trong bài (ví dụ tự soạn): chọn → Kiểm tra → hiện đúng/sai + giải thích
+// Inline quick-check question: pick → Check → show feedback + explanation
 function QuickCheck({ b, onResult }: { b: Extract<Block, { t: 'check' }>; onResult: (correct: boolean) => void }) {
   const [picked, setPicked] = useState<number | null>(null);
   const [checked, setChecked] = useState(false);
   const correct = picked === b.answer;
   return (
     <div className="not-lesson my-6 rounded-xl border border-line-strong bg-paper/60 p-4 sm:p-5">
-      <div className="eyebrow mb-2 text-accent">Thử nhanh {b.n}</div>
+      <div className="eyebrow mb-2 text-accent">Quick Check {b.n}</div>
       <div className="mb-4 space-y-2 font-serif text-[16px] leading-relaxed">
         {b.prompt.map((line, i) => (
           <p key={i}><Inline text={line} /></p>
         ))}
       </div>
-      <div className="space-y-2" role="radiogroup" aria-label={`Thử nhanh ${b.n}`}>
+      <div className="space-y-2" role="radiogroup" aria-label={`Quick Check ${b.n}`}>
         {b.options.map((option, i) => {
           const tone = checked
             ? i === b.answer
@@ -146,10 +147,11 @@ function QuickCheck({ b, onResult }: { b: Extract<Block, { t: 'check' }>; onResu
             disabled={picked === null}
             onClick={() => {
               setChecked(true);
+              if (picked === b.answer) playSfx('tick');
               onResult(picked === b.answer);
             }}
           >
-            Kiểm tra
+            Check
           </button>
         </div>
       ) : (
@@ -157,7 +159,7 @@ function QuickCheck({ b, onResult }: { b: Extract<Block, { t: 'check' }>; onResu
           <div className={`mb-1 flex items-center gap-2 font-bold ${correct ? 'text-good' : 'text-bad'}`}>
             <MascotBadge character="seal" variant="skills" size={24} />
             {correct ? <Check size={17} /> : <X size={17} />}
-            {correct ? 'Đúng rồi' : `Chưa đúng. Đáp án là ${'ABCDEF'[b.answer]}.`}
+            {correct ? 'Spot on!' : `Not quite. The answer is ${'ABCDEF'[b.answer]}.`}
           </div>
           <Inline text={b.explanation} />
           {!correct && (
@@ -170,7 +172,7 @@ function QuickCheck({ b, onResult }: { b: Extract<Block, { t: 'check' }>; onResu
                   setPicked(null);
                 }}
               >
-                Thử lại
+                Try again
               </button>
             </div>
           )}

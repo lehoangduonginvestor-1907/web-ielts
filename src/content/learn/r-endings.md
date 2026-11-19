@@ -1,72 +1,72 @@
-Dạng Matching sentence endings đưa ra danh sách nửa đầu câu đánh số (1, 2, 3...) và khung nửa sau câu đánh chữ cái (A, B, C...). Số nửa sau **thường nhiều hơn số câu hỏi**, nên có những phương án thừa.
+Matching sentence endings gives you a numbered list of sentence beginnings (1, 2, 3...) and a boxed list of lettered endings (A, B, C...). There are **usually more endings than questions**, so several options are extra distractors.
 
-Tuy nhìn hơi lạ, đây là một trong những dạng dễ lấy điểm của Reading nếu bạn biết kết hợp **thứ tự bài đọc** và **ngữ pháp**.
+Although the format looks unusual at first, it is one of the highest-scoring Reading tasks once you combine **passage order** with **grammar checks**.
 
-## Hai điều kiện bắt buộc của một đáp án đúng
+## Two mandatory conditions for every correct answer
 
-Một nửa sau câu được chọn phải thỏa mãn **cùng lúc hai điều kiện**:
-1. **Khớp ngữ pháp** với nửa đầu để tạo thành một câu tiếng Anh đúng cấu trúc.
-2. **Khớp nghĩa** với thông tin được nêu trong bài đọc.
+Every ending you choose must satisfy **both conditions at the same time**:
+1. **Grammatical fit** with the beginning to form a structurally valid English sentence.
+2. **Meaning fit** with what the passage actually states.
 
-Các nửa đầu câu (1, 2, 3...) **đi theo đúng thứ tự bài đọc**, nên bạn luôn dùng được nửa đầu để tìm chính xác chỗ trong bài.
+The numbered beginnings (1, 2, 3...) **always follow the order of the passage**, so you can reliably use each beginning to pinpoint its exact section.
 
-:::steps Năm bước xử lý Matching sentence endings
-1. Đọc tất cả **nửa đầu câu** trước, gạch chân mốc.
-2. Làm lần lượt từ câu 1: dùng mốc ở nửa đầu tìm đúng chỗ trong bài (câu sau nằm dưới chỗ câu trước).
-3. Đọc kỹ hai ba câu quanh mốc và tự đoán vế sau nên nói ý gì.
-4. Quay sang khung chữ cái A, B, C...: **gạch nhanh các nửa sau không khớp ngữ pháp** với nửa đầu (thiếu *to*, sai chia động từ, sai số ít hay số nhiều).
-5. Trong các nửa sau còn lại, chọn cái đúng ý bài đọc (thường đã được paraphrase).
+:::steps Five steps for Matching sentence endings
+1. Read all the **sentence beginnings** first and underline landmarks.
+2. Work through them in order starting from question 1: use the landmark to find the right spot in the passage (each subsequent question appears below the previous one).
+3. Read two or three sentences around the landmark and predict in your own words how the sentence should end.
+4. Turn to the lettered endings (A, B, C...): **quickly eliminate any ending that breaks grammar** with the beginning (missing *to*, wrong verb tense, singular/plural mismatch).
+5. Among the grammatically valid endings left, pick the one that matches the passage meaning (usually paraphrased).
 :::
 
-## Lọc nhanh bằng ngữ pháp trước khi đọc nghĩa
+## Filter by grammar before reading for meaning
 
-| Nửa đầu kết thúc bằng... | Nửa sau phải bắt đầu bằng... | Loại ngay nếu nửa sau bắt đầu bằng... |
+| If the beginning ends with... | The ending must start with... | Eliminate immediately if it starts with... |
 | --- | --- | --- |
-| Cụm danh từ (chủ ngữ) | Động từ chia theo chủ ngữ đó (*was, led to*) | Danh từ khác hoặc *to + V* không nối được |
-| *wanted to* hoặc giới từ | Động từ nguyên mẫu (sau *to*) hoặc *V-ing*/danh từ (sau giới từ) | Mệnh đề đầy đủ có chủ ngữ và động từ mới |
-| *because, although, so that* | Một mệnh đề đủ chủ ngữ và động từ | Cụm từ thiếu động từ |
+| A noun phrase (subject) | A conjugated verb matching that subject (*was, led to*) | Another noun or an unconnected *to + verb* |
+| *wanted to* or a preposition | Base verb (after *to*) or *-ing* / noun (after a preposition) | A full clause with a new subject and finite verb |
+| *because, although, so that* | A complete clause (subject + verb) | A fragment missing a verb |
 
-## Cái bẫy của sự "nghe có lý"
+## The "sounds logical" trap
 
-:::trap Nửa sau đọc nghe rất hợp lý nhưng bài không nói
-Nhiều bạn ghép thẳng nửa đầu với nửa sau theo logic ngoài đời mà không kiểm tra bài đọc. Đề cố tình viết ra những nửa sau rất xuôi ngữ pháp và nghe rất hợp lý, nhưng chi tiết đó **không có trong bài** hoặc **trái với bài**.
+:::trap An ending that makes everyday sense—but isn't in the passage
+Many learners match beginnings and endings using real-world logic without checking the text. Test writers deliberately craft endings that read smoothly and sound completely plausible, yet the detail is **absent from** or **contradicted by** the passage.
 :::
 
 :::examples
-✓ Nửa đầu: *The new glasshouse failed to protect delicate ferns because...* Bài đọc: *"Although the roof kept out frost, thick condensation dripped from the beams and rotted the fern leaves."* → Chọn nửa sau nói hơi nước nhỏ xuống làm hỏng cây (*water collected inside damaged the plants*). // Khớp cả ngữ pháp sau *because* lẫn ý trong bài.
-✗ Cũng nửa đầu trên, chọn: *...winter temperatures dropped too low for the heating.* Nghe hợp lý, nhưng bài nói mái chắn được sương giá (*kept out frost*). // Bẫy logic ngoài đời trái với bài đọc.
+✓ Beginning: *The new glasshouse failed to protect delicate ferns because...* Passage: *"Although the roof kept out frost, thick condensation dripped from the beams and rotted the fern leaves."* → Choose the ending saying moisture inside harmed the plants (*water collected inside damaged the plants*). // Fits both grammar after *because* and the text's meaning.
+✗ Same beginning, picking: *...winter temperatures dropped too low for the heating.* Sounds logical, but the passage states the roof *kept out frost*. // Real-world logic trap contradicting the passage.
 :::
 
 :::check
-Bài đọc: *"When public clocks first appeared on town towers in the fourteenth century, merchants welcomed them because markets could open at an agreed hour. However, farm workers living outside the walls continued to measure their day by sunrise and sunset for another two centuries."*
+Passage: *"When public clocks first appeared on town towers in the fourteenth century, merchants welcomed them because markets could open at an agreed hour. However, farm workers living outside the walls continued to measure their day by sunrise and sunset for another two centuries."*
 
-Nửa đầu: "For a long time after tower clocks were installed, rural labourers ____."
-Các nửa sau:
+Beginning: "For a long time after tower clocks were installed, rural labourers ____."
+Endings:
 A. *demanded markets to open earlier in the morning.*
 B. *continued to rely on natural daylight to tell the time.*
 C. *because they could not see the clock faces clearly.*
 
-Nửa sau nào ghép đúng cho câu trên?
+Which ending correctly completes the sentence?
 - [ ] A
 - [x] B
 - [ ] C
-> Loại C bằng ngữ pháp: sau chủ ngữ *rural labourers* cần động từ chính, không thể nối thẳng với *because*. Giữa A và B, bài nói *farm workers* (*rural labourers*) tiếp tục đo thời gian bằng mặt trời mọc và lặn (*sunrise and sunset*), khớp nghĩa với *rely on natural daylight* ở B.
+> Rule out C on grammar: after the subject *rural labourers*, you need a main verb, not *because*. Between A and B, the passage says *farm workers* (*rural labourers*) kept measuring their day by *sunrise and sunset*, matching *rely on natural daylight* in B.
 :::
 
 :::check
-Vẫn đoạn văn trên. Nửa đầu: "Town traders supported the new clocks in order to ____."
-Các nửa sau:
+Same passage. Beginning: "Town traders supported the new clocks in order to ____."
+Endings:
 A. *agreed on a shared schedule for trading.*
 B. *start business at a fixed time together.*
 C. *helping farmers outside the city walls.*
 
-Nửa sau nào đúng?
+Which ending is correct?
 - [ ] A
 - [x] B
 - [ ] C
-> Sau *in order to* phải là động từ nguyên mẫu không chia thì. Loại ngay A (*agreed* là quá khứ) và C (*helping* là *-ing*). B bắt đầu bằng *start* và khớp nghĩa với *markets could open at an agreed hour* trong bài.
+> After *in order to*, you must use a base verb. Eliminate A (*agreed* is past tense) and C (*helping* is *-ing*). B starts with *start* and matches *markets could open at an agreed hour* in the passage.
 :::
 
-## Kiểm tra lại toàn bộ câu hoàn chỉnh
+## Read every completed sentence straight through
 
-Khi nối xong cả nhóm, dành 15 giây đọc liền một mạch từ nửa đầu sang nửa sau cho từng câu. Việc đọc trơn cả câu giúp bạn phát hiện ngay chỗ nào gãy ngữ pháp hoặc lệch nghĩa với bài.
+Once you finish the set, spend 15 seconds reading each beginning straight into its chosen ending. Reading the full sentence cleanly exposes awkward grammar or subtle meaning slips right away.

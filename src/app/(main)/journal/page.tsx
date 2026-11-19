@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Journal from '@/components/Journal';
 
-export const metadata: Metadata = { title: 'Nhật ký' };
+export const metadata: Metadata = { title: 'Journal' };
 
 export default function JournalPage() {
   return <Journal />;

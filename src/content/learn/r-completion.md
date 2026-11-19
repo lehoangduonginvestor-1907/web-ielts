@@ -1,66 +1,66 @@
-Nhóm bài điền từ lấy trực tiếp từ bài đọc gồm điền ghi chú (note), hoàn thành câu, điền bảng, gắn nhãn sơ đồ (diagram), tóm tắt không có danh sách từ cho sẵn, và câu hỏi trả lời ngắn. Tuy nhìn khác nhau, tất cả dùng chung một bộ quy tắc.
+Passage-based completion tasks include note, sentence, table, and diagram labelling, summary completion without a word bank, and short-answer questions. Even though they look different, they all follow the exact same rules.
 
-Đây là dạng gỡ điểm rất tốt ở band 5, vì câu trả lời **nằm nguyên trong bài đọc**, đa phần các câu trong cùng một nhóm **đi theo thứ tự bài**, và bạn không phải tự nghĩ ra từ mới.
+These questions are a dependable source of marks at Band 5 because the answers sit **verbatim in the passage**, most items in a set **follow passage order**, and you never have to invent words of your own.
 
-## Quy tắc chép nguyên văn và giới hạn từ
+## Copy verbatim and obey the word limit
 
-:::rule Chép đúng nguyên dạng, không tự sửa
-Từ lấy từ bài đọc phải **giữ nguyên chính tả và hình thức** như trong bài (số ít giữ số ít, số nhiều giữ số nhiều, không tự đổi loại từ). Nếu bạn phải tự đổi *develop* trong bài thành *development* để ghép vào đề, gần như chắc chắn bạn đã chọn sai từ hoặc sai vị trí.
+:::rule Copy the exact form—never alter it
+Words lifted from the passage must keep their **exact spelling and grammatical form** (singular stays singular, plural stays plural; never change the part of speech). If you feel forced to change *develop* in the text into *development* to fit the gap, you have almost certainly picked the wrong word or the wrong location.
 :::
 
-Giới hạn số từ được kiểm tra rất chặt. Chỉ cần thừa một chữ *a* hoặc *the* là câu đó mất điểm.
+Word limits are enforced strictly. Adding a single extra *a* or *the* costs the mark.
 
-| Quy định thường gặp | Cách tính từ | Ví dụ hợp lệ và không hợp lệ |
+| Common instruction | How words are counted | Valid vs. invalid examples |
 | --- | --- | --- |
-| "ONE WORD ONLY" | Chỉ đúng 1 từ, không kèm số | Hợp lệ: *copper*. Sai: *a copper*, *two pipes* |
-| "NO MORE THAN TWO WORDS" | 1 hoặc 2 từ | Hợp lệ: *stone wall*. Sai: *heavy stone wall* |
-| "NO MORE THAN TWO WORDS AND/OR A NUMBER" | Tối đa 2 từ cộng tối đa 1 con số | Hợp lệ: *14 wooden boats*. Sai: *14 large wooden boats* |
-| Từ có dấu gạch nối | Tính là **1 từ** | *well-known*, *low-cost* tính là 1 từ |
-| Con số (viết bằng chữ số) | Tính là **1 số** | *45*, *1998*, *50%* |
+| "ONE WORD ONLY" | Exactly 1 word, no numbers | Valid: *copper*. Invalid: *a copper*, *two pipes* |
+| "NO MORE THAN TWO WORDS" | 1 or 2 words | Valid: *stone wall*. Invalid: *heavy stone wall* |
+| "NO MORE THAN TWO WORDS AND/OR A NUMBER" | Up to 2 words plus up to 1 number | Valid: *14 wooden boats*. Invalid: *14 large wooden boats* |
+| Hyphenated words | Count as **1 word** | *well-known*, *low-cost* each count as 1 word |
+| Numbers (written in digits) | Count as **1 number** | *45*, *1998*, *50%* |
 
-## Năm bước làm bài điền từ
+## Five steps for Reading completion tasks
 
-:::steps Quy trình điền từ lấy từ bài đọc
-1. Đọc kỹ **giới hạn từ** ở đầu nhóm câu hỏi.
-2. Đọc câu hỏi, **đoán loại từ** cho mỗi ô trống (danh từ số ít, số nhiều, tính từ, động từ hay số) dựa vào ngữ pháp quanh ô trống.
-3. Gạch chân **mốc** (tên riêng, số, danh từ chính) để tìm đúng đoạn. Lưu ý bảng hoặc sơ đồ có thể nhảy thứ tự nhẹ trong một đoạn, còn ghi chú và hoàn thành câu thường đi đúng thứ tự bài.
-4. Đọc kỹ hai ba câu quanh mốc, tìm từ khớp nghĩa và **kiểm tra ngữ pháp** khi ghép vào đề.
-5. Chép nguyên văn từ trong bài, rồi **soát lại chính tả** từng chữ cái với bản gốc.
+:::steps Workflow for passage-based completion
+1. Read the **word limit** at the top of the question set carefully.
+2. Read the prompt and **predict the part of speech** for each gap (singular noun, plural noun, adjective, verb, or number) from the surrounding grammar.
+3. Underline **landmarks** (proper names, numbers, core nouns) to locate the right paragraph. Note that tables and diagrams may jump slightly within a paragraph, whereas notes and sentences usually follow passage order.
+4. Read two or three sentences around the landmark, find the word that matches the meaning, and **check the grammar** when plugged into the prompt.
+5. Copy the word verbatim from the passage, then **verify the spelling** letter by letter against the original.
 :::
 
-## Những lỗi làm mất điểm đáng tiếc
+## Avoidable mistakes that lose easy marks
 
-:::trap Lặp lại từ đã in sẵn quanh ô trống
-Bài đọc viết: *"The roof was covered with thick clay."* Đề viết: "Builders put ____ clay on the roof." Giới hạn "ONE WORD ONLY". Đáp án chỉ là *thick*. Nhiều bạn chép luôn *thick clay* vì thấy cả cụm trong bài, thành ra lặp chữ *clay* và quá giới hạn từ.
+:::trap Repeating a word already printed around the gap
+Passage: *"The roof was covered with thick clay."* Prompt: "Builders put ____ clay on the roof." Word limit: "ONE WORD ONLY". The answer is just *thick*. Many test-takers copy *thick clay* because they see the pair together in the text—repeating *clay* and breaking the word limit.
 :::
 
 :::examples
-✓ Bài: *"The walls were built from local limestone."* Đề: "The walls were made of ____ limestone." (ONE WORD) → Điền *local*. // Chỉ lấy đúng từ còn thiếu, không chép lại *limestone* đã in sẵn.
-✗ Bài: *"Many birds nested in the reeds."* Đề: "A large number of ____ built nests among the reeds." → Điền *bird*. // Bỏ mất *-s* so với *birds* trong bài; sau *A large number of* bắt buộc dùng số nhiều *birds*.
+✓ Passage: *"The walls were built from local limestone."* Prompt: "The walls were made of ____ limestone." (ONE WORD) → Write *local*. // Take only the missing word—do not repeat *limestone*.
+✗ Passage: *"Many birds nested in the reeds."* Prompt: "A large number of ____ built nests among the reeds." → Write *bird*. // Dropped the *-s* from *birds*; *A large number of* requires a plural noun.
 :::
 
 :::check
-Bài đọc: *"Before electric pumps arrived in 1912, farmers in the valley lifted river water using wooden waterwheels turned by horses."*
+Passage: *"Before electric pumps arrived in 1912, farmers in the valley lifted river water using wooden waterwheels turned by horses."*
 
-Hoàn thành ghi chú (NO MORE THAN TWO WORDS):
+Complete the note (NO MORE THAN TWO WORDS):
 "Prior to 1912, valley farmers drew water with ____ driven by horses."
 - [ ] *electric pumps*
 - [ ] *river water*
 - [x] *wooden waterwheels*
-> *Prior to 1912* là paraphrase của *Before ... 1912*, và *drew water with* tương đương *lifted river water using*. Cụm *wooden waterwheels* vừa đủ hai từ, đúng ngữ pháp sau *with*.
+> *Prior to 1912* paraphrases *Before ... 1912*, and *drew water with* matches *lifted river water using*. *wooden waterwheels* is two words and fits grammatically after *with*.
 :::
 
 :::check
-Bài đọc: *"Although the metal frame is fireproof, the outer plastic coating melts easily at high temperatures."*
+Passage: *"Although the metal frame is fireproof, the outer plastic coating melts easily at high temperatures."*
 
-Hoàn thành câu (ONE WORD ONLY):
+Complete the sentence (ONE WORD ONLY):
 "Under intense heat, the frame stays intact, whereas its ____ surface can melt."
 - [ ] *metal*
 - [ ] *plastic coating*
 - [x] *plastic*
-> *surface* trên đề là danh từ (paraphrase của *coating*), nên ô trống trước *surface* cần từ bổ nghĩa, không chép lại *coating*. Giới hạn "ONE WORD ONLY" khóa đáp án còn duy nhất *plastic*.
+> *surface* is already a noun paraphrasing *coating*, so the gap before *surface* needs a modifier—do not copy *coating*. The "ONE WORD ONLY" limit leaves *plastic* as the only valid answer.
 :::
 
-## Kiểm tra nhanh trước khi sang nhóm khác
+## Quick check before moving on
 
-Trước khi rời nhóm câu điền từ, mất 10 giây làm ba việc: đếm số từ từng đáp án so với giới hạn; kiểm tra xem có chép sót chữ cái nào không; và đọc lại cả câu đề với từ vừa điền xem có xuôi ngữ pháp không.
+Before leaving a completion set, spend 10 seconds doing three things: count the words in each answer against the limit, check your spelling letter by letter, and read each completed sentence aloud in your head to make sure the grammar works smoothly.

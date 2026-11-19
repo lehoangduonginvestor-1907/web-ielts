@@ -1,12 +1,12 @@
 import type { SpeakingTopic } from './types';
 
-// Kho đề IELTS Speaking (đủ 3 Part theo chuẩn Cambridge & các chủ đề thi thật hay gặp).
+// IELTS Speaking topic bank (full 3-part sets modelled on Cambridge & frequent exam themes).
 
 export const SPEAKING_TOPICS: SpeakingTopic[] = [
   {
     id: 's-c17t1',
     title: 'History & Outdoor Adventure',
-    themeVi: 'Lịch sử · Hoạt động ngoài trời & Chấp nhận rủi ro',
+    themeVi: 'History · Outdoor Activities & Risk-Taking',
     book: 17,
     test: 1,
     part1: {
@@ -28,9 +28,9 @@ export const SPEAKING_TOPICS: SpeakingTopic[] = [
       ],
       followUp: 'Would you like to go back to that place again?',
       prepHintsVi: [
-        'Chọn 1 chuyến đi thật (leo núi, đạp xe ven hồ, cắm trại cuối tuần).',
-        'Chuẩn bị 3–4 từ tả cảnh: lush greenery, fresh air, scenic trail, steep path.',
-        'Kể 1 chi tiết nhỏ (trời bất ngờ đổ mưa hoặc cảnh bình minh) để nói tròn 2 phút.',
+        'Pick a real trip you remember well (hiking, cycling by a lake, or weekend camping).',
+        'Prepare 3–4 vivid landscape phrases: lush greenery, fresh air, scenic trail, steep path.',
+        'Include one small memorable detail (sudden rain or a sunrise view) to easily fill 2 minutes.',
       ],
     },
     part3: {
@@ -43,16 +43,16 @@ export const SPEAKING_TOPICS: SpeakingTopic[] = [
       ],
     },
     usefulVocab: [
-      { word: 'clear my head', pos: 'v.phr', vi: 'giải tỏa đầu óc', context: 'Going cycling outdoors really helps me clear my head after work.' },
-      { word: 'scenic trail', pos: 'n.phr', vi: 'con đường mòn đẹp', context: 'We hiked along a scenic trail overlooking the valley.' },
-      { word: 'step out of my comfort zone', pos: 'v.phr', vi: 'bước ra khỏi vùng an toàn', context: 'Rock climbing pushed me to step out of my comfort zone.' },
-      { word: 'relish the challenge', pos: 'v.phr', vi: 'tận hưởng thử thách', context: 'Many young people relish the challenge of mountain trekking.' },
+      { word: 'clear my head', pos: 'v.phr', vi: 'relieve mental stress and think clearly again', context: 'Going cycling outdoors really helps me clear my head after work.' },
+      { word: 'scenic trail', pos: 'n.phr', vi: 'a picturesque path through nature', context: 'We hiked along a scenic trail overlooking the valley.' },
+      { word: 'step out of my comfort zone', pos: 'v.phr', vi: 'try something unfamiliar or challenging', context: 'Rock climbing pushed me to step out of my comfort zone.' },
+      { word: 'relish the challenge', pos: 'v.phr', vi: 'genuinely enjoy taking on a tough task', context: 'Many young people relish the challenge of mountain trekking.' },
     ],
   },
   {
     id: 's-c17t2',
     title: 'Reading & Dream Cities',
-    themeVi: 'Thói quen đọc · Thành phố muốn ghé thăm & Đô thị hóa',
+    themeVi: 'Reading Habits · Dream Cities & Urbanization',
     book: 17,
     test: 2,
     part1: {
@@ -74,9 +74,9 @@ export const SPEAKING_TOPICS: SpeakingTopic[] = [
       ],
       followUp: 'Would you consider living in that city permanently?',
       prepHintsVi: [
-        'Chọn thành phố bạn có ấn tượng rõ (Kyoto, London, Singapore, Melbourne...).',
-        'Nêu 2 điểm thu hút: kiến trúc/ẩm thực và nhịp sống/văn hóa.',
-        'Dùng cấu trúc giả định: If I ever got the chance to visit..., I’d definitely...',
+        'Choose a city you already know vivid details about (Kyoto, London, Singapore, Melbourne...).',
+        'Highlight two distinct draws: architecture/cuisine and lifestyle/cultural vibe.',
+        'Use natural hypothetical framing: "If I ever got the chance to visit..., I’d definitely..."',
       ],
     },
     part3: {
@@ -89,16 +89,16 @@ export const SPEAKING_TOPICS: SpeakingTopic[] = [
       ],
     },
     usefulVocab: [
-      { word: 'vibrant atmosphere', pos: 'n.phr', vi: 'bầu không khí sôi động', context: 'I am drawn to London because of its vibrant cultural atmosphere.' },
-      { word: 'blend of old and new', pos: 'n.phr', vi: 'sự hòa quyện giữa cổ kính và hiện đại', context: 'The city offers a fascinating blend of old and new architecture.' },
-      { word: 'high cost of living', pos: 'n.phr', vi: 'chi phí sinh hoạt đắt đỏ', context: 'The high cost of living puts pressure on young graduates.' },
-      { word: 'hectic pace of life', pos: 'n.phr', vi: 'nhịp sống hối hả', context: 'Not everyone enjoys the hectic pace of life in a megacity.' },
+      { word: 'vibrant atmosphere', pos: 'n.phr', vi: 'lively, energetic mood or environment', context: 'I am drawn to London because of its vibrant cultural atmosphere.' },
+      { word: 'blend of old and new', pos: 'n.phr', vi: 'harmonious mix of historic and modern elements', context: 'The city offers a fascinating blend of old and new architecture.' },
+      { word: 'high cost of living', pos: 'n.phr', vi: 'expensive everyday housing, food, and bills', context: 'The high cost of living puts pressure on young graduates.' },
+      { word: 'hectic pace of life', pos: 'n.phr', vi: 'fast, busy, and stressful daily rhythm', context: 'Not everyone enjoys the hectic pace of life in a megacity.' },
     ],
   },
   {
     id: 's-c17t3',
     title: 'Sharing & Helping Others',
-    themeVi: 'Chia sẻ · Lần giúp đỡ trẻ nhỏ & Tinh thần cộng đồng',
+    themeVi: 'Sharing · Helping a Child & Community Spirit',
     book: 17,
     test: 3,
     part1: {
@@ -120,9 +120,9 @@ export const SPEAKING_TOPICS: SpeakingTopic[] = [
       ],
       followUp: 'Was it difficult to help the child at that moment?',
       prepHintsVi: [
-        'Kể chuyện gần gũi: hướng dẫn em nhỏ làm bài tập, tìm mẹ trong siêu thị, hoặc sửa xích xe đạp.',
-        'Nhấn mạnh thái độ kiên nhẫn (reassured them, knelt down to talk calmly).',
-        'Kết bằng cảm giác ấm áp và ý nghĩa của việc giúp người khác.',
+        'Tell a relatable story: helping a younger kid with homework, finding their parent in a store, or fixing a bike chain.',
+        'Emphasize patience and empathy (reassured them, knelt down to talk calmly).',
+        'Wrap up with the warm, rewarding feeling of making a small difference.',
       ],
     },
     part3: {
@@ -135,16 +135,16 @@ export const SPEAKING_TOPICS: SpeakingTopic[] = [
       ],
     },
     usefulVocab: [
-      { word: 'lend a helping hand', pos: 'v.phr', vi: 'giúp một tay', context: 'I was glad I could lend a helping hand when the boy got lost.' },
-      { word: 'sense of fulfilment', pos: 'n.phr', vi: 'cảm giác viên mãn / ý nghĩa', context: 'Helping someone without expecting anything brings a sense of fulfilment.' },
-      { word: 'look out for one another', pos: 'v.phr', vi: 'quan tâm, để ý giúp đỡ nhau', context: 'Tight-knit neighbourhoods always look out for one another.' },
-      { word: 'set a good example', pos: 'v.phr', vi: 'làm gương tốt', context: 'Parents set a good example when they volunteer locally.' },
+      { word: 'lend a helping hand', pos: 'v.phr', vi: 'offer practical assistance to someone', context: 'I was glad I could lend a helping hand when the boy got lost.' },
+      { word: 'sense of fulfilment', pos: 'n.phr', vi: 'deep satisfaction from doing something meaningful', context: 'Helping someone without expecting anything brings a sense of fulfilment.' },
+      { word: 'look out for one another', pos: 'v.phr', vi: 'care for and watch over each other', context: 'Tight-knit neighbourhoods always look out for one another.' },
+      { word: 'set a good example', pos: 'v.phr', vi: 'model positive behaviour for others to follow', context: 'Parents set a good example when they volunteer locally.' },
     ],
   },
   {
     id: 's-c17t4',
     title: 'Maps, Cinema & Role Models',
-    themeVi: 'Bản đồ · Diễn viên yêu thích & Ảnh hưởng truyền thông',
+    themeVi: 'Maps & Directions · Admired Actors & Media Influence',
     book: 17,
     test: 4,
     part1: {
@@ -166,9 +166,9 @@ export const SPEAKING_TOPICS: SpeakingTopic[] = [
       ],
       followUp: 'Have you seen most of the movies they starred in?',
       prepHintsVi: [
-        'Nêu tên diễn viên quen thuộc và 1–2 bộ phim cụ thể để khỏi bí từ.',
-        'Đừng chỉ khen "good acting"; nói rõ khả năng biến hóa (versatile, convey subtle emotions).',
-        'Nhắc thêm thái độ sống ngoài đời (humble, dedicated to their craft).',
+        'Name a familiar performer and 1–2 specific films so you never run out of concrete examples.',
+        'Go beyond "good acting" — describe their range (versatile, convey subtle emotions).',
+        'Mention their off-screen character as well (humble, dedicated to their craft).',
       ],
     },
     part3: {
@@ -181,16 +181,16 @@ export const SPEAKING_TOPICS: SpeakingTopic[] = [
       ],
     },
     usefulVocab: [
-      { word: 'versatile performer', pos: 'n.phr', vi: 'nghệ sĩ đa tài, biến hóa tốt', context: 'She is a remarkably versatile performer across drama and comedy.' },
-      { word: 'convey subtle emotions', pos: 'v.phr', vi: 'truyền tải cảm xúc tinh tế', context: 'He can convey subtle emotions with just a facial expression.' },
-      { word: 'dedicated to their craft', pos: 'adj.phr', vi: 'tận tụy với nghề', context: 'I admire artists who remain humble and dedicated to their craft.' },
-      { word: 'binge-watch', pos: 'v', vi: 'xem liên tục nhiều tập', context: 'Streaming apps encourage viewers to binge-watch entire series.' },
+      { word: 'versatile performer', pos: 'n.phr', vi: 'an actor skilled across many different genres and roles', context: 'She is a remarkably versatile performer across drama and comedy.' },
+      { word: 'convey subtle emotions', pos: 'v.phr', vi: 'express understated feelings convincingly', context: 'He can convey subtle emotions with just a facial expression.' },
+      { word: 'dedicated to their craft', pos: 'adj.phr', vi: 'deeply committed to mastering their art', context: 'I admire artists who remain humble and dedicated to their craft.' },
+      { word: 'binge-watch', pos: 'v', vi: 'watch several episodes of a show back to back', context: 'Streaming apps encourage viewers to binge-watch entire series.' },
     ],
   },
   {
     id: 's-tech',
     title: 'Everyday Technology & AI',
-    themeVi: 'Ứng dụng công nghệ · Công cụ hữu ích & Trí tuệ nhân tạo',
+    themeVi: 'Tech Apps · Essential Devices & Artificial Intelligence',
     part1: {
       topic: 'Technology & Apps',
       questions: [
@@ -210,9 +210,9 @@ export const SPEAKING_TOPICS: SpeakingTopic[] = [
       ],
       followUp: 'Do you think you rely on it too much?',
       prepHintsVi: [
-        'Chọn thiết bị hoặc ứng dụng rất quen (tai nghe chống ồn, ứng dụng ghi chú, laptop).',
-        'So sánh trước và sau khi có nó (tiết kiệm thời gian, tập trung hơn).',
-        'Nói thêm 1 hạn chế nhỏ để câu trả lời có chiều sâu.',
+        'Pick an everyday device or app you know well (noise-cancelling headphones, note-taking app, laptop).',
+        'Contrast life before and after getting it (saves time, boosts focus).',
+        'Mention one small downside to give your answer nuance and depth.',
       ],
     },
     part3: {
@@ -225,16 +225,16 @@ export const SPEAKING_TOPICS: SpeakingTopic[] = [
       ],
     },
     usefulVocab: [
-      { word: 'indispensable tool', pos: 'n.phr', vi: 'công cụ không thể thiếu', context: 'My noise-cancelling headphones have become an indispensable tool for studying.' },
-      { word: 'streamline my workflow', pos: 'v.phr', vi: 'tối ưu hóa quy trình làm việc', context: 'Digital calendars help streamline my daily workflow.' },
-      { word: 'overly dependent on', pos: 'adj.phr', vi: 'quá phụ thuộc vào', context: 'We risk becoming overly dependent on automated spellcheckers.' },
-      { word: 'bridge the digital divide', pos: 'v.phr', vi: 'thu hẹp khoảng cách công nghệ', context: 'Community classes help bridge the digital divide for seniors.' },
+      { word: 'indispensable tool', pos: 'n.phr', vi: 'something absolutely essential you rely on daily', context: 'My noise-cancelling headphones have become an indispensable tool for studying.' },
+      { word: 'streamline my workflow', pos: 'v.phr', vi: 'make daily work smoother and more efficient', context: 'Digital calendars help streamline my daily workflow.' },
+      { word: 'overly dependent on', pos: 'adj.phr', vi: 'relying too heavily on something', context: 'We risk becoming overly dependent on automated spellcheckers.' },
+      { word: 'bridge the digital divide', pos: 'v.phr', vi: 'close the gap in tech access and skills', context: 'Community classes help bridge the digital divide for seniors.' },
     ],
   },
   {
     id: 's-env',
     title: 'Nature, Weather & Environment',
-    themeVi: 'Thời tiết · Nơi yên tĩnh & Bảo vệ môi trường',
+    themeVi: 'Weather · Quiet Places & Environmental Protection',
     part1: {
       topic: 'Weather & Nature',
       questions: [
@@ -254,8 +254,8 @@ export const SPEAKING_TOPICS: SpeakingTopic[] = [
       ],
       followUp: 'Has this place changed much since you first discovered it?',
       prepHintsVi: [
-        'Có thể tả công viên buổi sáng sớm, góc thư viện, hoặc bờ hồ vắng.',
-        'Dùng từ chỉ âm thanh & không gian: peaceful, tranquil, rustling leaves, escape the hustle and bustle.',
+        'Describe an early-morning park, a quiet corner of a library, or a peaceful lakeside.',
+        'Use sensory sound and atmosphere words: peaceful, tranquil, rustling leaves, escape the hustle and bustle.',
       ],
     },
     part3: {
@@ -268,16 +268,16 @@ export const SPEAKING_TOPICS: SpeakingTopic[] = [
       ],
     },
     usefulVocab: [
-      { word: 'hustle and bustle', pos: 'n.phr', vi: 'sự ồn ào náo nhiệt', context: 'I go to the botanical garden to escape the hustle and bustle of traffic.' },
-      { word: 'tranquil atmosphere', pos: 'n.phr', vi: 'bầu không khí tĩnh lặng', context: 'Early mornings offer a wonderfully tranquil atmosphere.' },
-      { word: 'environmentally conscious', pos: 'adj.phr', vi: 'có ý thức bảo vệ môi trường', context: 'Young consumers are increasingly environmentally conscious.' },
-      { word: 'tackle single-use plastics', pos: 'v.phr', vi: 'giải quyết rác thải nhựa dùng một lần', context: 'Stricter regulations are needed to tackle single-use plastics.' },
+      { word: 'hustle and bustle', pos: 'n.phr', vi: 'busy, noisy rush of city life', context: 'I go to the botanical garden to escape the hustle and bustle of traffic.' },
+      { word: 'tranquil atmosphere', pos: 'n.phr', vi: 'calm, peaceful surroundings', context: 'Early mornings offer a wonderfully tranquil atmosphere.' },
+      { word: 'environmentally conscious', pos: 'adj.phr', vi: 'aware of and caring about protecting nature', context: 'Young consumers are increasingly environmentally conscious.' },
+      { word: 'tackle single-use plastics', pos: 'v.phr', vi: 'take action to cut disposable plastic waste', context: 'Stricter regulations are needed to tackle single-use plastics.' },
     ],
   },
   {
     id: 's-edu',
     title: 'Learning & Education',
-    themeVi: 'Học tập · Kỹ năng mất nhiều thời gian & Giáo dục',
+    themeVi: 'Study Habits · Long-Term Skills & Education',
     part1: {
       topic: 'Study & Routine',
       questions: [
@@ -297,8 +297,8 @@ export const SPEAKING_TOPICS: SpeakingTopic[] = [
       ],
       followUp: 'Would you recommend this skill to your friends?',
       prepHintsVi: [
-        'Chọn kỹ năng thực tế: bơi lội, lái xe, nấu ăn, chơi nhạc cụ hoặc viết luận tiếng Anh.',
-        'Nhấn mạnh quá trình từ lúc vụng về/nản lòng (steep learning curve) đến khi tiến bộ nhờ kiên trì.',
+        'Pick a practical skill: swimming, driving, cooking, playing an instrument, or academic essay writing.',
+        'Highlight the arc from early frustration (steep learning curve) to steady progress through persistence.',
       ],
     },
     part3: {
@@ -311,16 +311,16 @@ export const SPEAKING_TOPICS: SpeakingTopic[] = [
       ],
     },
     usefulVocab: [
-      { word: 'steep learning curve', pos: 'n.phr', vi: 'giai đoạn đầu học rất khó khăn', context: 'Playing the guitar had a pretty steep learning curve for me.' },
-      { word: 'consistent practice', pos: 'n.phr', vi: 'luyện tập đều đặn', context: 'Consistent practice matters far more than cramming once a week.' },
-      { word: 'hit a plateau', pos: 'v.phr', vi: 'chững lại không thấy tiến bộ', context: 'Many learners feel discouraged when they hit a plateau.' },
-      { word: 'lifelong learning', pos: 'n.phr', vi: 'học tập suốt đời', context: 'Lifelong learning keeps workers adaptable in a shifting economy.' },
+      { word: 'steep learning curve', pos: 'n.phr', vi: 'a skill that is very difficult to pick up at first', context: 'Playing the guitar had a pretty steep learning curve for me.' },
+      { word: 'consistent practice', pos: 'n.phr', vi: 'regular, steady effort over time', context: 'Consistent practice matters far more than cramming once a week.' },
+      { word: 'hit a plateau', pos: 'v.phr', vi: 'reach a stage where progress temporarily stalls', context: 'Many learners feel discouraged when they hit a plateau.' },
+      { word: 'lifelong learning', pos: 'n.phr', vi: 'continuing to gain skills throughout adulthood', context: 'Lifelong learning keeps workers adaptable in a shifting economy.' },
     ],
   },
   {
     id: 's-health',
     title: 'Sports, Fitness & Wellbeing',
-    themeVi: 'Thể thao · Sức khỏe thể chất & Chính sách y tế',
+    themeVi: 'Sports · Physical Health & Public Wellbeing',
     part1: {
       topic: 'Fitness & Daily Habits',
       questions: [
@@ -340,8 +340,8 @@ export const SPEAKING_TOPICS: SpeakingTopic[] = [
       ],
       followUp: 'Do you think you will continue this activity in the future?',
       prepHintsVi: [
-        'Chọn môn dễ tả như cầu lông (badminton), chạy bộ (jogging) hay bóng đá.',
-        'Mô tả lợi ích cả về thể lực lẫn gắn kết bạn bè.',
+        'Choose an easy-to-describe sport such as badminton, jogging, or football.',
+        'Cover both physical fitness benefits and social bonding with friends.',
       ],
     },
     part3: {
@@ -354,16 +354,16 @@ export const SPEAKING_TOPICS: SpeakingTopic[] = [
       ],
     },
     usefulVocab: [
-      { word: 'keep fit', pos: 'v.phr', vi: 'giữ dáng, rèn sức khỏe', context: 'Playing badminton twice a week helps me keep fit without feeling bored.' },
-      { word: 'preventive healthcare', pos: 'n.phr', vi: 'y tế dự phòng', context: 'Investing in preventive healthcare saves hospitals money long term.' },
-      { word: 'work-life balance', pos: 'n.phr', vi: 'cân bằng công việc và cuộc sống', context: 'Long commutes often ruin people’s work-life balance.' },
-      { word: 'burn off stress', pos: 'v.phr', vi: 'giải tỏa căng thẳng', context: 'An evening jog is the quickest way to burn off stress.' },
+      { word: 'keep fit', pos: 'v.phr', vi: 'stay physically healthy and active', context: 'Playing badminton twice a week helps me keep fit without feeling bored.' },
+      { word: 'preventive healthcare', pos: 'n.phr', vi: 'medical care focused on stopping illness before it starts', context: 'Investing in preventive healthcare saves hospitals money long term.' },
+      { word: 'work-life balance', pos: 'n.phr', vi: 'healthy split between career demands and personal time', context: 'Long commutes often ruin people’s work-life balance.' },
+      { word: 'burn off stress', pos: 'v.phr', vi: 'release built-up tension through physical activity', context: 'An evening jog is the quickest way to burn off stress.' },
     ],
   },
   {
     id: 's-money',
     title: 'Shopping, Saving & Consumerism',
-    themeVi: 'Mua sắm · Món đồ tiết kiệm để mua & Văn hóa tiêu dùng',
+    themeVi: 'Shopping · Saving for Something Special & Consumer Culture',
     part1: {
       topic: 'Shopping Habits',
       questions: [
@@ -383,8 +383,8 @@ export const SPEAKING_TOPICS: SpeakingTopic[] = [
       ],
       followUp: 'Do you still use this item today?',
       prepHintsVi: [
-        'Chọn 1 món đồ đáng nhớ: chiếc laptop đầu tiên, máy ảnh, xe đạp hoặc món quà tặng bố mẹ.',
-        'Kể cách cắt giảm chi tiêu nhỏ (nấu cơm mang đi, hạn chế trà sữa) để tạo sự đồng cảm.',
+        'Pick a memorable goal: your first laptop, a camera, a bicycle, or a gift for your parents.',
+        'Share relatable small sacrifices (cooking at home, cutting back on café drinks) to make the story vivid.',
       ],
     },
     part3: {
@@ -397,16 +397,16 @@ export const SPEAKING_TOPICS: SpeakingTopic[] = [
       ],
     },
     usefulVocab: [
-      { word: 'put money aside', pos: 'v.phr', vi: 'để dành tiền', context: 'I put a fixed amount aside from my allowance every month.' },
-      { word: 'cut back on', pos: 'v.phr', vi: 'cắt giảm chi tiêu vào', context: 'I had to cut back on eating out for nearly six months.' },
-      { word: 'impulse buying', pos: 'n.phr', vi: 'mua sắm bốc đồng', context: 'One-click checkout apps strongly encourage impulse buying.' },
-      { word: 'financial literacy', pos: 'n.phr', vi: 'hiểu biết về tài chính cá nhân', context: 'Teaching financial literacy early prevents young adults from falling into debt.' },
+      { word: 'put money aside', pos: 'v.phr', vi: 'save money regularly for a future goal', context: 'I put a fixed amount aside from my allowance every month.' },
+      { word: 'cut back on', pos: 'v.phr', vi: 'reduce spending or consumption of something', context: 'I had to cut back on eating out for nearly six months.' },
+      { word: 'impulse buying', pos: 'n.phr', vi: 'purchasing things spontaneously without thinking ahead', context: 'One-click checkout apps strongly encourage impulse buying.' },
+      { word: 'financial literacy', pos: 'n.phr', vi: 'practical understanding of budgeting and money management', context: 'Teaching financial literacy early prevents young adults from falling into debt.' },
     ],
   },
   {
     id: 's-culture',
     title: 'Festivals, Hometown & Traditions',
-    themeVi: 'Quê hương · Lễ hội truyền thống & Bảo tồn văn hóa',
+    themeVi: 'Hometown · Traditional Festivals & Cultural Heritage',
     part1: {
       topic: 'Hometown & Festivals',
       questions: [
@@ -426,8 +426,8 @@ export const SPEAKING_TOPICS: SpeakingTopic[] = [
       ],
       followUp: 'Has the way people celebrate it changed in recent years?',
       prepHintsVi: [
-        'Tết Nguyên Đán hoặc Trung Thu là chủ đề rất giàu từ vựng (family reunion, traditional delicacies, honouring ancestors).',
-        'So sánh nhẹ cách đón lễ xưa và nay (trước tự làm bánh, nay bận rộn hơn nhưng tình cảm gia đình vẫn còn).',
+        'Major holidays like Lunar New Year, Mid-Autumn Festival, Diwali, or Thanksgiving offer rich vocabulary (family reunion, traditional delicacies, honouring ancestors).',
+        'Add a brief past-vs-present contrast (homemade traditions in the past vs busier modern life, while family bonds remain strong).',
       ],
     },
     part3: {
@@ -440,10 +440,10 @@ export const SPEAKING_TOPICS: SpeakingTopic[] = [
       ],
     },
     usefulVocab: [
-      { word: 'family reunion', pos: 'n.phr', vi: 'sự đoàn tụ gia đình', context: 'Lunar New Year is primarily a time for family reunions.' },
-      { word: 'pass down from generation to generation', pos: 'v.phr', vi: 'truyền từ đời này sang đời khác', context: 'Folk recipes have been passed down from generation to generation.' },
-      { word: 'sense of belonging', pos: 'n.phr', vi: 'cảm giác gắn kết / thuộc về', context: 'Shared celebrations strengthen our sense of belonging.' },
-      { word: 'cultural heritage', pos: 'n.phr', vi: 'di sản văn hóa', context: 'Preserving cultural heritage helps communities remember their roots.' },
+      { word: 'family reunion', pos: 'n.phr', vi: 'a special gathering where relatives come together', context: 'Lunar New Year is primarily a time for family reunions.' },
+      { word: 'pass down from generation to generation', pos: 'v.phr', vi: 'hand traditions or knowledge down over the ages', context: 'Folk recipes have been passed down from generation to generation.' },
+      { word: 'sense of belonging', pos: 'n.phr', vi: 'feeling connected to and accepted by a community', context: 'Shared celebrations strengthen our sense of belonging.' },
+      { word: 'cultural heritage', pos: 'n.phr', vi: 'traditions, landmarks, and history inherited from the past', context: 'Preserving cultural heritage helps communities remember their roots.' },
     ],
   },
 ];

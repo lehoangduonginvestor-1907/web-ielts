@@ -1,55 +1,55 @@
-Không phải bài Task 1 nào cũng có số liệu phần trăm hay đường tăng giảm. Khoảng 20–25% đề thi thật rơi vào **Map (Bản đồ thay đổi)** hoặc **Process (Quy trình sản xuất / tự nhiên)**. Với hai dạng này, giám khảo không chấm từ vựng tăng giảm mà chấm khả năng dùng **thì bị động**, **từ nối trình tự** và **ngôn ngữ chỉ vị trí**.
+Not every Task 1 prompt contains percentages or trend lines. Roughly 20–25% of real exam prompts feature a **Map** (showing spatial changes) or a **Process** (manufacturing or natural cycle). For these tasks, examiners aren't looking for increase/decrease vocabulary—they assess your control of the **passive voice**, **sequencing language**, and **spatial prepositions**.
 
-:::rule Điểm khác biệt cốt lõi giữa Map và Process
-- **Map (Bản đồ)**: Tập trung vào **sự thay đổi theo thời gian** (xây mới, phá bỏ, mở rộng, giữ nguyên) và **vị trí tương đối** (Bắc/Nam/Đông/Tây, đối diện, cạnh).
-- **Process (Quy trình)**: Tập trung vào **thứ tự các bước** từ đầu vào đến sản phẩm cuối. Với quy trình nhân tạo (sản xuất), hầu hết động từ phải ở thể **bị động** (*is sorted, are heated*).
+:::rule The core difference between Maps and Processes
+- **Map**: Focuses on **changes over time** (new additions, demolitions, expansions, unchanged features) and **relative location** (north/south/east/west, opposite, adjacent to).
+- **Process**: Focuses on the **sequence of stages** from raw inputs to the final product. For man-made processes, most verbs should be in the **passive voice** (*is sorted, are heated*).
 :::
 
-## Chiến lược 4 bước cho Bản đồ (Map)
+## A 4-step strategy for Maps
 
 :::steps
-1. **Nhìn la bàn & mốc thời gian**: Xác định hướng Bắc-Nam-Đông-Tây và thì sử dụng (Hiện tại so với Tương lai: dùng Hiện tại đơn cho hiện tại và *will be / is planned to be* cho tương lai).
-2. **Viết Overview**: Tóm tắt 2 thay đổi bao quát nhất (ví dụ: khu công nghiệp được chuyển đổi hoàn toàn thành khu dân cư xanh với hạ tầng giao thông mới).
-3. **Chia khu vực để tả (Body 1 & Body 2)**: Chia bản đồ theo nửa Bắc/Nam, Đông/Tây, hoặc theo bên trái/phải con đường chính để người đọc hình dung mạch lạc.
-4. **Dùng động từ biến đổi chính xác**: Phân biệt *demolished/knocked down* (phá bỏ hoàn toàn) với *converted into* (cải tạo thành) hoặc *relocated to* (di dời sang chỗ khác).
+1. **Check the compass & timeframes**: Note North–South–East–West and choose the right tenses (Present vs Future: use Present Simple for now, and *will be / is planned to be* for proposed changes).
+2. **Write the Overview**: Summarise the 2 biggest transformations (e.g. an industrial zone is completely redeveloped into a green residential area with upgraded transport links).
+3. **Group by zone (Body 1 & Body 2)**: Split the map logically—North vs South, East vs West, or either side of a main road—so the reader can picture the layout effortlessly.
+4. **Pick precise verbs of change**: Distinguish *demolished / knocked down* (removed completely) from *converted into* (repurposed) and *relocated to* (moved elsewhere).
 :::
 
-## Chiến lược cho Quy trình (Process)
+## Strategy for Processes
 
-Khi làm Process, bạn thường có cảm giác thiếu từ vựng chuyên ngành. Thực tế, phần lớn danh từ và động từ gợi ý đã được in sẵn trên sơ đồ: việc của bạn là biến chúng thành câu ngữ pháp chuẩn và nối mượt mà.
+Process diagrams can make you feel short on technical vocabulary. In reality, most key nouns and verbs are already labelled on the diagram: your job is to turn those labels into accurate academic sentences linked smoothly in sequence.
 
 :::examples
-✓ *Once the bottles have been sorted by colour, they are crushed into small flakes and washed thoroughly.* // Dùng mệnh đề thời gian (*Once... have been*) + bị động rất tự nhiên.
-✗ *First, workers take the bottles. Then workers sort them. Next, workers crush them.* // Lặp chủ ngữ *workers* quá nhiều và không dùng thể bị động cho quy trình sản xuất.
-✓ *To the north-east of the roundabout, the old factory is set to be replaced by a medical centre.* // Chỉ rõ phương hướng và dùng cấu trúc tương lai khách quan cho bản đồ quy hoạch.
+✓ *Once the bottles have been sorted by colour, they are crushed into small flakes and washed thoroughly.* // Combines a time clause (*Once... have been*) with natural passive verbs.
+✗ *First, workers take the bottles. Then workers sort them. Next, workers crush them.* // Overuses *workers* as the subject and avoids the passive voice expected in a manufacturing process.
+✓ *To the north-east of the roundabout, the old factory is set to be replaced by a medical centre.* // Gives clear compass positioning and uses objective future language for a planned redevelopment.
 :::
 
-:::trap Sai giới từ chỉ vị trí bên trong và bên ngoài
-*In the north of the town* nghĩa là nằm **bên trong** ranh giới phía bắc thị trấn; còn *to the north of the town* nghĩa là nằm **bên ngoài** về phía bắc. Nhầm lẫn hai giới từ này làm sai lệch vị trí trên bản đồ.
+:::trap Confusing inside vs outside prepositions
+*In the north of the town* means **inside** the northern part of the town's borders; *to the north of the town* means **outside** the town, further north. Mixing up these two prepositions misplaces features on the map.
 :::
 
-## Từ vựng chuyển đổi bản đồ và nối bước quy trình
+## High-scoring language for Maps and Processes
 
-| Ngữ cảnh | Cụm từ ghi điểm cao | Nghĩa sử dụng |
+| Context | High-scoring phrases | Usage |
 | --- | --- | --- |
-| Thay thế | *be replaced by / make way for* | bị thay thế bởi / nhường chỗ cho |
-| Mở rộng | *be expanded / enlarged / extended* | được mở rộng quy mô |
-| Phá bỏ | *be demolished / knocked down / cleared* | bị phá dỡ / dọn sạch |
-| Nối bước | *Initially / Subsequently / Following this* | Ban đầu / Sau đó / Tiếp theo đó |
-| Điểm cuối | *Ultimately / The final stage involves + V-ing* | Cuối cùng / Giai đoạn cuối gồm... |
+| Replacement | *be replaced by / make way for* | One feature replaces another |
+| Expansion | *be expanded / enlarged / extended* | Increased in size or length |
+| Removal | *be demolished / knocked down / cleared* | Torn down or removed completely |
+| Sequencing | *Initially / Subsequently / Following this* | Moving smoothly from stage to stage |
+| Final stage | *Ultimately / The final stage involves + -ing* | Closing the process clearly |
 
 :::check
-Bản đồ mô tả một khu công nghiệp ở **hiện tại** và bản đồ **quy hoạch trong tương lai**. Khi mô tả một bệnh viện dự kiến sẽ được xây thêm, câu nào viết chuẩn nhất?
+A pair of maps shows an industrial area **at present** alongside a **proposed redevelopment plan**. Which sentence best describes a new hospital scheduled to be added?
 - [ ] A new hospital was constructed in the eastern part of the area.
 - [x] A new hospital is planned to be built in the eastern part of the area.
 - [ ] People will probably want a new hospital in the eastern part of the area.
-> Bản đồ quy hoạch tương lai cần dùng cấu trúc dự kiến khách quan như *is planned to be built* hoặc *will be constructed*, không dùng thì quá khứ hay phỏng đoán chủ quan.
+> Future redevelopment maps require objective future structures like *is planned to be built* or *will be constructed*—not past tense or personal speculation.
 :::
 
 :::check
-Trong quy trình tái chế chai nhựa, bước đầu tiên ghi nhãn *"Sorting by colour"*. Câu mở đầu nào phù hợp nhất về mặt ngữ pháp học thuật?
+In a plastic bottle recycling diagram, Step 1 is labelled *"Sorting by colour"*. Which opening sentence is best suited for academic Task 1?
 - [x] At the first stage, the collected plastic bottles are sorted according to their colour.
 - [ ] At the first stage, plastic bottles sort according to their colour.
 - [ ] Firstly, you must sort all the plastic bottles by colour carefully.
-> Chai nhựa chịu tác động của con người hoặc máy móc nên phải chia ở thể bị động (*are sorted*), tránh dùng thể chủ động hay ngôi thứ hai (*you*).
+> Because the bottles are acted on by workers or machines, the verb must be passive (*are sorted*), avoiding active voice or second-person instructions (*you*).
 :::

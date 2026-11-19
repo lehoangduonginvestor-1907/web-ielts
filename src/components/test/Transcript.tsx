@@ -131,7 +131,7 @@ export default function Transcript({ script, evidence, testId, part, source, voc
     });
   }, [script]);
 
-  if (!script.length) return <p className="text-sm text-muted">Chưa có transcript cho phần này.</p>;
+  if (!script.length) return <p className="text-sm text-muted">No transcript available for this part yet.</p>;
 
   const addHighlight = () => {
     const r = tool?.range;
@@ -153,7 +153,7 @@ export default function Transcript({ script, evidence, testId, part, source, voc
 
   return (
     <div ref={box} className="relative space-y-3 font-serif text-[15.5px] leading-relaxed" onMouseUp={onMouseUp}>
-      {timed && <p className="font-sans text-xs text-muted">Bấm vào một câu để nghe lại từ câu đó. Bôi chữ để tô sáng hoặc lưu từ.</p>}
+      {timed && <p className="font-sans text-xs text-muted">Click any sentence to replay from there. Select text to highlight or save a word.</p>}
       {script.map((seg, i) => {
         const ev = findRange(seg.text, evidence ?? undefined);
         const mine = hls.map((h, idx) => ({ ...h, i: idx })).filter(h => h.p === i);
@@ -216,12 +216,12 @@ export default function Transcript({ script, evidence, testId, part, source, voc
                 setTool(null);
               }}
             >
-              <Eraser size={14} /> Bỏ tô
+              <Eraser size={14} /> Remove highlight
             </button>
           ) : (
             <>
               <button className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 hover:bg-white/10" onClick={addHighlight}>
-                <Highlighter size={14} /> Tô sáng
+                <Highlighter size={14} /> Highlight
               </button>
               {tool.word && (
                 <button
@@ -231,7 +231,7 @@ export default function Transcript({ script, evidence, testId, part, source, voc
                     setTool(null);
                   }}
                 >
-                  <BookmarkPlus size={14} /> Lưu từ
+                  <BookmarkPlus size={14} /> Save word
                 </button>
               )}
               {timed && tool.range && (
@@ -245,7 +245,7 @@ export default function Transcript({ script, evidence, testId, part, source, voc
                     if (sent) player?.current?.seek(Math.max(0, sent.start - 0.15), true);
                   }}
                 >
-                  <Play size={13} /> Nghe
+                  <Play size={13} /> Play
                 </button>
               )}
             </>

@@ -1,4 +1,4 @@
-// Ngọn lửa streak Sách Tranh: giữ lửa khi hôm nay có học, hoá khối băng khi dùng vé nghỉ, ngủ yên khi chưa học
+// Cozy storybook streak flame: lit when active today, frozen ice cube on streak freeze, sleeping when idle
 export function Flame({ lit = true, size = 26, frozen = false }: { lit?: boolean; size?: number; frozen?: boolean }) {
   const ink = '#3b2e28';
   if (frozen) {

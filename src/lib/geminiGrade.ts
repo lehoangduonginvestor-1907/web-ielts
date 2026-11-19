@@ -1,13 +1,29 @@
-const GRADE_MODELS = [
-  'gemini-4-hydrogen',
-  'gemini-4-argon',
-  'gemini-3.8-flash',
-  'gemini-3.5-flash-lite',
-  'gemini-3.1-flash-lite',
-] as const;
+import { GoogleGenAI } from '@google/genai';
+
+// Gọi Gemini Interactions API để chấm bài, trả về JSON đúng schema.
+// - Mỗi loại bài tự chọn danh sách model; KHÔNG tự lùi xuống model yếu hơn ngoài danh sách đó,
+//   để cùng một bài không lúc chấm bằng model mạnh, lúc bằng model nhẹ.
+// - Chấp nhận đầu vào nhiều phần (văn bản + audio).
+
+/** Speaking phải nghe audio → chỉ model đa phương thức mạnh của Gemini, đều ở mức suy luận high. */
+export const SPEAKING_GRADE_MODELS = ['gemini-4-hydrogen', 'gemini-3.8-flash'] as const;
+/**
+ * Writing ưu tiên model ngoài Gemini (xem textGrade.ts) để dành hạn mức Gemini cho Speaking.
+ * Chỉ khi chưa cấu hình key nào khác mới dùng Gemini 3.8 Flash (không đụng Hydrogen).
+ */
+export const WRITING_GEMINI_FALLBACK = ['gemini-3.8-flash'] as const;
+
+/** Seed cố định giúp chấm lại cùng một bài cho kết quả ổn định hơn. */
+const GRADE_SEED = 20260407;
 
 // Nhớ tạm các model đã chạm giới hạn cứng (limit: 0 hoặc quota ngày) trong 10 phút để không tốn thời gian thử lại
 const skippedUntil = new Map<string, number>();
+
+export type GradeContent =
+  | { type: 'text'; text: string }
+  | { type: 'audio'; mime_type: string; data?: string; uri?: string };
+
+export type ThinkingLevel = 'low' | 'medium' | 'high';
 
 interface InteractionStep {
   type?: string;
@@ -36,85 +52,165 @@ function extractOutputText(res: InteractionRestResponse): string {
   return '';
 }
 
+class RetryableError extends Error {}
+
+const sleep = (ms: number) => new Promise(res => setTimeout(res, ms));
+
 export async function createStructuredGrade<T>({
   apiKey,
+  models,
   systemInstruction,
   input,
   schema,
+  thinkingLevel = 'high',
+  timeoutMs = 180_000,
+  budgetMs = 285_000,
 }: {
   apiKey: string;
+  models: readonly string[];
   systemInstruction: string;
-  input: string;
+  input: string | GradeContent[];
   schema: Record<string, unknown>;
+  thinkingLevel?: ThinkingLevel;
+  /** Thời gian tối đa cho MỘT lần gọi. */
+  timeoutMs?: number;
+  /** Tổng thời gian cho mọi lần thử (phải nhỏ hơn maxDuration của route). */
+  budgetMs?: number;
 }): Promise<{ data: T; model: string }> {
-  const now = Date.now();
   let lastErr: unknown;
+  const deadline = Date.now() + budgetMs;
 
-  for (const model of GRADE_MODELS) {
-    const skipAt = skippedUntil.get(model) ?? 0;
-    if (skipAt > now) continue;
+  for (const model of models) {
+    if ((skippedUntil.get(model) ?? 0) > Date.now()) {
+      lastErr = new Error(`${model} quota exhausted; skipping temporarily for a few minutes.`);
+      continue;
+    }
 
-    try {
-      const body: Record<string, unknown> = {
-        model,
-        system_instruction: systemInstruction,
-        input,
-        response_format: {
-          type: 'text',
-          mime_type: 'application/json',
-          schema,
-        },
-      };
-      if (model.startsWith('gemini-4-') || model.startsWith('gemini-3.8-')) {
-        body.generation_config = { thinking_level: 'low' };
+    const body = {
+      model,
+      system_instruction: systemInstruction,
+      // Đầu vào nhiều phần (văn bản + audio) gói trong một bước user_input — dạng có kiểu rõ ràng của Interactions API
+      input: typeof input === 'string' ? input : [{ type: 'user_input', content: input }],
+      response_format: { type: 'text', mime_type: 'application/json', schema },
+      generation_config: { thinking_level: thinkingLevel, seed: GRADE_SEED },
+    };
+
+    // Mỗi model: tối đa 3 lần cho lỗi tạm thời (503 quá tải/500, JSON hỏng), nghỉ 5s rồi 15s. Giữ ít lần thử vì mỗi lần
+    // gọi có thể bị tính vào hạn mức theo ngày (Free Tier của Hydrogen chỉ 20 lượt/ngày).
+    // Hết giờ thì KHÔNG thử lại cùng model (một lượt chấm chậm lặp lại cũng sẽ chậm), mà chuyển model kế tiếp nếu còn thời gian.
+    const BACKOFF = [5000, 15000];
+    for (let attempt = 0; attempt <= BACKOFF.length; attempt++) {
+      const remaining = deadline - Date.now();
+      if (remaining < 20_000) {
+        lastErr ??= new Error('request timed out');
+        break;
       }
-
-      // Nếu gặp 503 tạm thời (high demand), thử lại 1 lần nhanh sau 1s trước khi chuyển model kế tiếp
-      let r: Response | null = null;
-      let json: InteractionRestResponse = {};
-      for (let attempt = 0; attempt < 2; attempt++) {
-        r = await fetch('https://generativelanguage.googleapis.com/v1beta/interactions', {
+      const started = Date.now();
+      try {
+        const r = await fetch('https://generativelanguage.googleapis.com/v1beta/interactions', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-goog-api-key': apiKey,
-          },
+          headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
           body: JSON.stringify(body),
-          signal: AbortSignal.timeout(22000),
+          signal: AbortSignal.timeout(Math.min(timeoutMs, remaining)),
         });
-        json = (await r.json()) as InteractionRestResponse;
-        if (r.status !== 503 || attempt === 1) break;
-        await new Promise(res => setTimeout(res, 1000));
-      }
+        const json = (await r.json().catch(() => ({}))) as InteractionRestResponse;
 
-      if (!r!.ok) {
-        const msg = json.error?.message ?? `HTTP ${r!.status}`;
-        // Khoá cứng 10 phút nếu model bị limit 0 hoặc hết quota ngày trên Free Tier
-        if (r!.status === 429 && /limit:\s*0\b|per day/i.test(msg)) {
-          skippedUntil.set(model, Date.now() + 10 * 60_000);
+        if (!r.ok) {
+          const msg = json.error?.message ?? `HTTP ${r.status}`;
+          console.warn(`[grade] ${model} #${attempt + 1} HTTP ${r.status} after ${Math.round((Date.now() - started) / 1000)}s: ${msg}`);
+          if (r.status === 429) {
+            if (/limit:\s*0\b|per day/i.test(msg)) skippedUntil.set(model, Date.now() + 10 * 60_000);
+            lastErr = new Error(
+              /per day/i.test(msg)
+                ? `${model} daily quota reached for this API key (${msg})`
+                : `${model} rate limit exceeded (${msg})`,
+            );
+            break; // try next model if available
+          }
+          if (r.status === 404) {
+            lastErr = new Error(`${model}: model unavailable for this API key (${msg})`);
+            break;
+          }
+          if (r.status === 503 || r.status === 500) throw new RetryableError(`${model}: ${msg}`);
+          throw new Error(msg);
         }
-        if (r!.status === 429 || r!.status === 503 || r!.status === 404) {
-          lastErr = new Error(`${model}: ${msg}`);
-          continue;
-        }
-        throw new Error(msg);
-      }
 
-      const raw = extractOutputText(json);
-      if (!raw) {
-        lastErr = new Error(`Model ${model} không trả về dữ liệu.`);
-        continue;
+        const raw = extractOutputText(json);
+        if (!raw) throw new RetryableError(`${model} returned an empty response.`);
+        let data: T;
+        try {
+          data = JSON.parse(raw) as T;
+        } catch {
+          throw new RetryableError(`${model} returned malformed JSON.`);
+        }
+        console.info(`[grade] ${model} finished in ${Math.round((Date.now() - started) / 1000)}s`);
+        return { data, model };
+      } catch (err) {
+        lastErr = err;
+        const msg = err instanceof Error ? err.message : String(err);
+        if (/timeout|aborted/i.test(msg)) {
+          console.warn(`[grade] ${model} #${attempt + 1} timed out after ${Math.round((Date.now() - started) / 1000)}s`);
+          lastErr = new Error(`${model} took too long to respond`);
+          break;
+        }
+        const retryable = err instanceof RetryableError || /fetch failed|ECONNRESET/i.test(msg);
+        if (!retryable) throw err;
+        console.warn(`[grade] ${model} #${attempt + 1} transient error: ${msg}`);
+        const wait = BACKOFF[attempt];
+        if (wait !== undefined && deadline - Date.now() > wait + 30_000) await sleep(wait);
+        else break;
       }
-      return { data: JSON.parse(raw) as T, model };
-    } catch (err) {
-      lastErr = err;
-      const msg = err instanceof Error ? err.message : String(err);
-      if (/timeout|aborted|429|503|404|rate limit|high demand|service_unavailable/i.test(msg)) {
-        continue;
-      }
-      throw err;
     }
   }
 
-  throw lastErr instanceof Error ? lastErr : new Error('Không thể kết nối các model Gemini để chấm bài.');
+  const msg = (lastErr instanceof Error ? lastErr.message : '').trim().replace(/\.+$/, '');
+  throw new Error(
+    `Could not grade with ${models.join(' / ')}${msg ? ` — ${msg}` : ''}. Your work is saved; please try grading again in a few minutes.`,
+  );
+}
+
+// ---------- Audio ----------
+
+/** Chuẩn hoá MIME từ MediaRecorder (vd "audio/webm;codecs=opus") sang loại Gemini nhận. */
+export function normalizeAudioMime(mime: string): string {
+  const base = (mime || 'audio/webm').split(';')[0].trim().toLowerCase();
+  if (base === 'audio/mp4' || base === 'audio/x-m4a') return 'audio/m4a';
+  if (base === 'video/webm') return 'audio/webm';
+  return base;
+}
+
+/** Dưới ngưỡng này gửi audio nhúng thẳng trong yêu cầu; lớn hơn thì tải lên Files API. */
+const INLINE_AUDIO_LIMIT = 7 * 1024 * 1024;
+
+/**
+ * Chuẩn bị khối audio cho Gemini. File lớn được tải lên Files API (chờ tới khi ACTIVE);
+ * hàm `cleanup` xoá file tạm đó sau khi chấm xong.
+ */
+export async function prepareAudioContent(
+  apiKey: string,
+  audio: Blob,
+): Promise<{ content: GradeContent; cleanup: () => Promise<void> }> {
+  const mime = normalizeAudioMime(audio.type);
+  if (audio.size <= INLINE_AUDIO_LIMIT) {
+    const data = Buffer.from(await audio.arrayBuffer()).toString('base64');
+    return { content: { type: 'audio', mime_type: mime, data }, cleanup: async () => {} };
+  }
+
+  const ai = new GoogleGenAI({ apiKey });
+  let file = await ai.files.upload({ file: audio, config: { mimeType: mime, displayName: 'ielts-speaking-session' } });
+  const deadline = Date.now() + 90_000;
+  while (file.state === 'PROCESSING' && Date.now() < deadline) {
+    await sleep(2000);
+    file = await ai.files.get({ name: file.name! });
+  }
+  if (file.state !== 'ACTIVE' || !file.uri) {
+    throw new Error('Gemini has not finished processing the audio file yet. Please try grading again in a few minutes.');
+  }
+  const name = file.name!;
+  return {
+    content: { type: 'audio', mime_type: mime, uri: file.uri },
+    cleanup: async () => {
+      await ai.files.delete({ name }).catch(() => {});
+    },
+  };
 }

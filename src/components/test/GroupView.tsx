@@ -63,11 +63,11 @@ function Figure({ g, sticky }: { g: Group; sticky: boolean }) {
       <button
         type="button"
         onClick={() => setZoom(true)}
-        title="Bấm để phóng to"
+        title="Click to zoom"
         className={`mb-5 block w-full cursor-zoom-in overflow-hidden rounded-lg border border-line-strong bg-white p-2 ${sticky ? '@2xl:sticky @2xl:top-28 @2xl:mb-0' : ''}`}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={src} alt={`Hình cho Questions ${g.from}–${g.to}`} className="mx-auto max-h-[70dvh] w-auto max-w-full" />
+        <img src={src} alt={`Figure for Questions ${g.from}–${g.to}`} className="mx-auto max-h-[70dvh] w-auto max-w-full" />
       </button>
       {zoom && (
         <div className="fixed inset-0 z-50 flex cursor-zoom-out items-center justify-center bg-ink/70 p-3" onClick={() => setZoom(false)}>
@@ -139,13 +139,13 @@ function ReviewLine({ g, q, p }: { g: Group; q: Question; p: Props }) {
             <span className="text-good">{correctDisplay(g, q.n)}</span>
           ) : (
             <>
-              <span className="text-bad line-through decoration-1">{mine || 'bỏ trống'}</span>
+              <span className="text-bad line-through decoration-1">{mine || 'blank'}</span>
               <span className="mx-1.5 text-muted">→</span>
               <span className="font-semibold text-good">{correctDisplay(g, q.n)}</span>
             </>
           )}
         </span>
-        <span className="text-xs text-muted">{open ? 'Ẩn' : 'Giải thích'}</span>
+        <span className="text-xs text-muted">{open ? 'Hide' : 'Explain'}</span>
         <ChevronDown size={14} className={`text-muted transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
       {open && (
@@ -154,9 +154,17 @@ function ReviewLine({ g, q, p }: { g: Group; q: Question; p: Props }) {
           onLocate={q.explain?.evidence && p.onLocate ? () => p.onLocate!(q.explain!) : undefined}
           locateLabel={p.locateLabel}
           onReplay={q.explain?.evidence && p.onReplay ? () => p.onReplay!(q.explain!) : undefined}
+          context={{
+            qNum: q.n,
+            prompt: q.prompt || g.prompt || g.title,
+            userAnswer: mine,
+            correctAnswer: correctDisplay(g, q.n),
+            isCorrect: !!ok,
+            skill: p.reasonFor?.skill,
+          }}
         />
       )}
-      {open && !ok && p.reasonFor && <ReasonChips mistakeKey={mistakeKey(p.reasonFor.testId, p.reasonFor.skill, q.n)} label="Vì sao câu này sai?" />}
+      {open && !ok && p.reasonFor && <ReasonChips mistakeKey={mistakeKey(p.reasonFor.testId, p.reasonFor.skill, q.n)} label="Why did I miss this?" />}
     </div>
   );
 }
@@ -218,7 +226,7 @@ function GapGroup(p: Props) {
             />
             {overLimit(v, limit) && (
               <span role="status" className="mr-1 rounded bg-ember-soft px-1.5 text-[11px] font-semibold whitespace-nowrap text-ember">
-                quá {limit!.words} từ{limit!.number ? ' + 1 số' : ''}
+                over {limit!.words} {limit!.words === 1 ? 'word' : 'words'}{limit!.number ? ' + 1 number' : ''}
               </span>
             )}
           </>
@@ -371,8 +379,8 @@ function MultiGroup(p: Props) {
         <span className="font-medium">{g.prompt}</span>
       </p>
       <p className="mt-1 pl-[3.3rem] text-xs text-muted">
-        Đã chọn {picked.length}/{pick}
-        {!!p.focus?.length && !p.review && ` · làm lại: chấm cả nhóm, cần đúng cả ${pick} đáp án mới gạch được câu khỏi Sổ lỗi`}
+        Selected {picked.length}/{pick}
+        {!!p.focus?.length && !p.review && ` · retry: graded as a group — all ${pick} answers must be right to clear it from your Mistake Log`}
       </p>
       <div className="mt-2 space-y-1.5 pl-[3.3rem]">
         {g.options!.map(o => {

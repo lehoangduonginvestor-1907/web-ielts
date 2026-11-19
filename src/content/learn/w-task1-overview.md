@@ -1,55 +1,55 @@
-Task 1 chiếm 1/3 tổng điểm Writing, yêu cầu tóm tắt thông tin từ biểu đồ hoặc bảng số liệu trong ít nhất 150 từ. Sai lầm phổ biến nhất của người học ở band 5.0–6.0 là nhảy thẳng vào liệt kê từng con số từ năm đầu đến năm cuối mà quên mất đoạn **Overview (Tổng quan)** hoặc đưa ý kiến cá nhân vào bài.
+Task 1 accounts for one-third of your Writing score and asks you to summarise visual data—charts, graphs, or tables—in at least 150 words. The most common mistake among Band 5.0–6.0 writers is jumping straight into a year-by-year list of figures while skipping the **Overview** or adding personal opinions.
 
-:::rule Nguyên tắc sống còn của Overview
-- **Bắt buộc phải có** đoạn Overview rõ ràng (thường đặt ngay sau câu Mở bài Introduction). Thiếu Overview, điểm **Task Achievement** gần như bị khống chế ở mức tối đa **5.0**.
-- **Không đưa số liệu chi tiết** vào Overview. Chỉ nêu 2–3 xu hướng lớn nhất hoặc đối tượng cao nhất/thấp nhất nổi bật nhất.
-- **Tuyệt đối không suy diễn** nguyên nhân ngoài biểu đồ (ví dụ không tự viết *because of economic growth* nếu biểu đồ không ghi).
+:::rule The non-negotiable rules of the Overview
+- **An Overview is mandatory** (usually placed right after the Introduction). Without a clear Overview, **Task Achievement** is typically capped at **Band 5.0**.
+- **Leave out specific figures** in the Overview. Highlight only the 2–3 broadest trends or the highest and lowest categories.
+- **Never speculate on causes** not shown in the chart (for example, don't write *because of economic growth* if the graphic doesn't say so).
 :::
 
-## Công thức 4 đoạn cho mọi biểu đồ số liệu
+## A 4-paragraph blueprint for any data chart
 
 :::steps
-1. **Introduction (1–2 câu)**: Paraphrase lại đề bài (đối tượng đo lường, địa điểm, khoảng thời gian, đơn vị).
-2. **Overview (2–3 câu)**: Bắt đầu bằng *Overall,* hoặc *It is clear that...* để chỉ ra bức tranh toàn cảnh: xu hướng tăng/giảm chung và điểm chênh lệch lớn nhất.
-3. **Body 1 (3–4 câu)**: Gom nhóm dữ liệu theo điểm chung (ví dụ các nhóm tăng cùng nhau, hoặc giai đoạn đầu), trích dẫn số liệu cụ thể để minh họa và so sánh.
-4. **Body 2 (3–4 câu)**: Trình bày nhóm dữ liệu còn lại, chú ý chỉ ra điểm giao cắt, mốc đổi chiều hoặc ngoại lệ đáng chú ý.
+1. **Introduction (1–2 sentences)**: Paraphrase the prompt (what is measured, where, timeframe, and units).
+2. **Overview (2–3 sentences)**: Start with *Overall,* or *It is clear that...* to capture the big picture: general upward/downward patterns and the widest gap.
+3. **Body 1 (3–4 sentences)**: Group related data together (e.g. categories that rose together, or the first half of the timeline), backing up comparisons with exact figures.
+4. **Body 2 (3–4 sentences)**: Cover the remaining group, noting intersections, turning points, or notable exceptions.
 :::
 
-## Chọn số liệu nào để tả cho khỏi ngợp?
+## Selecting key figures without getting overwhelmed
 
-Bạn không cần (và không nên) chép lại 100% các con số trên bảng. Hãy lọc theo 4 mốc sau:
+You don't need—and shouldn't try—to copy every single number from a chart. Filter for key milestones instead:
 
 :::examples
-✓ *Between 2011 and 2018, shop closures fluctuated before peaking at 7,200 in 2015.* // Chọn điểm bắt đầu, xu hướng chính và đỉnh cao nhất.
-✗ *In 2011 it was 6,400, in 2012 it was 6,000, in 2013 it was 7,100, in 2014 it was 6,500...* // Liệt kê máy móc từng năm làm bài rời rạc và mất điểm Coherence.
-✓ *Household expenditure on food fell sharply from roughly one-third of total spending to just 16%.* // Quy đổi tỷ lệ phần trăm sang phân số tự nhiên để đa dạng từ vựng.
+✓ *Between 2011 and 2018, shop closures fluctuated before peaking at 7,200 in 2015.* // Highlights the start, overall pattern, and highest peak cleanly.
+✗ *In 2011 it was 6,400, in 2012 it was 6,000, in 2013 it was 7,100, in 2014 it was 6,500...* // Mechanical year-by-year listing feels choppy and hurts Coherence.
+✓ *Household expenditure on food fell sharply from roughly one-third of total spending to just 16%.* // Converts a percentage into a natural fraction to vary lexical range.
 :::
 
-:::trap Cẩn thận thì động từ và đơn vị
-Luôn kiểm tra trục thời gian ở dưới biểu đồ: nếu mốc năm nằm hoàn toàn trong quá khứ (như 1968 và 2018), toàn bài phải chia **Quá khứ đơn**. Chỉ dùng Hiện tại đơn khi không có năm cụ thể hoặc biểu đồ nói về thói quen hiện tại.
+:::trap Watch your tenses and units
+Always check the time axis before you write: if all years lie in the past (such as 1968 and 2018), write the whole report in **Past Simple**. Use Present Simple only when no years are given or the chart shows current habits.
 :::
 
-## Bảng từ vựng mô tả xu hướng dùng nhiều nhất
+## Essential vocabulary for describing trends
 
-| Xu hướng | Động từ | Danh từ | Trạng từ / Tính từ đi kèm |
+| Trend | Verbs | Nouns | Modifiers (Adverbs / Adjectives) |
 | --- | --- | --- | --- |
-| Tăng mạnh | *surge, soar, climb sharply* | *a dramatic rise, a surge* | *dramatically, sharply, steadily* |
-| Giảm mạnh | *plummet, decline, drop* | *a sharp drop, a decline* | *substantially, gradually, slightly* |
-| Giữ nguyên | *remain stable, level off* | *a period of stability* | *relatively, roughly, approximately* |
-| Dao động | *fluctuate, vary* | *fluctuations* | *widely, mildly* |
+| Sharp rise | *surge, soar, climb sharply* | *a dramatic rise, a surge* | *dramatically, sharply, steadily* |
+| Sharp fall | *plummet, decline, drop* | *a sharp drop, a decline* | *substantially, gradually, slightly* |
+| Stability | *remain stable, level off* | *a period of stability* | *relatively, roughly, approximately* |
+| Fluctuation | *fluctuate, vary* | *fluctuations* | *widely, mildly* |
 
 :::check
-Đề bài yêu cầu mô tả biểu đồ tỷ lệ chi tiêu gia đình ở một quốc gia vào năm 1968 và năm 2018. Câu nào dưới đây phù hợp nhất để đưa vào đoạn **Overview**?
+A prompt asks you to describe a chart of household spending shares in one country in 1968 and 2018. Which sentence belongs in the **Overview**?
 - [ ] In 1968, families spent 35% of their weekly income on food, whereas in 2018 this figure dropped to 17%.
 - [x] Overall, while spending on food declined significantly over the 50-year period, leisure and housing accounted for noticeably larger shares by 2018.
 - [ ] Food spending dropped because supermarkets offered cheaper prices and people cooked less at home.
-> Đáp án đúng nêu được hai bức tranh lớn nhất mà không sa vào chi tiết số liệu hay tự suy diễn nguyên nhân ngoài biểu đồ.
+> The correct option captures the two biggest patterns without getting bogged down in exact percentages or inventing causes outside the chart.
 :::
 
 :::check
-Khi tả một biểu đồ đường kéo dài từ năm 2000 đến năm 2020 (đã hoàn tất trong quá khứ), bạn nên dùng thì nào làm chủ đạo?
-- [ ] Hiện tại đơn (*Present Simple*)
-- [ ] Hiện tại hoàn thành (*Present Perfect*)
-- [x] Quá khứ đơn (*Past Simple*)
-> Mốc thời gian từ 2000 đến 2020 đã kết thúc hoàn toàn trong quá khứ nên động từ mô tả xu hướng cần chia ở Quá khứ đơn.
+When describing a line graph covering the period from 2000 to 2020 (completed in the past), which verb tense should be your main tense?
+- [ ] Present Simple
+- [ ] Present Perfect
+- [x] Past Simple
+> Because 2000 to 2020 is a finished past timeframe, trend verbs throughout the report should be in the Past Simple.
 :::

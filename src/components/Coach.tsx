@@ -12,28 +12,28 @@ import { CoachNoteEditor } from './CoachNote';
 import { HedgehogMood, MascotDuo } from './Mascots';
 
 const REASON: Record<MistakeReason, string> = {
-  vocab: 'Thiếu từ vựng',
-  paraphrase: 'Không nhận ra paraphrase',
-  locate: 'Không tìm được chỗ',
-  missed: 'Nghe sót / không kịp',
-  careless: 'Ẩu, đọc sai đề',
-  time: 'Hết giờ',
+  vocab: 'Unknown vocabulary',
+  paraphrase: 'Missed paraphrase',
+  locate: 'Couldn’t locate evidence',
+  missed: 'Missed in audio / too fast',
+  careless: 'Careless / misread prompt',
+  time: 'Ran out of time',
 };
 
-const MOOD = ['', 'rất mệt', 'hơi nản', 'ổn', 'hứng thú'];
+const MOOD = ['', 'drained', 'low', 'good', 'great'];
 
-// Trang chỉ đọc cho người kèm: tuần này học thế nào, điểm đang đi về đâu, vướng ở đâu.
+// Read-only coach dashboard: weekly consistency, band trajectory, and weak areas.
 export default function Coach({ store, index }: { store: Store | null; index: TestIndexEntry[] }) {
   const logout = async () => {
     await fetch('/api/login', { method: 'DELETE' });
     // eslint-disable-next-line @next/next/no-location-assign-relative-destination
-    window.location.href = '/login'; // tải lại hẳn trang để bỏ mọi dữ liệu đang giữ
+    window.location.href = '/login'; // full reload to clear any cached data
   };
 
   if (!store?.profile) {
     return (
       <Shell onLogout={logout}>
-        <p className="card p-6 text-muted">Chưa có dữ liệu. Người học chưa mở app lần nào, hoặc tiến độ chưa kịp đồng bộ lên máy chủ.</p>
+        <p className="card p-6 text-muted">No data yet. The learner hasn’t opened the app yet, or progress hasn’t synced to the server.</p>
         <CoachNoteEditor />
       </Shell>
     );
@@ -44,7 +44,7 @@ export default function Coach({ store, index }: { store: Store | null; index: Te
   const real = store.attempts.filter(a => !a.incomplete);
   const lastSync = store.updatedAt ? new Date(store.updatedAt) : null;
 
-  // Bốn tuần gần nhất (mỗi tuần 7 ngày, tính lùi từ hôm nay)
+  // Last four 7-day windows counting backwards from today
   const weeks = [0, 1, 2, 3].map(w => {
     const days = Array.from({ length: 7 }, (_, i) => addDays(today, -(w * 7 + i)));
     const logs = days.map(d => store.days[d]);
@@ -52,10 +52,10 @@ export default function Coach({ store, index }: { store: Store | null; index: Te
     const ok = atts.reduce((n, a) => n + a.score, 0);
     const all = atts.reduce((n, a) => n + a.total, 0);
     return {
-      label: w === 0 ? '7 ngày qua' : `${fmtDay(days[6])} – ${fmtDay(days[0])}`,
+      label: w === 0 ? 'Last 7 days' : `${fmtDay(days[6])} – ${fmtDay(days[0])}`,
       active: logs.filter(l => isActive(l)).length,
       seconds: logs.reduce((n, l) => n + (l?.seconds ?? 0), 0),
-      // Đếm từ bài làm (đúng cả với dữ liệu cũ): một đề Listening cả bài = 4 phần; làm lại câu sai / luyện dạng đếm riêng
+      // Count completed units (full Listening = 4 parts); retries & drills counted separately
       units: atts.filter(a => !a.focus?.length).reduce((n, a) => n + a.units.length, 0),
       drills: atts.filter(a => a.focus?.length).length,
       cards: logs.reduce((n, l) => n + (l?.cards ?? 0), 0),
@@ -87,12 +87,12 @@ export default function Coach({ store, index }: { store: Store | null; index: Te
         <div>
           <h1 className="font-serif text-[32px] leading-tight font-semibold">{p.name}</h1>
           <p className="mt-1 text-ink-2">
-            Mục tiêu {fmtBand(p.target)} · {p.goalMinutes} phút mỗi ngày
-            {p.examDate && ` · thi ngày ${p.examDate.split('-').reverse().join('/')} (còn ${Math.max(0, daysBetween(today, p.examDate))} ngày)`}
+            Target Band {fmtBand(p.target)} · {p.goalMinutes} min/day
+            {p.examDate && ` · exam on ${p.examDate} (${Math.max(0, daysBetween(today, p.examDate))} days left)`}
           </p>
           <p className="mt-1 text-sm text-muted">
-            {lastSync ? `Dữ liệu cập nhật lúc ${lastSync.toLocaleString('vi-VN')}` : 'Chưa rõ lần cập nhật gần nhất'}
-            {idle !== null && idle >= 2 && <span className="ml-2 font-semibold text-ember">· đã {idle} ngày không học</span>}
+            {lastSync ? `Last synced ${lastSync.toLocaleString('en-US')}` : 'Last sync unknown'}
+            {idle !== null && idle >= 2 && <span className="ml-2 font-semibold text-ember">· inactive for {idle} days</span>}
           </p>
         </div>
         <MascotDuo size={102} mood="study" />
@@ -101,31 +101,31 @@ export default function Coach({ store, index }: { store: Store | null; index: Te
       <CoachNoteEditor />
 
       <section className="grid gap-4 sm:grid-cols-3 lg:grid-cols-6">
-        <Stat label="Chuỗi ngày" value={`${streakOf(store)}`} note={`kỷ lục ${longestStreak(store)}`} />
-        <Stat label="7 ngày qua" value={fmtDuration(weeks[0].seconds)} note={`${weeks[0].active}/7 ngày có học`} />
+        <Stat label="Streak" value={`${streakOf(store)}`} note={`best ${longestStreak(store)}`} />
+        <Stat label="Last 7 days" value={fmtDuration(weeks[0].seconds)} note={`${weeks[0].active}/7 active days`} />
         {(['listening', 'reading'] as const).map(skill => {
           const b = bandEstimate(store, skill);
-          return <Stat key={skill} label={`Band ${skill === 'listening' ? 'Listening' : 'Reading'}`} value={b ? fmtBand(b.avg) : '–'} note={b ? `TB ${b.count} đề mới` : 'chưa đủ dữ liệu'} />;
+          return <Stat key={skill} label={`${skill === 'listening' ? 'Listening' : 'Reading'} Band`} value={b ? fmtBand(b.avg) : '–'} note={b ? `avg of ${b.count} fresh` : 'not enough data'} />;
         })}
         {(() => {
           const bw = writingBandEstimate(store);
           const bs = speakingBandEstimate(store);
           return (
             <>
-              <Stat label="Band Writing" value={bw ? fmtBand(bw.avg) : '–'} note={bw ? `TB ${bw.count} bài chấm` : 'chưa có bài'} />
-              <Stat label="Band Speaking" value={bs ? fmtBand(bs.avg) : '–'} note={bs ? `TB ${bs.count} buổi nói` : 'chưa có buổi'} />
+              <Stat label="Writing Band" value={bw ? fmtBand(bw.avg) : '–'} note={bw ? `avg of ${bw.count} graded` : 'no essays yet'} />
+              <Stat label="Speaking Band" value={bs ? fmtBand(bs.avg) : '–'} note={bs ? `avg of ${bs.count} sessions` : 'no sessions yet'} />
             </>
           );
         })()}
       </section>
 
       <section>
-        <h2 className="mb-3 font-serif text-xl font-semibold">14 ngày gần nhất</h2>
+        <h2 className="mb-3 font-serif text-xl font-semibold">Last 14 Days</h2>
         <div className="card flex items-end gap-1.5 p-4">
           {last14.map(d => {
             const m = Math.round((store.days[d]?.seconds ?? 0) / 60);
             return (
-              <div key={d} className="flex flex-1 flex-col items-center gap-1" title={`${weekdayName(d)} ${fmtDay(d)}: ${m} phút`}>
+              <div key={d} className="flex flex-1 flex-col items-center gap-1" title={`${weekdayName(d)} ${fmtDay(d)}: ${m} min`}>
                 <span className="num text-[11px] text-muted">{m || ''}</span>
                 <div className="flex h-24 w-full items-end rounded bg-sunk">
                   <div className={`w-full rounded ${m >= p.goalMinutes ? 'bg-good' : 'bg-ember'}`} style={{ height: `${Math.min(100, (m / Math.max(p.goalMinutes, 1)) * 100)}%` }} />
@@ -135,16 +135,16 @@ export default function Coach({ store, index }: { store: Store | null; index: Te
             );
           })}
         </div>
-        <p className="mt-1.5 text-xs text-muted">Cột xanh: đạt mục tiêu {p.goalMinutes} phút. Số trên cột là số phút học.</p>
+        <p className="mt-1.5 text-xs text-muted">Green bar: met {p.goalMinutes}-min daily goal. Numbers above bars show minutes studied.</p>
       </section>
 
       <section>
-        <h2 className="mb-3 font-serif text-xl font-semibold">Theo tuần</h2>
+        <h2 className="mb-3 font-serif text-xl font-semibold">Weekly Breakdown</h2>
         <div className="card scroll-thin overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead className="text-xs text-muted">
               <tr className="border-b border-line">
-                {['Tuần', 'Ngày có học', 'Thời gian', 'Part/Passage đã làm', 'Lượt làm lại, luyện dạng', 'Thẻ từ đã ôn', 'Tỷ lệ đúng'].map(h => (
+                {['Week', 'Active Days', 'Study Time', 'Parts/Passages', 'Retries & Drills', 'Cards Reviewed', 'Accuracy'].map(h => (
                   <th key={h} className="px-4 py-2.5 font-semibold whitespace-nowrap">{h}</th>
                 ))}
               </tr>
@@ -168,7 +168,7 @@ export default function Coach({ store, index }: { store: Store | null; index: Te
 
       <section className="grid gap-4 md:grid-cols-2">
         <div className="card p-5">
-          <p className="eyebrow">Dạng câu yếu nhất (60 ngày)</p>
+          <p className="eyebrow">Weakest Question Types (60 Days)</p>
           {weak.length ? (
             <ul className="mt-3 space-y-2.5">
               {weak.map(w => (
@@ -188,14 +188,14 @@ export default function Coach({ store, index }: { store: Store | null; index: Te
               ))}
             </ul>
           ) : (
-            <p className="mt-3 text-sm text-muted">Chưa đủ dữ liệu (cần từ 5 câu mỗi dạng).</p>
+            <p className="mt-3 text-sm text-muted">Not enough data yet (needs at least 5 questions per type).</p>
           )}
         </div>
         <div className="card p-5">
-          <p className="eyebrow">Sổ lỗi</p>
+          <p className="eyebrow">Mistake Log</p>
           <p className="mt-2 text-sm">
-            <span className="num font-serif text-[26px] font-semibold">{open.length}</span> câu đang chờ làm lại ·{' '}
-            {Object.values(store.mistakes).filter(m => m.resolved).length} câu đã gỡ
+            <span className="num font-serif text-[26px] font-semibold">{open.length}</span> open to retry ·{' '}
+            {Object.values(store.mistakes).filter(m => m.resolved).length} resolved
           </p>
           {reasons.size > 0 ? (
             <ul className="mt-3 space-y-1 text-sm">
@@ -209,10 +209,10 @@ export default function Coach({ store, index }: { store: Store | null; index: Te
                 ))}
             </ul>
           ) : (
-            <p className="mt-3 text-sm text-muted">Người học chưa gắn lý do sai cho câu nào.</p>
+            <p className="mt-3 text-sm text-muted">No mistake reasons tagged yet.</p>
           )}
           <p className="mt-4 border-t border-line pt-3 text-sm text-ink-2">
-            Thẻ từ: <span className="num font-semibold">{store.words.length}</span> · Bài học đã đọc:{' '}
+            Flashcards: <span className="num font-semibold">{store.words.length}</span> · Lessons completed:{' '}
             <span className="num font-semibold">
               {lessonsDone.length}/{LESSONS.length}
             </span>
@@ -221,8 +221,8 @@ export default function Coach({ store, index }: { store: Store | null; index: Te
       </section>
 
       <section>
-        <h2 className="mb-3 font-serif text-xl font-semibold">Bài 40 câu</h2>
-        <p className="-mt-2 mb-3 text-xs text-muted">Chỉ bài thi thử trên đề chưa gặp mới tính vào band. Bài luyện tập (tua lại được) và đề làm lại chỉ để tham khảo.</p>
+        <h2 className="mb-3 font-serif text-xl font-semibold">Full 40-Question Tests</h2>
+        <p className="-mt-2 mb-3 text-xs text-muted">Only timed mock exams on fresh tests count toward the band estimate. Practice sessions and retakes are shown for reference.</p>
         {mocks.length ? (
           <ul className="card divide-y divide-line text-sm">
             {mocks.slice(0, 10).map(a => (
@@ -231,7 +231,7 @@ export default function Coach({ store, index }: { store: Store | null; index: Te
                 <span className="flex-1 font-semibold">
                   {testName(a.testId)} · {a.skill === 'listening' ? 'Listening' : 'Reading'}
                   <span className="ml-2 text-xs font-normal text-muted">
-                    {countsForBand(store, a) ? 'thi thử · tính band' : a.mode === 'exam' ? 'thi thử · đề đã gặp' : 'luyện tập'}
+                    {countsForBand(store, a) ? 'mock · counts for band' : a.mode === 'exam' ? 'mock · seen test' : 'practice'}
                   </span>
                 </span>
                 <span className="num">{a.score}/40</span>
@@ -240,12 +240,12 @@ export default function Coach({ store, index }: { store: Store | null; index: Te
             ))}
           </ul>
         ) : (
-          <p className="card p-5 text-sm text-muted">Chưa làm bài nào đủ 40 câu.</p>
+          <p className="card p-5 text-sm text-muted">No full 40-question tests completed yet.</p>
         )}
       </section>
 
       <section>
-        <h2 className="mb-3 font-serif text-xl font-semibold">Bài làm gần đây</h2>
+        <h2 className="mb-3 font-serif text-xl font-semibold">Recent Practice</h2>
         {recent.length ? (
           <ul className="card divide-y divide-line text-sm">
             {recent.map(a => (
@@ -253,8 +253,8 @@ export default function Coach({ store, index }: { store: Store | null; index: Te
                 <span className="num w-14 text-muted">{fmtDay(dayKey(a.finishedAt))}</span>
                 <span className="flex-1">
                   {testName(a.testId)} · {a.skill === 'listening' ? 'Listening' : 'Reading'}{' '}
-                  {a.units.length === 1 ? `${a.skill === 'listening' ? 'Part' : 'Passage'} ${a.units[0]}` : 'cả bài'}
-                  {a.drill ? <span className="ml-2 text-xs text-muted">luyện dạng</span> : a.focus?.length ? <span className="ml-2 text-xs text-muted">làm lại câu sai</span> : null}
+                  {a.units.length === 1 ? `${a.skill === 'listening' ? 'Part' : 'Passage'} ${a.units[0]}` : 'Full test'}
+                  {a.drill ? <span className="ml-2 text-xs text-muted">drill</span> : a.focus?.length ? <span className="ml-2 text-xs text-muted">mistake retry</span> : null}
                 </span>
                 <span className="num text-muted">{fmtDuration(a.seconds)}</span>
                 <span className="num w-12 text-right font-semibold">
@@ -264,12 +264,12 @@ export default function Coach({ store, index }: { store: Store | null; index: Te
             ))}
           </ul>
         ) : (
-          <p className="card p-5 text-sm text-muted">Chưa có bài làm nào.</p>
+          <p className="card p-5 text-sm text-muted">No practice sessions yet.</p>
         )}
       </section>
 
       <section>
-        <h2 className="mb-3 font-serif text-xl font-semibold">Writing &amp; Speaking gần đây</h2>
+        <h2 className="mb-3 font-serif text-xl font-semibold">Recent Writing &amp; Speaking</h2>
         {(store.writingAttempts?.length || store.speakingAttempts?.length) ? (
           <ul className="card divide-y divide-line text-sm">
             {[
@@ -277,14 +277,14 @@ export default function Coach({ store, index }: { store: Store | null; index: Te
                 id: w.id,
                 at: w.finishedAt,
                 label: `Writing ${w.task === 'task1' ? 'T1' : 'T2'} · ${WRITING_PROMPTS.find(p => p.id === w.promptId)?.title ?? w.promptId}`,
-                meta: `${w.wordCount} từ`,
+                meta: `${w.wordCount} words${w.feedback?.gradedBy ? ` · ${w.feedback.gradedBy}` : ''}`,
                 band: w.feedback?.scores.overall,
               })),
               ...(store.speakingAttempts ?? []).map(s => ({
                 id: s.id,
                 at: s.finishedAt,
                 label: `Speaking (${s.mode}) · ${SPEAKING_TOPICS.find(t => t.id === s.topicId)?.title ?? s.topicId}`,
-                meta: `${s.transcript.filter(x => x.role === 'candidate').length} lượt nói`,
+                meta: `${s.transcript.filter(x => x.role === 'candidate').length} turns${s.feedback?.gradedBy ? ` · ${s.feedback.gradedBy}` : ''}`,
                 band: s.feedback?.scores.overall,
               })),
             ]
@@ -300,12 +300,12 @@ export default function Coach({ store, index }: { store: Store | null; index: Te
               ))}
           </ul>
         ) : (
-          <p className="card p-5 text-sm text-muted">Chưa có bài Writing hoặc buổi Speaking nào.</p>
+          <p className="card p-5 text-sm text-muted">No Writing or Speaking sessions yet.</p>
         )}
       </section>
 
       <section>
-        <h2 className="mb-3 font-serif text-xl font-semibold">Nhật ký của người học</h2>
+        <h2 className="mb-3 font-serif text-xl font-semibold">Learner Journal</h2>
         {notes.length ? (
           <ul className="card divide-y divide-line text-sm">
             {notes.map(([d, j]) => (
@@ -323,14 +323,14 @@ export default function Coach({ store, index }: { store: Store | null; index: Te
             ))}
           </ul>
         ) : (
-          <p className="card p-5 text-sm text-muted">Chưa có ghi chú nào.</p>
+          <p className="card p-5 text-sm text-muted">No journal entries yet.</p>
         )}
       </section>
     </Shell>
   );
 }
 
-// Số ngày kể từ lần học gần nhất (0 = hôm nay có học); null nếu chưa học ngày nào
+// Days since last active study day (0 = studied today); null if never active
 function lastActiveGap(store: Store, today: string): number | null {
   const days = Object.keys(store.days).filter(k => isActive(store.days[k])).sort();
   return days.length ? daysBetween(days[days.length - 1], today) : null;
@@ -350,9 +350,9 @@ function Shell({ children, onLogout }: { children: React.ReactNode; onLogout: ()
   return (
     <div className="mx-auto min-h-dvh w-full max-w-4xl space-y-8 px-4 py-6 sm:px-8 sm:py-10">
       <div className="flex items-center justify-between">
-        <span className="eyebrow">đều. · trang người kèm</span>
+        <span className="eyebrow">SealIELTS · Coach View</span>
         <button className="btn-quiet" onClick={onLogout}>
-          Đăng xuất
+          Sign out
         </button>
       </div>
       {children}

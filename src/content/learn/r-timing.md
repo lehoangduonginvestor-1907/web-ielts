@@ -1,62 +1,62 @@
-Bài thi Reading kéo dài đúng **60 phút** cho 3 bài đọc và 40 câu hỏi. Khác với Listening trên giấy, Reading **không có thời gian phụ để chép đáp án** sang phiếu trả lời: hết 60 phút là thu bài. Nếu dành 30 phút cho bài 1 vì muốn chắc tuyệt đối, bạn sẽ mất trắng điểm ở bài 3.
+The IELTS Reading test lasts exactly **60 minutes** for 3 passages and 40 questions. Unlike paper-based Listening, Reading gives you **no extra transfer time**: when 60 minutes are up, pencils go down. If you spend 30 minutes trying to perfect Passage 1, you will throw away easy marks in Passage 3.
 
-Quản lý thời gian tốt là **biết chia giờ cho từng bài và biết lúc nào nên bỏ một câu khó**.
+Good time management means **budgeting your minutes per passage and knowing when to let go of a tough question**.
 
-## Chia 60 phút thành 17, 20 và 23 phút
+## Split 60 minutes into 17, 20, and 23 minutes
 
-Ba bài đọc trong IELTS Academic thường tăng dần độ khó về từ vựng và cấu trúc câu. Đừng chia đều mỗi bài 20 phút; hãy dùng mốc tăng dần:
+The three IELTS Academic passages generally increase in difficulty in both vocabulary and sentence complexity. Don't divide them evenly into 20-minute blocks; use a stepped schedule:
 
-| Bài đọc | Thời gian gợi ý | Chiến lược thực tế |
+| Passage | Suggested time | Practical strategy |
 | --- | --- | --- |
-| Passage 1 | Khoảng **17 phút** | Dễ nhất; làm chắc tay và điền ngay đáp án |
-| Passage 2 | Khoảng **20 phút** | Độ khó vừa; ưu tiên dạng dễ tìm chỗ trước |
-| Passage 3 | Khoảng **23 phút** | Khó nhất; cần nhiều thời gian đọc hiểu hơn |
+| Passage 1 | About **17 minutes** | Easiest; work accurately and enter answers straight away |
+| Passage 2 | About **20 minutes** | Moderate difficulty; tackle easy-to-locate tasks first |
+| Passage 3 | About **23 minutes** | Hardest; requires more careful comprehension time |
 
-:::trap Ôm bài 1 quá lâu để kiếm 13 trên 13 câu
-Nhiều người cố làm đúng hết bài 1 nên ngồi 27 phút cho riêng nó. Nhưng một câu ở bài 1 cũng chỉ được 1 điểm y hệt một câu dễ ở bài 3. Mất 10 phút thêm cho 1 câu khó ở bài 1 có thể làm bạn mất 5 câu dễ ở cuối bài 3.
+:::trap Spending too long on Passage 1 chasing 13 out of 13
+Many test-takers spend 27 minutes trying to get every single question right in Passage 1. Yet one question in Passage 1 is worth the exact same 1 mark as an easy question in Passage 3. Spending 10 extra minutes on one stubborn question in Passage 1 can cost you 5 easy marks at the end of Passage 3.
 :::
 
-## Thứ tự làm các dạng câu trong cùng một bài đọc
+## The best order for question types within a passage
 
-Một bài đọc thường có 2 hoặc 3 nhóm câu hỏi. Đừng làm máy móc từ trên xuống nếu nhóm đầu tiên là dạng khó tìm vị trí.
+Each passage usually has 2 or 3 question sets. Don't work blindly from top to bottom if the first set is hard to locate.
 
-:::steps Thứ tự nên làm trong một bài đọc
-1. Dành 2 tới 3 phút **đọc lướt** bố cục bài đọc (tiêu đề và câu đầu các đoạn).
-2. Làm **nhóm câu theo thứ tự và có mốc rõ** trước: điền từ lấy từ bài, *True / False / Not Given*, trắc nghiệm, hoặc *Matching features* (tên riêng dễ dò).
-3. Làm **Matching headings** tiếp theo nếu có (lúc này bạn đã hiểu nhiều đoạn).
-4. Làm **Matching information** (tìm chi tiết rải rác) **sau cùng**.
-5. Khi đồng hồ chạm mốc (hết 17 phút ở bài 1), **chọn đại cho các câu còn trống** rồi chuyển bài ngay.
+:::steps Recommended order inside a passage
+1. Spend 2 to 3 minutes **skimming** the passage structure (title and the first sentence of each paragraph).
+2. Tackle **in-order tasks with clear anchors** first: gap-fills using words from the text, *True / False / Not Given*, multiple choice, or *Matching features* (names are easy to scan).
+3. Do **Matching headings** next if included (by now you already understand several paragraphs).
+4. Leave **Matching information** (scattered details across paragraphs) **until last**.
+5. When your timer hits the cutoff (17 minutes for Passage 1), **make an educated guess for any blanks** and move on immediately.
 :::
 
-## Quy tắc một phút rưỡi và không bỏ trống
+## The 90-second rule and never leaving blanks
 
-:::rule Không trừ điểm khi đoán sai
-IELTS không trừ điểm câu sai. Một ô bỏ trống chắc chắn 0 điểm; một đáp án khoanh đại vẫn có cơ hội đúng. Với câu điền từ bị bí, hãy điền một danh từ hợp ngữ pháp lấy từ đúng đoạn đó thay vì để trắng.
+:::rule No penalty for wrong guesses
+IELTS does not deduct marks for incorrect answers. A blank box guarantees 0 points; a guess still has a chance of scoring. For a stubborn gap-fill, write a grammatically fitting noun from the right paragraph instead of leaving it empty.
 :::
 
-Nếu loay hoay một câu quá **khoảng một phút rưỡi** mà chưa tìm ra chỗ hoặc vẫn phân vân, hãy dừng lại. Chọn tạm một đáp án, đánh dấu lại để nhớ, rồi chuyển câu kế tiếp.
+If you have been stuck on a single question for more than **about 90 seconds** without finding the spot or deciding between options, stop. Enter your best guess, flag it to revisit if time allows, and move to the next question.
 
 :::check
-Passage 2 có câu 14 đến 18 là *Matching information* ("Đoạn nào chứa thông tin sau?") và câu 19 đến 26 là *Note completion* (điền ghi chú lịch sử kính hiển vi, có nhiều năm và tên người).
+In Passage 2, Questions 14–18 are *Matching information* ("Which paragraph contains the following information?") and Questions 19–26 are *Note completion* (filling notes on the history of the microscope, with lots of dates and names).
 
-Bạn nên làm nhóm nào trước?
-- [ ] Làm câu 14 đến 18 trước để đọc hết bài
-- [x] Làm câu 19 đến 26 trước vì đi theo thứ tự bài và có mốc năm rõ ràng
-- [ ] Làm xen kẽ từng câu ở cả hai nhóm
-> *Note completion* có mốc năm, tên riêng và đi theo thứ tự bài, giúp định vị nhanh và nắm nội dung các đoạn. Xong câu 19 tới 26, bạn đã thuộc bố cục nên quay lại làm câu 14 tới 18 nhanh hơn nhiều.
+Which group should you do first?
+- [ ] Do Questions 14–18 first so you read the whole passage
+- [x] Do Questions 19–26 first because they follow text order and have clear date anchors
+- [ ] Alternate one question from each group
+> *Note completion* has clear date and name anchors and follows the passage in order, helping you map the paragraphs quickly. Once you finish Q19–26, you already know where everything is, making Q14–18 much faster.
 :::
 
 :::check
-Bạn đặt mục tiêu 17 phút cho Passage 1. Đồng hồ vừa sang phút thứ 17, bạn vẫn còn câu 12 và 13 (*True / False / Not Given*) chưa tìm thấy chỗ. Bạn nên làm gì?
-- [ ] Đọc thêm 5 phút nữa cho xong hẳn Passage 1
-- [ ] Bỏ trống câu 12, 13 để cuối giờ quay lại nếu dư giờ
-- [x] Chọn ngay một đáp án hợp lý nhất cho câu 12, 13 (như *NOT GIVEN* nếu dò mãi không thấy), đánh dấu lại, rồi sang Passage 2
-> Không lấn giờ của Passage 2 và 3, và không bao giờ để trống vì cuối Passage 3 rất dễ hết sạch giờ. Điền luôn một đáp án giữ cơ hội có điểm rồi chuyển bài ngay.
+You set a 17-minute target for Passage 1. The clock just hit minute 17, and you still haven't located Questions 12 and 13 (*True / False / Not Given*). What should you do?
+- [ ] Spend 5 more minutes to finish Passage 1 completely
+- [ ] Leave Q12 and Q13 blank and come back at the end if you have spare time
+- [x] Pick the most reasonable answer for Q12 and Q13 right now (such as *NOT GIVEN* if you scanned thoroughly and found nothing), flag them, and move to Passage 2
+> Never steal time from Passages 2 and 3, and never leave blanks—you are very likely to run out of time at the end of Passage 3. Entering your best guess keeps the mark alive while protecting your pace.
 :::
 
-## Tập chia giờ theo hai giai đoạn
+## Build up your timing in two stages
 
-Nếu đang làm đề mất 80 hoặc 90 phút, đừng ép ngay xuống 60 phút từ ngày đầu, vì đọc vội khi chưa vững cách làm chỉ khiến bạn đoán bừa. Hãy luyện hai bước:
+If a full test currently takes you 80 or 90 minutes, don't force yourself down to 60 minutes on day one—rushing before your method is solid only leads to wild guessing. Train in two stages:
 
-1. **Luyện không bấm giờ cứng** (vẫn ghi lại thời gian làm từng bài để theo dõi), tập trung đúng quy trình và sửa kỹ từng lỗi sai.
-2. Khi độ chính xác ổn định hơn, bắt đầu bấm **17, 20 và 23 phút** cho từng bài, tập thói quen bỏ câu sau một phút rưỡi để giữ nhịp cả đề.
+1. **Practice without a strict cutoff** (still log your time per passage to track progress), focusing on clean technique and thorough error review.
+2. Once your accuracy stabilises, start timing **17, 20, and 23 minutes** per passage and build the habit of moving on after 90 seconds to protect your overall pace.

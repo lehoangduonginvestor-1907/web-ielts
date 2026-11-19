@@ -4,12 +4,13 @@ import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { Check, Eye, RotateCcw } from 'lucide-react';
 import type { GrammarMistake, Group, MistakeReason, MistakeState, Test } from '@/lib/types';
-import { reviewGrammarMistake, useStore } from '@/lib/store';
+import { logSeconds, reviewGrammarMistake, useStore } from '@/lib/store';
 import { dayKey, fmtDay } from '@/lib/dates';
 import { correctDisplay, shownAnswer } from '@/lib/scoring';
 import { REASONS } from '@/lib/reasons';
+import { playSfx } from '@/lib/sfx';
 import ReasonChips from './ReasonChips';
-import { useNow } from '@/lib/hooks';
+import { useNow, useStudyTimer } from '@/lib/hooks';
 import { HedgehogMascot, MascotLoading } from './Mascots';
 
 
@@ -26,7 +27,7 @@ function parseKey(key: string, m: MistakeState): Item {
   return { key, testId, skill: s === 'L' ? 'listening' : 'reading', n: Number(n), m };
 }
 
-// Tìm nhóm, phần và lời nhắc của câu n trong đề
+// Locate the question group, unit, and prompt for question n in a test
 function locate(t: Test | undefined, skill: Item['skill'], n: number) {
   if (!t) return null;
   for (const u of skill === 'reading' ? t.reading : t.listening) {
@@ -47,7 +48,7 @@ function locate(t: Test | undefined, skill: Item['skill'], n: number) {
 export default function Mistakes() {
   const store = useStore();
   const [tests, setTests] = useState<Record<string, Test>>({});
-  const [tab, setTab] = useState<'due' | 'all' | 'grammar'>('due');
+  const [pickedTab, setTab] = useState<'due' | 'all' | 'grammar' | null>(null);
   const [revealed, setRevealed] = useState<Record<string, boolean>>({});
   const [gmInputs, setGmInputs] = useState<Record<string, string>>({});
   const [gmShown, setGmShown] = useState<Record<string, boolean>>({});
@@ -57,8 +58,14 @@ export default function Mistakes() {
   const now = useNow();
   const due = open.filter(i => i.m.due <= now);
   const resolved = items.length - open.length;
-  const gMistakes = (store?.grammarMistakes ?? []).filter(m => !m.resolved);
+  const allGMistakes = store?.grammarMistakes ?? [];
+  const gMistakes = allGMistakes.filter(m => !m.resolved);
   const gDue = gMistakes.filter(m => m.due <= now);
+  const gResolved = allGMistakes.length - gMistakes.length;
+  const tab: 'due' | 'all' | 'grammar' = pickedTab ?? (due.length === 0 && gDue.length > 0 ? 'grammar' : 'due');
+
+  // Ghi nhận thời gian khi luyện sửa lỗi Writing/Speaking
+  useStudyTimer(tab === 'grammar' && gMistakes.length > 0, logSeconds);
 
   useEffect(() => {
     const ids = [...new Set(items.map(i => i.testId))].filter(id => !tests[id]);
@@ -71,7 +78,7 @@ export default function Mistakes() {
 
   const list = tab === 'due' ? due : open;
 
-  // Gom theo phần để làm lại một lượt
+  // Group due mistakes by unit so they can be retried in one batch
   const batches = new Map<string, { testId: string; skill: Item['skill']; unit: number; title: string; ns: number[]; book?: number; test?: number }>();
   for (const i of due) {
     const loc = locate(tests[i.testId], i.skill, i.n);
@@ -86,15 +93,15 @@ export default function Mistakes() {
   items.forEach(i => i.m.reason && reasonCount.set(i.m.reason, (reasonCount.get(i.m.reason) ?? 0) + 1));
   const tagged = [...reasonCount.values()].reduce((a, b) => a + b, 0);
 
-  if (!store) return <MascotLoading character="hedgehog" label="Nhím đang lật sổ lỗi…" />;
+  if (!store) return <MascotLoading character="hedgehog" label="Hedgehog is opening your mistake log…" />;
 
   return (
     <div>
       <header className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="font-serif text-[34px] leading-tight font-semibold">Sổ lỗi</h1>
+          <h1 className="font-serif text-[34px] leading-tight font-semibold">Mistake Log</h1>
           <p className="mt-1 max-w-2xl text-ink-2">
-            Bé Nhím giữ lại câu sai để quay lại sau 1, 3 rồi 7 ngày. Làm đúng 3 lần liên tiếp, mỗi lần đúng hạn, thì câu được gạch khỏi sổ. Làm lại sớm hơn hạn vẫn được để sửa ngay, nhưng không tính. Ghi lý do sai để biết mình hay vấp ở đâu.
+            Hedgehog saves missed questions and brings them back after 1, 3, and 7 days. Get a question right 3 times in a row when due to clear it. Retrying early is fine for practice, but won’t advance the schedule. Tag why you missed it to spot patterns.
           </p>
         </div>
         <HedgehogMascot pose="mistakes" size={82} className="hidden sm:block" />
@@ -102,20 +109,21 @@ export default function Mistakes() {
 
       <section className="mt-6 grid grid-cols-3 gap-3">
         {[
-          ['Đến hạn làm lại', due.length, 'text-ember'],
-          ['Đang theo dõi', open.length, 'text-ink'],
-          ['Đã gạch khỏi sổ', resolved, 'text-good'],
-        ].map(([label, n, tone]) => (
+          ['Due for retry', due.length + gDue.length, 'text-ember', due.length && gDue.length ? `${due.length} R/L · ${gDue.length} W/S` : ''],
+          ['Tracking', open.length + gMistakes.length, 'text-ink', open.length && gMistakes.length ? `${open.length} R/L · ${gMistakes.length} W/S` : ''],
+          ['Resolved', resolved + gResolved, 'text-good', resolved && gResolved ? `${resolved} R/L · ${gResolved} W/S` : ''],
+        ].map(([label, n, tone, sub]) => (
           <div key={label as string} className="card p-4">
             <p className="text-xs text-muted">{label}</p>
             <p className={`num mt-1 font-serif text-[30px] leading-none font-semibold ${tone}`}>{n}</p>
+            {sub && <p className="mt-1 text-[11px] text-muted">{sub}</p>}
           </div>
         ))}
       </section>
 
       {batches.size > 0 && (
         <section className="mt-6">
-          <h2 className="mb-2 font-serif text-lg font-semibold">Làm lại hôm nay</h2>
+          <h2 className="mb-2 font-serif text-lg font-semibold">Retry Today</h2>
           <div className="grid gap-2 sm:grid-cols-2">
             {[...batches.values()].map(b => (
               <Link
@@ -126,7 +134,7 @@ export default function Mistakes() {
                 <RotateCcw size={18} className="shrink-0 text-ember" />
                 <div className="min-w-0 flex-1">
                   <p className="font-semibold">
-                    {b.ns.length} câu · {b.skill === 'listening' ? `Part ${b.unit}` : `Passage ${b.unit}`}
+                    {b.ns.length} {b.ns.length === 1 ? 'question' : 'questions'} · {b.skill === 'listening' ? `Part ${b.unit}` : `Passage ${b.unit}`}
                   </p>
                   <p className="truncate text-sm text-muted">
                     Cam {b.book} Test {b.test} · {b.title}
@@ -140,7 +148,7 @@ export default function Mistakes() {
 
       {tagged > 0 && (
         <section className="card mt-6 p-5">
-          <p className="eyebrow">Lý do sai nhiều nhất</p>
+          <p className="eyebrow">Top Mistake Reasons</p>
           <div className="mt-3 flex h-3 overflow-hidden rounded-full">
             {REASONS.filter(r => reasonCount.get(r.k)).map((r, i) => (
               <div
@@ -167,10 +175,10 @@ export default function Mistakes() {
           {(['due', 'all', 'grammar'] as const).map(k => (
             <button key={k} onClick={() => setTab(k)} className={`rounded-md px-3 py-1 font-medium ${tab === k ? 'bg-ink text-paper' : 'text-ink-2'}`}>
               {k === 'due'
-                ? `Đến hạn (${due.length})`
+                ? `Due (${due.length})`
                 : k === 'all'
-                  ? `Tất cả Đọc/Nghe (${open.length})`
-                  : `Viết & Nói cần sửa (${gDue.length}/${gMistakes.length})`}
+                  ? `All Reading/Listening (${open.length})`
+                  : `Writing & Speaking fixes (${gDue.length}/${gMistakes.length})`}
             </button>
           ))}
         </div>
@@ -191,7 +199,7 @@ export default function Mistakes() {
               .map(i => {
                 const t = tests[i.testId];
                 const loc = locate(t, i.skill, i.n);
-                // Câu trả lời sai gần nhất của người học cho câu này
+                // Learner's most recent wrong answer for this question
                 const lastWrong = store.attempts.findLast(a => a.testId === i.testId && a.skill === i.skill && a.results[i.n] === false);
                 const mine = loc && lastWrong ? shownAnswer(loc.g, i.n, lastWrong.answers) : '';
                 return (
@@ -203,7 +211,7 @@ export default function Mistakes() {
                       </span>
                       {loc && <span>· {loc.g.type}</span>}
                       <span className="ml-auto">
-                        {i.m.due <= now ? 'Đến hạn' : `Làm lại ${fmtDay(dayKey(i.m.due))}`} · đúng {i.m.step}/3
+                        {i.m.due <= now ? 'Due now' : `Retry ${fmtDay(dayKey(i.m.due))}`} · {i.m.step}/3 streak
                       </span>
                     </div>
                     {loc ? (
@@ -211,22 +219,22 @@ export default function Mistakes() {
                         <p className="mt-2 text-[15px]">{loc.prompt}</p>
                         <p className="mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-1 text-sm">
                           <span className="text-muted">
-                            Lần trước: <span className="font-medium text-bad line-through decoration-1">{mine || 'bỏ trống'}</span>
+                            Last attempt: <span className="font-medium text-bad line-through decoration-1">{mine || 'blank'}</span>
                           </span>
-                          {/* Che đáp án để lần làm lại là tự tìm, không phải chép từ trí nhớ */}
+                          {/* Hide the answer so retries test real recall instead of copying */}
                           {revealed[i.key] ? (
                             <span>
-                              Đáp án: <span className="font-semibold text-good">{correctDisplay(loc.g, i.n)}</span>
+                              Answer: <span className="font-semibold text-good">{correctDisplay(loc.g, i.n)}</span>
                             </span>
                           ) : (
                             <button className="text-xs font-semibold text-accent hover:underline" onClick={() => setRevealed(r => ({ ...r, [i.key]: true }))}>
-                              Xem đáp án
+                              Show answer
                             </button>
                           )}
                         </p>
                       </>
                     ) : (
-                      <p className="mt-2 text-sm text-muted">Đang tải câu hỏi…</p>
+                      <p className="mt-2 text-sm text-muted">Loading question…</p>
                     )}
                     <ReasonChips mistakeKey={i.key} />
                   </li>
@@ -236,7 +244,7 @@ export default function Mistakes() {
         ) : (
           <div className="rounded-xl border border-dashed border-line-strong px-6 py-10 text-center text-sm text-muted">
             <HedgehogMascot pose="sleepy" size={84} className="mx-auto mb-2" />
-            {open.length ? 'Không có câu nào đến hạn hôm nay. Quay lại ngày mai nhé.' : 'Sổ lỗi đang trống. Làm một bài, câu sai sẽ tự vào đây.'}
+            {open.length ? 'No questions due today. Check back tomorrow!' : 'Your mistake log is empty. Missed questions from practice tests will appear here automatically.'}
           </div>
         )}
       </section>
@@ -263,7 +271,7 @@ function GrammarMistakeList({
     return (
       <div className="rounded-xl border border-dashed border-line-strong px-6 py-10 text-center text-sm text-muted">
         <HedgehogMascot pose="sleepy" size={84} className="mx-auto mb-2" />
-        Chưa có câu viết hay nói nào cần sửa. Sau khi AI chấm Writing hoặc Speaking, bấm “Đưa câu sai vào Sổ lỗi” để ôn lại ở đây.
+        No Writing or Speaking fixes saved yet. After AI grading, click “Save mistakes to Mistake Log” to review them here.
       </div>
     );
   }
@@ -283,33 +291,34 @@ function GrammarMistakeList({
                 </span>
                 {m.errorPattern && <span className="rounded bg-ember-soft px-2 py-0.5 font-medium text-ember">{m.errorPattern}</span>}
                 <span className="ml-auto">
-                  {isDue ? 'Đến hạn ôn' : `Ôn lại ${fmtDay(dayKey(m.due))}`} · đúng {m.step}/3
+                  {isDue ? 'Due now' : `Review ${fmtDay(dayKey(m.due))}`} · {m.step}/3 streak
                 </span>
               </div>
               <p className="mt-2.5 font-serif text-[15px] text-bad line-through decoration-1">{m.original}</p>
-              <p className="mt-1 text-xs leading-relaxed text-ink-2">Gợi ý: {m.reasonVi}</p>
+              <p className="mt-1 text-xs leading-relaxed text-ink-2">Hint: {m.reasonVi}</p>
 
               <div className="mt-3 space-y-2">
                 <input
                   className="field font-serif text-sm"
-                  placeholder="Tự viết lại câu đúng / tự nhiên hơn trước khi xem đáp án mẫu…"
+                  placeholder="Try rewriting it more accurately or naturally before revealing the model…"
                   value={inputs[m.id] ?? ''}
                   onChange={e => setInputs(prev => ({ ...prev, [m.id]: e.target.value }))}
                 />
                 {isShown ? (
                   <div className="rounded-lg bg-good-soft/60 p-3">
-                    <p className="text-xs font-bold text-good">Câu gợi ý chuẩn hơn:</p>
+                    <p className="text-xs font-bold text-good">Improved version:</p>
                     <p className="mt-1 font-serif text-[15px] font-medium text-ink">{m.improved}</p>
                     <div className="mt-3 flex flex-wrap gap-2">
                       <button
                         className="btn-primary px-3 py-1 text-xs"
                         onClick={() => {
+                          playSfx('tick');
                           reviewGrammarMistake(m.id, true);
                           setShown(s => ({ ...s, [m.id]: false }));
                           setInputs(p => ({ ...p, [m.id]: '' }));
                         }}
                       >
-                        <Check size={13} /> Đã sửa được ({isDue ? 'tính +1 lần' : 'ôn sớm'})
+                        <Check size={13} /> Nailed it ({isDue ? '+1 streak' : 'early review'})
                       </button>
                       <button
                         className="btn-ghost px-3 py-1 text-xs"
@@ -318,13 +327,13 @@ function GrammarMistakeList({
                           setShown(s => ({ ...s, [m.id]: false }));
                         }}
                       >
-                        Cần ôn lại ngày mai
+                        Review again tomorrow
                       </button>
                     </div>
                   </div>
                 ) : (
                   <button className="btn-ghost px-3 py-1 text-xs" onClick={() => setShown(s => ({ ...s, [m.id]: true }))}>
-                    <Eye size={13} /> Kiểm tra với câu gợi ý
+                    <Eye size={13} /> Compare with model
                   </button>
                 )}
               </div>

@@ -175,12 +175,12 @@ export default function Passage({ testId, passage, evidence, source }: Props) {
         >
           {tool.hit !== undefined ? (
             <button className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 hover:bg-white/10" onClick={() => removeHighlight(tool.hit!)}>
-              <Eraser size={14} /> Bỏ tô
+              <Eraser size={14} /> Remove highlight
             </button>
           ) : (
             <>
               <button className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 hover:bg-white/10" onClick={addHighlight}>
-                <Highlighter size={14} /> Tô sáng
+                <Highlighter size={14} /> Highlight
               </button>
               {tool.word && (
                 <button
@@ -190,7 +190,7 @@ export default function Passage({ testId, passage, evidence, source }: Props) {
                     setTool(null);
                   }}
                 >
-                  <BookmarkPlus size={14} /> Lưu từ
+                  <BookmarkPlus size={14} /> Save word
                 </button>
               )}
             </>

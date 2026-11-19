@@ -11,12 +11,12 @@ export default function Error({ error, retry }: { error: Error & { digest?: stri
   return (
     <div className="flex min-h-[60vh] flex-col items-center justify-center text-center">
       <HedgehogMascot pose="mistakes" size={104} />
-      <h1 className="mt-4 font-serif text-2xl font-semibold">Úi, có gì đó trục trặc rồi</h1>
+      <h1 className="mt-4 font-serif text-2xl font-semibold">Oops, something went wrong</h1>
       <p className="mt-2 max-w-sm text-[15px] text-ink-2">
-        Nhím đã ghi lỗi này vào sổ. Dữ liệu học của bạn vẫn an toàn — thử tải lại phần này xem sao nhé.
+        Hedgehog logged this error in the notebook. Your study progress is safe—try reloading this section.
       </p>
       <button type="button" onClick={() => retry()} className="btn-primary mt-6">
-        Thử lại
+        Try again
       </button>
     </div>
   );

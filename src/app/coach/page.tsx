@@ -7,9 +7,9 @@ import { loadProgress } from '@/lib/progressFile';
 import { currentRole } from '@/lib/session';
 import Coach from '@/components/Coach';
 
-export const metadata: Metadata = { title: 'Người kèm' };
+export const metadata: Metadata = { title: 'Coach' };
 
-// Trang chỉ đọc cho người kèm. Khi có khoá mã thì chỉ mã người kèm mới vào được.
+// Read-only dashboard for the coach. When access codes are enabled, only the coach code can enter.
 export default async function CoachPage() {
   await connection();
   if (authEnabled() && (await currentRole()) !== 'coach') redirect('/login');

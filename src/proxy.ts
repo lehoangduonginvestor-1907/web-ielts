@@ -6,7 +6,7 @@ import { authEnabled, COOKIE, roleFromCookie } from '@/lib/auth';
 export async function proxy(req: NextRequest) {
   if (!authEnabled()) return NextResponse.next();
   const { pathname } = req.nextUrl;
-  if (pathname === '/login' || pathname === '/api/login') return NextResponse.next();
+  if (pathname === '/login' || pathname === '/api/login' || pathname === '/api/reminder') return NextResponse.next();
 
   const role = await roleFromCookie(req.cookies.get(COOKIE)?.value);
   const isApi = pathname.startsWith('/api/');

@@ -32,10 +32,10 @@ export default function ReviewSummary({
   const full = attempt.total === 40 && !attempt.focus?.length && !attempt.incomplete;
   const pct = attempt.total ? Math.round((attempt.score / attempt.total) * 100) : 0;
 
-  // Độ chính xác theo dạng câu hỏi
+  // Accuracy by question type
   const byType = new Map<string, { ok: number; all: number }>();
   for (const [n, ok] of Object.entries(attempt.results)) {
-    const t = attempt.types[Number(n)] ?? 'Khác';
+    const t = attempt.types[Number(n)] ?? 'Other';
     const v = byType.get(t) ?? { ok: 0, all: 0 };
     v.all++;
     if (ok) v.ok++;
@@ -66,13 +66,12 @@ export default function ReviewSummary({
     <div className="card mb-8 overflow-hidden">
       {attempt.incomplete && (
         <p className="border-b border-line bg-ember-soft px-5 py-3 text-[13.5px] leading-snug text-ember sm:px-6">
-          Bài này mới trả lời {attempt.total - blank.length}/{attempt.total} câu nên chưa được tính là đã làm. Câu bỏ trống không vào Sổ lỗi. Bấm
-          “Làm lại” khi bạn có đủ thời gian.
+          You answered only {attempt.total - blank.length}/{attempt.total} questions, so this attempt isn’t counted as completed. Blank answers aren’t added to your Mistake Log. Click “Try again” when you have enough time.
         </p>
       )}
       <div className="flex flex-wrap items-center gap-x-8 gap-y-3 p-5 sm:p-6">
         <div>
-          <p className="eyebrow">Kết quả</p>
+          <p className="eyebrow">Score</p>
           <p className="mt-1 font-serif text-[44px] leading-none font-semibold">
             <span className="num">{attempt.score}</span>
             <span className="text-[24px] text-muted">/{attempt.total}</span>
@@ -80,13 +79,13 @@ export default function ReviewSummary({
         </div>
         {full && (
           <div>
-            <p className="eyebrow">Band ước tính</p>
+            <p className="eyebrow">Estimated band</p>
             <p className="mt-1 font-serif text-[44px] leading-none font-semibold text-accent">{fmtBand(bandFor(attempt.skill, attempt.score))}</p>
           </div>
         )}
         <div className="pb-1 text-sm text-ink-2">
           <div>
-            {pct}% chính xác{blank.length > 0 && ` · ${blank.length} câu bỏ trống`}
+            {pct}% accuracy{blank.length > 0 && ` · ${blank.length} blank`}
           </div>
           <div className="text-muted">{fmtDuration(attempt.seconds)}</div>
         </div>
@@ -94,16 +93,16 @@ export default function ReviewSummary({
       </div>
 
       <div className="border-t border-line px-5 py-4 sm:px-6">
-        <p className="eyebrow mb-2">Theo dạng câu hỏi</p>
+        <p className="eyebrow mb-2">By question type</p>
         <ul className="space-y-1.5">
           {[...byType.entries()].map(([t, v]) => (
             <li key={t} className="grid grid-cols-[1fr_6rem_2.5rem] items-center gap-3 text-[13.5px]">
               <span className="truncate text-ink-2">
                 {t}
-                {/* Dạng làm dưới 60%: dẫn tới bài "cách làm" */}
+                {/* Question types under 60%: link to strategy lesson */}
                 {v.ok / v.all < 0.6 && lessonFor(attempt.skill, t) && (
                   <Link href={`/skills/${lessonFor(attempt.skill, t)!.slug}`} className="ml-2 font-semibold text-accent hover:underline">
-                    xem cách làm
+                    view strategy
                   </Link>
                 )}
               </span>
@@ -121,32 +120,32 @@ export default function ReviewSummary({
       <div className="flex flex-wrap items-center gap-2 border-t border-line bg-paper/60 px-5 py-3 sm:px-6">
         {wrong.length > 0 && !attempt.incomplete && (
           <Link href={`/test/${testId}/${attempt.skill}?p=${attempt.units.join(',')}&focus=${wrong.join(',')}`} className="btn-ghost">
-            <RotateCcw size={15} /> Làm lại {wrong.length} câu sai
+            <RotateCcw size={15} /> Retry {wrong.length} missed
           </Link>
         )}
         {vocab.length > 0 &&
           (added !== null ? (
             <span className="inline-flex items-center gap-1.5 px-2 text-sm text-good">
               <MascotBadge character="hedgehog" variant="vocab" size={22} />
-              Đã giao {added} từ cho Bé Nhím giữ trong bộ thẻ.
+              Hedgehog saved {added} {added === 1 ? 'word' : 'words'} to your flashcard deck.
             </span>
           ) : newVocab.length > 0 ? (
             <button className="btn-ghost" onClick={addAll}>
               <MascotBadge character="hedgehog" variant="vocab" size={22} />
-              <Layers size={15} /> Thêm {newVocab.length} từ của bài vào bộ thẻ
+              <Layers size={15} /> Add {newVocab.length} {newVocab.length === 1 ? 'word' : 'words'} to flashcards
             </button>
           ) : (
-            <span className="px-2 text-sm text-muted">Từ vựng của bài đã có trong bộ thẻ.</span>
+            <span className="px-2 text-sm text-muted">All key words here are already in your deck.</span>
           ))}
         {attempt.drill && (
           <Link href="/skills" className="btn-ghost">
-            Về trang Kỹ năng
+            Back to Skills
           </Link>
         )}
         {(!attempt.focus?.length || attempt.drill) && (attempt.incomplete ? wrongAnswered.length > 0 : wrong.length > 0) && (
           <span className="flex items-center gap-1.5 text-xs text-muted sm:ml-auto">
             <MascotBadge character="hedgehog" variant="mistakes" size={24} />
-            {attempt.incomplete ? `${wrongAnswered.length} câu trả lời sai` : 'Câu sai'} đã được Bé Nhím giữ vào Sổ lỗi và sẽ quay lại sau 1 ngày.
+            {attempt.incomplete ? `${wrongAnswered.length} wrong ${wrongAnswered.length === 1 ? 'answer has' : 'answers have'}` : 'Missed questions have'} been added to your Mistake Log and will return in 1 day.
           </span>
         )}
       </div>

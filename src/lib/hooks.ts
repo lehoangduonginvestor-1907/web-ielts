@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useSyncExternalStore } from 'react';
+import { useCallback, useEffect, useRef, useSyncExternalStore } from 'react';
 
 // ---- Đồng hồ dùng chung, cập nhật mỗi 30 giây ----
 
@@ -70,4 +70,47 @@ export function usePref<T extends string>(key: string, fallback: T): [T, (v: T) 
     [key],
   );
   return [value, set];
+}
+
+/**
+ * Tracks active visible study time (pauses when tab is hidden)
+ * and periodically flushes elapsed seconds via `onFlush`.
+ */
+export function useStudyTimer(active: boolean, onFlush: (seconds: number) => void, flushEveryMs = 30000) {
+  const flushRef = useRef(onFlush);
+  useEffect(() => {
+    flushRef.current = onFlush;
+  }, [onFlush]);
+
+  useEffect(() => {
+    if (!active) return;
+    let startedAt: number | null = document.visibilityState === 'visible' ? Date.now() : null;
+
+    const flush = () => {
+      if (startedAt === null) return;
+      const elapsed = (Date.now() - startedAt) / 1000;
+      startedAt = document.visibilityState === 'visible' ? Date.now() : null;
+      // Cap each interval flush so sleep/wake jumps never distort study minutes
+      if (elapsed >= 1) flushRef.current(Math.min(elapsed, 120));
+    };
+
+    const onVis = () => {
+      if (document.visibilityState === 'hidden') {
+        flush();
+        startedAt = null;
+      } else if (startedAt === null) {
+        startedAt = Date.now();
+      }
+    };
+
+    const id = setInterval(flush, flushEveryMs);
+    document.addEventListener('visibilitychange', onVis);
+    window.addEventListener('pagehide', flush);
+    return () => {
+      clearInterval(id);
+      document.removeEventListener('visibilitychange', onVis);
+      window.removeEventListener('pagehide', flush);
+      flush();
+    };
+  }, [active, flushEveryMs]);
 }

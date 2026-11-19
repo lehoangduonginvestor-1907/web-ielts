@@ -1,60 +1,60 @@
-Một bài đọc IELTS dài khoảng 800 tới 900 chữ, và bạn chỉ có 60 phút cho cả ba bài. Nếu đọc từ chữ đầu tới chữ cuối như đọc truyện, bạn gần như chắc chắn sẽ hết giờ ở bài thứ ba.
+An IELTS Reading passage runs around 800 to 900 words, and you only get 60 minutes for all three passages. If you read every word from start to finish like a novel, you will almost certainly run out of time on Passage 3.
 
-Để làm kịp, bạn cần tách riêng ba tốc độ đọc: **đọc lướt** (skimming), **dò tìm** (scanning), và **đọc kỹ** (careful reading). Không phải câu nào trong bài cũng cần đọc kỹ.
+To finish comfortably, separate three reading speeds: **skimming**, **scanning**, and **careful reading**. Not every sentence deserves slow, close reading.
 
-## Ba tốc độ đọc khác nhau thế nào
+## How the three reading speeds differ
 
-| Kiểu đọc | Mục đích | Cách mắt di chuyển | Thời gian |
+| Reading speed | Purpose | Eye movement | Time budget |
 | --- | --- | --- | --- |
-| Đọc lướt (skim) | Nắm bố cục từng đoạn | Đọc tiêu đề, câu đầu, câu cuối đoạn | 2 tới 3 phút cả bài |
-| Dò tìm (scan) | Tìm đúng chỗ chứa mốc | Lướt tìm tên, số, năm, chữ viết hoa | Vài giây mỗi câu |
-| Đọc kỹ | Hiểu nghĩa để chọn đáp án | Đọc chậm hai ba câu quanh mốc | Thời gian còn lại |
+| Skimming | Grasp each paragraph's topic | Read the title, first sentence, and last sentence of each paragraph | 2–3 minutes per passage |
+| Scanning | Locate the exact spot of an anchor | Sweep for names, numbers, years, and capital letters | A few seconds per question |
+| Careful reading | Understand meaning to choose the answer | Read two or three sentences around the anchor slowly | Remaining time |
 
-Đọc lướt cho bạn một bản đồ trong đầu: đoạn A nói về lịch sử, đoạn B nói về chi phí, đoạn C nói về tranh cãi. Lát nữa gặp câu hỏi, bạn biết ngay nên quay lại đoạn nào thay vì lục cả bài.
+Skimming builds a mental map of the passage: Paragraph A covers history, Paragraph B covers cost, Paragraph C covers debate. Later, when a question pops up, you know straight away which paragraph to return to instead of hunting through the whole text.
 
-## Quy trình kết hợp cả ba bước
+## Combining all three steps
 
-:::steps Cách đọc một bài Reading
-1. Dành 2 tới 3 phút **đọc lướt** trước khi nhìn câu hỏi: đọc tiêu đề, phụ đề (nếu có), và câu đầu mỗi đoạn. Ghi nháp 2 hoặc 3 chữ tiếng Việt bên lề mỗi đoạn.
-2. Sang nhóm câu hỏi đầu tiên, gạch chân **mốc** (tên riêng, năm, số liệu, thuật ngữ).
-3. **Dò tìm** mốc đó trong đoạn phù hợp nhất trên bản đồ vừa vẽ.
-4. Thấy mốc rồi thì **dừng dò**, chuyển sang **đọc kỹ** câu chứa mốc và câu sát bên để trả lời.
+:::steps How to read a Reading passage
+1. Spend 2 to 3 minutes **skimming** before looking at the questions: read the title, subtitle (if any), and the opening sentence of each paragraph. Jot down 2 or 3 quick keywords in the margin next to each paragraph.
+2. Move to the first question set and underline **anchors** (proper nouns, years, figures, technical terms).
+3. **Scan** for that anchor in the most likely paragraph on your map.
+4. Once you spot the anchor, **stop scanning** and switch to **careful reading** of that sentence and the sentences beside it to lock in your answer.
 :::
 
-## Đừng dò tìm từ đồng nghĩa
+## Don't scan for synonyms
 
-:::trap Dò chữ thường thất bại
-Nhiều bạn gạch chân một động từ hay tính từ bình thường (như *improve* hay *cheap*), rồi dò cả bài tìm chữ đó. Cách này không hiệu quả vì bài thường đổi sang từ khác (*make better*, *affordable*). Mắt bạn không thể "dò" một từ mà bạn chưa biết nó sẽ biến thành chữ gì.
+:::trap Scanning for ordinary words usually fails
+Many candidates underline an everyday verb or adjective (like *improve* or *cheap*) and scan the entire passage for that exact word. This rarely works because IELTS paraphrases it (*make better*, *affordable*). Your eyes cannot scan for a word when you don't yet know what form it has been changed into.
 :::
 
-Chỉ dùng kỹ năng dò tìm cho thứ **khó đổi dạng**: tên người, địa danh, con số, phần trăm, ngày tháng, hoặc thuật ngữ hiếm. Nếu câu hỏi không có mốc như vậy, hãy dựa vào bản đồ đoạn văn từ bước đọc lướt để khoanh vùng đúng đoạn, rồi đọc chậm đoạn đó.
+Reserve scanning for things that **cannot easily be paraphrased**: people's names, place names, numbers, percentages, dates, or rare technical terms. When a question has no obvious anchor, use your paragraph map from skimming to narrow down the right paragraph, then read it carefully.
 
 :::examples
-✓ Câu hỏi có *1994* và *Osaka*: dò nhanh *1994* và chữ hoa *Osaka* để nhảy tới đúng dòng. // Mốc giữ nguyên.
-✓ Câu hỏi hỏi về *the cost of repairs* (không có tên hay số): nhớ lại bước đọc lướt xem đoạn nào nói về chi phí, rồi đọc kỹ đoạn đó. // Dựa vào bố cục bài.
-✗ Câu hỏi hỏi về *reasons why staff resigned*: dò chữ *resigned* khắp bài. // Bài có thể viết *left their jobs*, dò chữ *resigned* sẽ bỏ sót.
+✓ Question mentions *1994* and *Osaka*: scan quickly for *1994* and the capitalised *Osaka* to jump straight to the right line. // Unchangeable anchors.
+✓ Question asks about *the cost of repairs* (no name or number): check your skim map to see which paragraph discusses expenses, then read it closely. // Rely on passage structure.
+✗ Question asks about *reasons why staff resigned*: scanning the whole text for the word *resigned*. // The passage might say *left their jobs*, so scanning for *resigned* misses it completely.
 :::
 
 :::check
-Đoạn văn: *"Built in 1889 as a grain warehouse, the red-brick building on River Street stood empty for decades. In 2014, a local council grant funded its conversion into a public textile museum, which now attracts forty thousand visitors each year."*
+Paragraph: *"Built in 1889 as a grain warehouse, the red-brick building on River Street stood empty for decades. In 2014, a local council grant funded its conversion into a public textile museum, which now attracts forty thousand visitors each year."*
 
-Khi đọc lướt trong 2 phút đầu, bạn ghi chú ngắn gì cho đoạn này để sau dễ tìm lại?
-- [ ] Lúa mì và vải vóc
-- [x] Lịch sử toà nhà thành bảo tàng
-- [ ] Số khách du lịch năm 1889
-> Đọc lướt nhằm nắm chủ đề chung: toà nhà từng là kho chứa, sau thành bảo tàng. Chi tiết *grain* hay *1889* quá nhỏ, còn *forty thousand visitors* thuộc về hiện tại.
+During your 2-minute initial skim, what short margin note is most useful for finding this paragraph later?
+- [ ] Grain and textiles
+- [x] Building's history → museum
+- [ ] Visitor numbers in 1889
+> Skimming captures the big picture: the building's transformation from a warehouse into a museum. Details like *grain* or *1889* are too narrow, and *forty thousand visitors* is current rather than 1889.
 :::
 
 :::check
-Vẫn đoạn văn trên. Câu hỏi: *"How was the restoration of the River Street building paid for?"*
+Same paragraph. Question: *"How was the restoration of the River Street building paid for?"*
 
-Để tìm chỗ trả lời nhanh nhất, bạn nên dò từ nào trước?
-- [ ] *restoration* hoặc *paid for*
+To locate the answer fastest, which phrase should you scan for first?
+- [ ] *restoration* or *paid for*
 - [x] *River Street*
 - [ ] *visitors*
-> *restoration* được bài đổi thành *conversion*, còn *paid for* thành *funded*, nên dò hai từ này dễ trượt. *River Street* là tên riêng viết hoa, giữ nguyên trong bài.
+> *restoration* is paraphrased as *conversion* and *paid for* becomes *funded*, so scanning for them is slow and unreliable. *River Street* is a capitalised proper name that stays unchanged in the passage.
 :::
 
-## Khi dò không ra
+## When scanning comes up empty
 
-Nếu dò 20 tới 30 giây mà không thấy mốc đâu, đừng dò lại từ đầu trang. Có thể câu trả lời nằm ở đoạn khác, hoặc mốc bị viết khác nhẹ (*19th century* thành *1880s*). Lúc đó hãy nhìn lại bản đồ các đoạn, chọn đoạn gần nghĩa nhất và đọc câu đầu của nó. Quá một phút rưỡi thì đánh dấu rồi chuyển câu.
+If you scan for 20 to 30 seconds and cannot spot the anchor, don't scan again from the top of the page. The answer may sit in another paragraph, or the anchor may be slightly reworded (*19th century* instead of *1880s*). Check your paragraph map, pick the closest matching paragraph, and read its opening lines. Past 90 seconds, flag the question and move on.

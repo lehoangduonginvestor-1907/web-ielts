@@ -159,23 +159,23 @@ const AudioBar = forwardRef<AudioHandle, Props>(function AudioBar({ src, label, 
         onClick={toggle}
         disabled={locked && started}
         className="flex size-10 shrink-0 items-center justify-center rounded-full bg-ink text-paper transition-transform active:scale-95 disabled:opacity-40"
-        aria-label={playing ? 'Tạm dừng' : 'Phát'}
+        aria-label={playing ? 'Pause' : 'Play'}
       >
         {playing ? <Pause size={18} fill="currentColor" /> : <Play size={18} fill="currentColor" className="ml-0.5" />}
       </button>
       {!locked && (
         <div className="hidden items-center sm:flex">
-          <button className="btn-quiet px-1.5" onClick={() => seek(-5)} aria-label="Lùi 5 giây" title="Lùi 5 giây (←)">
+          <button className="btn-quiet px-1.5" onClick={() => seek(-5)} aria-label="Rewind 5 seconds" title="Rewind 5 seconds (←)">
             <RotateCcw size={16} />
           </button>
-          <button className="btn-quiet px-1.5" onClick={() => seek(5)} aria-label="Tới 5 giây" title="Tới 5 giây (→)">
+          <button className="btn-quiet px-1.5" onClick={() => seek(5)} aria-label="Forward 5 seconds" title="Forward 5 seconds (→)">
             <RotateCw size={16} />
           </button>
         </div>
       )}
       <div className="min-w-0 flex-1">
         <div className="flex items-baseline justify-between gap-2 text-xs">
-          <span className="truncate font-semibold text-ink-2">{range ? 'Đang nghe lại một đoạn' : label}</span>
+          <span className="truncate font-semibold text-ink-2">{range ? 'Replaying segment' : label}</span>
           <span className="num shrink-0 text-muted">
             {fmtClock(t)} / {dur ? fmtClock(dur) : '–:––'}
           </span>
@@ -201,7 +201,7 @@ const AudioBar = forwardRef<AudioHandle, Props>(function AudioBar({ src, label, 
                 if (a.current) a.current.currentTime = Number(e.target.value);
               }}
               className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-              aria-label="Vị trí"
+              aria-label="Seek position"
             />
           )}
         </div>
@@ -211,7 +211,7 @@ const AudioBar = forwardRef<AudioHandle, Props>(function AudioBar({ src, label, 
           value={speed}
           onChange={e => setSpeed(Number(e.target.value))}
           className="num rounded-md border border-line bg-surface px-1.5 py-1 text-xs font-semibold"
-          aria-label="Tốc độ"
+          aria-label="Playback speed"
         >
           {SPEEDS.map(s => (
             <option key={s} value={s}>

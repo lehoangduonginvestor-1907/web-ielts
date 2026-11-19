@@ -1,70 +1,70 @@
-Part 4 thường khiến người học ở band 5 ngợp ngay từ cái nhìn đầu tiên. Một giảng viên nói liền một mạch về chủ đề học thuật cho cả **10 câu hỏi (câu 31 tới 40)** mà **không có quãng nghỉ ở giữa** như Part 1, 2 hay 3.
+Part 4 often intimidates Band 5 learners at first glance. A single lecturer speaks nonstop on an academic topic across **all 10 questions (31 to 40)** with **no break in the middle**, unlike Parts 1, 2, and 3.
 
-Tuy nhiên, Part 4 có lợi thế lớn: câu hỏi thường là điền ghi chú (Note completion) với dàn ý rõ ràng, và bài giảng đi đúng theo thứ tự dàn ý đó từ đầu tới cuối.
+However, Part 4 has a big built-in advantage: the task is usually note completion with a clear outline, and the lecture follows that outline in exact order from start to finish.
 
-## Dùng tiêu đề trong note làm bản đồ
+## Use the note headings as your map
 
-Trước khi bài giảng chạy, bạn có quãng lặng để đọc cả 10 câu. Đừng chỉ nhìn mấy ô trống. Hãy đọc toàn bộ **tiêu đề chính và tiêu đề phụ** (như *History*, *Advantages*, *Current problems*, *Future research*). Đó là bản đồ của bài nói.
+Before the lecture begins, you have preview time to look through all 10 questions. Don't stare only at the blanks. Read every **main heading and subheading** (such as *History*, *Advantages*, *Current problems*, *Future research*). They form the map of the talk.
 
-:::steps Cách bám sát bài giảng 10 câu không nghỉ
-1. Trong thời gian đọc trước, gạch chân **tiêu đề phụ** để chia 10 câu thành 3 hoặc 4 chặng nhỏ.
-2. Gạch chân **mốc** và đoán **loại từ** cho từng ô trống.
-3. Khi giảng viên bắt đầu nói, lắng nghe các **từ chuyển ý** (signposting language) để biết họ đang ở mục nào trên dàn ý.
-4. Viết nguyên từ nghe thấy trong bài giảng, chú ý đuôi *-s* và giới hạn từ.
+:::steps Staying on track through 10 nonstop questions
+1. During preview time, underline the **subheadings** to break the 10 questions into 3 or 4 smaller sections.
+2. Underline **landmarks** and predict the **part of speech** for each gap.
+3. Once the lecture starts, listen for **signposting language** to track exactly where the speaker is in the outline.
+4. Write the exact word you hear, checking plural *-s* endings and the word limit.
 :::
 
-## Từ chuyển ý dẫn đường trong bài giảng
+## Signposting phrases that guide the lecture
 
-Người nói trong Part 4 luôn dùng các cụm từ báo hiệu để chuyển sang mục mới trong dàn ý. Bắt được các cụm này giúp bạn luôn giữ mắt ở đúng dòng.
+Part 4 speakers always use signpost phrases to signal a shift to the next point in the outline. Catching these phrases keeps your eyes on the right line.
 
-| Chức năng | Cụm hay nghe trong bài giảng | Mắt bạn cần làm gì |
+| Function | Common lecture phrases | What your eyes should do |
 | --- | --- | --- |
-| Bắt đầu phần mới | *First of all, Let's begin with, Turning now to* | Nhảy tới tiêu đề phụ đầu tiên hoặc tiếp theo |
-| Chuyển sang ý khác | *Moving on to, Another key factor is, Next* | Chuyển xuống gạch đầu dòng tiếp theo |
-| Đưa ý đối lập / hạn chế | *In contrast, However, On the downside* | Nhìn vào mục *Problems* hoặc *Disadvantages* |
-| Đưa ví dụ minh họa | *For instance, A good example of this is* | Chờ tên ví dụ điền vào dòng bên dưới |
-| Tổng kết bài | *To sum up, In conclusion, Looking ahead* | Chuẩn bị nghe 1 hoặc 2 câu cuối |
+| Starting a section | *First of all, Let's begin with, Turning now to* | Jump to the first or next subheading |
+| Moving to the next point | *Moving on to, Another key factor is, Next* | Drop down to the next bullet point |
+| Introducing contrast / drawbacks | *In contrast, However, On the downside* | Look at the *Problems* or *Disadvantages* section |
+| Giving an example | *For instance, A good example of this is* | Watch for an example word in the line below |
+| Wrapping up | *To sum up, In conclusion, Looking ahead* | Prepare for the final 1 or 2 questions |
 
-## Đừng hoảng trước từ chuyên ngành lạ
+## Don't freeze at unfamiliar specialist terms
 
-:::trap Sợ từ học thuật làm mất luôn câu dễ
-Bài giảng Part 4 có thể nói về sinh vật biển, kiến trúc cổ hay địa chất, nên chắc chắn có từ chuyên ngành lạ. Người học band 5 hay khựng lại ở một từ lạ, cố đoán nghĩa nó, và bỏ lỡ đáp án vốn là một từ rất quen ngay phía sau.
+:::trap Letting an academic term derail an easy gap
+Part 4 lectures cover topics like marine biology, ancient architecture, or geology, so unfamiliar specialist terms are guaranteed. Band 5 learners often freeze on a technical word, try to decode it, and miss an easy everyday answer right behind it.
 :::
 
-Các thuật ngữ quá khó thường được **giải thích ngay bằng tiếng Anh đơn giản**, hoặc **không phải từ cần điền**. Đáp án ở Part 4 đa phần vẫn là từ vựng phổ thông như *wood, climate, noise, factories, soil*.
+Truly technical terms are either **explained immediately in plain English** or **not the missing word at all**. Most Part 4 answers are still everyday words like *wood, climate, noise, factories,* or *soil*.
 
 :::examples
-✓ Ghi chú: "Early roofs were covered with ____ to keep rain out." Giảng viên nói: *"Builders relied on local reeds, a kind of tall grass, to seal the roofs."* → Điền *reeds*. // Giảng viên phát âm rõ danh từ chính rồi giải thích đó là *tall grass*.
-✗ Nghe cụm lạ *photosynthetic bacteria*, bạn dừng lại nghĩ nghĩa và trượt câu tiếp theo chứa đáp án *oxygen*. // Từ khó chỉ là bối cảnh, từ cần điền rất đơn giản.
+✓ Note: "Early roofs were covered with ____ to keep rain out." Lecturer: *"Builders relied on local reeds, a kind of tall grass, to seal the roofs."* → Write *reeds*. // The lecturer pronounces the target noun clearly and defines it as *tall grass*.
+✗ Hearing the technical phrase *photosynthetic bacteria*, freezing to guess its meaning, and missing the next answer *oxygen*. // The hard term is only background; the actual gap word is simple.
 :::
 
 :::check
-Trên dàn ý note có hai mục:
+The note outline has two sections:
 *Causes of river pollution*
 34. Waste from nearby ____
 *Effects on wildlife*
 35. Lower levels of ____ in the water
 
-Giảng viên nói: *"So, turning now to the impact on fish and birds living in the river. When chemical levels climb, oxygen drops sharply."*
+The lecturer says: *"So, turning now to the impact on fish and birds living in the river. When chemical levels climb, oxygen drops sharply."*
 
-Bạn vừa bỏ lỡ câu 34. Nghe câu nói trên, bạn làm gì?
-- [ ] Cố nhớ xem lúc nãy có nhắc nhà máy hay trang trại cho câu 34 không
-- [x] Bỏ câu 34, nhảy xuống dòng 35 dưới mục *Effects on wildlife* và viết *oxygen*
-- [ ] Chờ giảng viên quay lại mục *Causes*
-> Cụm *turning now to the impact on fish and birds* báo hiệu bài đã sang tiêu đề phụ *Effects on wildlife*. Bỏ câu 34 và bám ngay câu 35 giúp bạn giữ trọn điểm phần sau.
+You just missed question 34. Hearing this sentence, what should you do?
+- [ ] Try to remember whether factories or farms were mentioned earlier for 34
+- [x] Let 34 go, jump to line 35 under *Effects on wildlife*, and write *oxygen*
+- [ ] Wait for the lecturer to return to *Causes*
+> *turning now to the impact on fish and birds* signals that the talk has moved to the subheading *Effects on wildlife*. Dropping 34 and locking onto 35 protects the rest of your score.
 :::
 
 :::check
-Ghi chú: "38. Main benefit of the new battery: lower ____."
-Giảng viên nói: *"The new battery uses lithium-iron-phosphate chemistry, which sounds complex, yet for ordinary drivers the biggest advantage is simply the reduced cost."* Giới hạn "ONE WORD ONLY".
+Note: "38. Main benefit of the new battery: lower ____."
+Lecturer: *"The new battery uses lithium-iron-phosphate chemistry, which sounds complex, yet for ordinary drivers the biggest advantage is simply the reduced cost."* Word limit: "ONE WORD ONLY".
 
-Đáp án đúng cho câu 38 là gì?
+What is the correct answer for 38?
 - [ ] *lithium*
 - [ ] *chemistry*
 - [x] *cost*
-> Cụm hóa học dài ở đầu chỉ là bối cảnh, giảng viên cũng bảo *sounds complex*. Ý chốt của *main benefit* là *biggest advantage*, đi cùng chữ *reduced cost* (tương đương *lower cost*).
+> The long chemical term is background context—even the lecturer says it *sounds complex*. *Main benefit* is paraphrased as *biggest advantage*, leading directly to *reduced cost* (*lower cost*).
 :::
 
-## Khi bị lạc giữa 10 câu
+## If you lose your place mid-lecture
 
-Nếu mất dấu hoàn toàn trong Part 4, đừng nhìn chằm chằm vào câu đang kẹt. Hãy đưa mắt xuống **tiêu đề phụ kế tiếp** hoặc **một mốc nổi bật** ở hai ba dòng dưới, rồi lắng nghe từ chuyển ý (*moving on to*, *now let's look at*, *finally*). Hễ nghe thấy tên chủ đề của tiêu đề phụ mới là bạn nối lại được mạch nghe ngay.
+If you completely lose track during Part 4, stop staring at the stuck line. Drop your eyes down to the **next subheading** or a **standout landmark** two or three lines below, and listen for a signpost (*moving on to*, *now let's look at*, *finally*). As soon as you hear the topic of the new subheading, you are right back in the flow.

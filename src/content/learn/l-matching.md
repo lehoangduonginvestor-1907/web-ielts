@@ -1,66 +1,66 @@
-Trong dạng nối thông tin của Listening (thường ở Part 2 và Part 3), bạn có danh sách câu hỏi đánh số (tên phòng học, tác giả, hay dự án) và khung lựa chọn chữ cái A, B, C...
+In Listening matching tasks (usually in Parts 2 and 3), you are given a numbered list of questions (rooms, authors, projects, etc.) and a boxed list of lettered options (A, B, C...).
 
-Điểm gây rối nhất của dạng này là mắt phải liếc qua lại giữa hai danh sách trong khi người nói không dừng lại đợi bạn đọc hết khung lựa chọn.
+The hardest part is shifting your eyes back and forth between two lists while the speaker keeps talking without pausing for you to re-read the options box.
 
-## Hai danh sách vận hành khác nhau
+## The two lists behave differently
 
-Quy tắc vàng: **danh sách câu hỏi đánh số đi đúng thứ tự băng nói, còn danh sách lựa chọn chữ cái thì không.** Người nói nhắc tới câu 21 trước rồi mới tới 22, 23, nhưng đáp án câu 21 có thể là chữ F ở cuối khung.
+The golden rule: **the numbered questions follow the exact order of the audio, while the lettered options do not.** The speaker discusses question 21 before 22 and 23, but the answer to 21 might be letter F at the bottom of the box.
 
-Một điểm nữa bắt buộc phải kiểm tra trên dòng hướng dẫn: đề có cho phép **dùng lại một chữ cái nhiều lần** hay không.
+Always check one crucial instruction before you start: whether you are allowed to **use any letter more than once**.
 
-:::rule Chỉ gạch bỏ chữ cái khi đề không cho dùng lại
-- Nếu số lựa chọn bằng hoặc nhiều hơn số câu hỏi và đề **không** ghi *"You may choose any letter more than once"*, mỗi chữ chỉ dùng một lần (có cái không dùng). Chọn chắc chữ nào thì gạch nhẹ chữ đó.
-- Nếu đề **có** dòng *"You may choose any letter more than once"*, tuyệt đối **không gạch bỏ** chữ cái đã chọn, vì câu sau vẫn có thể trùng đáp án.
+:::rule Only cross out letters when reuse is not allowed
+- If there are as many or more options than questions and the prompt does **not** say *"You may choose any letter more than once"*, each letter is used at most once (some won't be used). Lightly cross off letters once you are sure of them.
+- If the prompt **does** say *"You may choose any letter more than once"*, **never cross out** a used letter—later questions can share the same answer.
 :::
 
-## Rút gọn khung lựa chọn trước khi nghe
+## Compress the options box before listening
 
-Khung lựa chọn thường có các cụm dài dòng. Không rút gọn trước thì lúc băng chạy bạn sẽ không đọc kịp.
+Option boxes often contain wordy phrases. If you don't condense them beforehand, you won't have time to read them while the audio runs.
 
-:::steps Cách giữ nhịp với dạng nối
-1. Đọc dòng hướng dẫn để biết chữ cái có được dùng nhiều lần không.
-2. Đọc khung lựa chọn và **rút gọn mỗi lựa chọn thành 1 hoặc 2 từ khóa** (*needs funding* thành *thiếu tiền*, *hard to reach* thành *khó tới*).
-3. Nhớ rằng các lựa chọn sẽ bị **paraphrase**, đừng chờ nghe nguyên văn chữ trong khung.
-4. Giữ mắt ở **danh sách đánh số** vì nó chạy theo thứ tự. Vừa nghe tên mục đánh số, nghe nhận xét rồi đối chiếu với từ khóa rút gọn ở khung chữ cái.
+:::steps How to stay on pace in matching tasks
+1. Read the instruction line to check whether letters can be reused.
+2. Read the options box and **boil each option down to 1 or 2 keywords** (e.g. *needs funding* → *money*, *hard to reach* → *remote*).
+3. Remember that options will be **paraphrased**—don't wait to hear the exact printed words.
+4. Keep your eyes on the **numbered list** because it moves in order. As soon as you hear a numbered item, listen to the opinion or detail about it, then match it against your shortened keywords in the letter box.
 :::
 
 :::examples
-✓ Khung lựa chọn A: *too noisy for studying*. Rút gọn thành *ồn*. Băng nói: *"You can hear traffic from the main road all afternoon, so it's hard to concentrate."* → Chọn A. // Không cần nghe chữ *noisy*, chỉ cần ý tương đương *ồn*.
-✗ Khung lựa chọn B: *popular with tourists*. Băng nói: *"Ten years ago tourists visited it, though nowadays almost nobody goes there."* → Chọn B vì nghe chữ *tourists*. // Bẫy trùng chữ: hiện tại không còn thu hút khách.
+✓ Option A: *too noisy for studying*. Keyword: *noise*. Audio: *"You can hear traffic from the main road all afternoon, so it's hard to concentrate."* → Choose A. // You don't need to hear *noisy*—just the same idea.
+✗ Option B: *popular with tourists*. Audio: *"Ten years ago tourists visited it, though nowadays almost nobody goes there."* → Picking B just because you heard *tourists*. // Word-match trap: it is no longer popular today.
 :::
 
-:::trap Đi từ khung chữ cái thay vì từ danh sách số
-Đừng tìm chữ cái A trong băng trước rồi mới hỏi nó thuộc mục nào. Hãy chờ tên mục ở **danh sách đánh số** xuất hiện trong băng, nghe ý kiến về nó, rồi mới tìm chữ cái khớp nghĩa.
-:::
-
-:::check
-Đề có khung lựa chọn về các buổi dã ngoại (A: *cheaper than expected*, B: *cancelled due to weather*, C: *well-organised*), kèm chú thích *"You may choose any letter more than once."*
-
-Danh sách câu hỏi: 15. Coastal walk, 16. Forest camp.
-Người nói bảo: *"For the coastal walk, we thought the bus would cost a fortune, yet the final bill was surprisingly low. Now, about the forest camp, the fee was again lower than our budget."*
-
-Đáp án cho 15 và 16 là gì?
-- [ ] A rồi B
-- [x] A rồi A
-- [ ] C rồi B
-> Câu 15 nói chi phí thấp bất ngờ (*surprisingly low*), khớp A. Câu 16 tiếp tục nói chi phí thấp hơn dự kiến (*lower than our budget*), cho thấy cùng một chữ cái A được dùng lại hai lần đúng như chú thích. Vì vậy không được gạch bỏ chữ cái khi đề cho phép dùng nhiều lần.
+:::trap Working from the letter box instead of the numbered list
+Don't listen for option A first and then wonder which question it belongs to. Wait for each item in the **numbered list** to come up in the audio, listen to what is said about it, and only then find the matching letter.
 :::
 
 :::check
-Khung lựa chọn cho ý kiến về sách:
-A: *out of date* (lỗi thời)
-B: *too technical* (quá chuyên sâu)
-C: *useful diagrams* (sơ đồ hữu ích)
+Options about outdoor trips: A: *cheaper than expected*, B: *cancelled due to weather*, C: *well-organised*. Instruction: *"You may choose any letter more than once."*
 
-Sinh viên nữ nói về cuốn sách ở câu 22: *"The chapter on solar panels still works well for beginners, even though the figures are from 2005. Personally, the drawings showing how each wire connects saved me hours."*
+Questions: 15. Coastal walk, 16. Forest camp.
+The speaker says: *"For the coastal walk, we thought the bus would cost a fortune, yet the final bill was surprisingly low. Now, about the forest camp, the fee was again lower than our budget."*
 
-Phương án nào khớp nhất với câu 22?
-- [ ] A (vì có năm 2005)
-- [ ] B (vì nói về tấm pin mặt trời)
-- [x] C (*drawings showing how each wire connects* là *useful diagrams*)
-> Sinh viên nhận xét sách vẫn ổn cho người mới (*works well for beginners*), không chê lỗi thời hay quá sâu, mà khen phần hình vẽ (*drawings*) giúp tiết kiệm nhiều giờ, tương đương *useful diagrams*.
+What are the answers for 15 and 16?
+- [ ] A then B
+- [x] A then A
+- [ ] C then B
+> Question 15 mentions a *surprisingly low* bill, matching A. Question 16 says the fee was *lower than our budget*, meaning letter A is used twice—just as the instruction allows. Never cross out letters when reuse is permitted.
 :::
 
-## Nếu bị lỡ một mục đánh số
+:::check
+Options describing books:
+A: *out of date*
+B: *too technical*
+C: *useful diagrams*
 
-Vì danh sách đánh số đi theo thứ tự bài nghe, vừa nghe tên mục kế tiếp là bạn biết mục trước đã xong. Nếu chưa kịp nối mục trước, bỏ nó lại, đánh dấu chấm hỏi và nghe ngay mục mới. Cuối phần nghe, dùng những chữ cái còn thừa (nếu không cho dùng lại) để đoán cho câu đã bỏ.
+A female student says about the book in question 22: *"The chapter on solar panels still works well for beginners, even though the figures are from 2005. Personally, the drawings showing how each wire connects saved me hours."*
+
+Which option best matches question 22?
+- [ ] A (because of the year 2005)
+- [ ] B (because it discusses solar panels)
+- [x] C (*drawings showing how each wire connects* = *useful diagrams*)
+> The student says it *still works well for beginners* (neither outdated nor too technical) and praises the *drawings* that saved her hours, which paraphrases *useful diagrams*.
+:::
+
+## If you miss a numbered item
+
+Because the numbered items follow the order of the recording, hearing the next item's name tells you the previous one has passed. If you haven't matched it yet, leave a quick question mark and move straight to the new item. At the end of the section, use any leftover letters (when reuse isn't allowed) to make an educated guess.

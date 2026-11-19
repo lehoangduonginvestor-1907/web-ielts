@@ -9,11 +9,11 @@ import { fmtBand } from '@/lib/band';
 import { dayKey, fmtDay } from '@/lib/dates';
 import { MascotLoading, SealMascot } from '../Mascots';
 
-const TIERS = ['Part 1 & Part 2 (làm quen)', 'Part 3 (lập luận sâu)', 'Full Test 3 Parts (11–14 phút)'];
+const TIERS = ['Part 1 & Part 2 (Warm-up)', 'Part 3 (In-Depth Discussion)', 'Full 3-Part Test (11–14 min)'];
 
 export default function SpeakingHome() {
   const store = useStore();
-  if (!store) return <MascotLoading character="seal" label="Hải Cẩu đang chỉnh micro…" />;
+  if (!store) return <MascotLoading character="seal" label="Seal is adjusting the mic…" />;
 
   const attempts = store.speakingAttempts ?? [];
   const tier = speakingTierOf(store);
@@ -28,9 +28,9 @@ export default function SpeakingHome() {
         <div className="flex items-center gap-4">
           <SealMascot pose="speaking" size={76} className="hidden sm:block" />
           <div>
-            <h1 className="font-serif text-[34px] leading-tight font-semibold">Luyện Speaking</h1>
+            <h1 className="font-serif text-[34px] leading-tight font-semibold">Speaking Practice</h1>
             <p className="mt-1 text-ink-2">
-              Phỏng vấn trực tiếp với Examiner <span className="font-semibold text-ink">Gemini 3.8 Live Extended Thinking</span> · lưu băng ghi âm để tự nghe lại
+              Live mock interviews with the <span className="font-semibold text-ink">Gemini 3.8 Live Extended Thinking</span> Examiner · recordings saved for playback and review
             </p>
           </div>
         </div>
@@ -38,7 +38,7 @@ export default function SpeakingHome() {
 
       <section className="grid gap-4 md:grid-cols-[1.5fr_1fr]">
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-dashed border-line-strong bg-surface/50 px-4 py-3.5 text-sm">
-          <span className="eyebrow">Lộ trình Speaking</span>
+          <span className="eyebrow">Speaking Path</span>
           <div className="flex flex-wrap items-center gap-1.5">
             {TIERS.map((label, i) => (
               <span
@@ -51,23 +51,23 @@ export default function SpeakingHome() {
           </div>
           <p className="w-full text-xs text-ink-2">
             {tier === 0
-              ? 'Người mới luyện 2 lượt Part 1 hoặc Part 2 trước để mở Part 3.'
+              ? 'New learners should complete 2 Part 1 or Part 2 sessions first to unlock Part 3.'
               : tier === 1
-                ? 'Đã quen phản xạ ngắn. Thực hành thêm 2 lượt Part 3 để mở thi Full 3 Parts.'
-                : 'Đã mở toàn bộ chế độ thi thử Speaking 3 Part.'}
+                ? 'Good speaking flow. Complete 2 more Part 3 sessions to unlock the Full 3-Part Test.'
+                : 'All 3-Part Speaking mock test modes are unlocked.'}
           </p>
         </div>
 
         <div className="card flex items-center justify-between gap-4 p-4">
           <div>
-            <p className="eyebrow">Band Speaking ước tính</p>
+            <p className="eyebrow">Estimated Speaking Band</p>
             {band ? (
               <>
                 <p className="mt-1 font-serif text-[32px] leading-none font-semibold text-accent">{fmtBand(band.avg)}</p>
-                <p className="mt-1 text-xs text-muted">TB {band.count} lượt chấm gần nhất</p>
+                <p className="mt-1 text-xs text-muted">Avg of {band.count} recent graded sessions</p>
               </>
             ) : (
-              <p className="mt-1.5 text-sm text-muted">Hoàn thành 1 buổi nói để nhận band &amp; nhận xét.</p>
+              <p className="mt-1.5 text-sm text-muted">Complete 1 speaking session to receive a band score and feedback.</p>
             )}
           </div>
           <Sparkles size={24} className="shrink-0 text-accent/70" />
@@ -96,9 +96,9 @@ export default function SpeakingHome() {
                 <p className="mt-2 line-clamp-2 font-serif text-sm text-muted italic">“{t.part2.cueCardTitle}”</p>
               </div>
               <div className="mt-4 flex items-center justify-between border-t border-line pt-3 text-xs text-muted">
-                <span>{t.usefulVocab.length} cụm từ gợi ý</span>
+                <span>{t.usefulVocab.length} useful expressions</span>
                 <span className="inline-flex items-center gap-1 font-semibold text-ink-2 group-hover:text-accent">
-                  {last ? 'Xem lại / Thi tiếp' : 'Vào phòng thi'} <ArrowRight size={13} />
+                  {last ? 'Review / Practice again' : 'Enter exam room'} <ArrowRight size={13} />
                 </span>
               </div>
             </Link>
@@ -108,7 +108,7 @@ export default function SpeakingHome() {
 
       {recent.length > 0 && (
         <section>
-          <h2 className="mb-3 font-serif text-xl font-semibold">Buổi nói đã thực hiện</h2>
+          <h2 className="mb-3 font-serif text-xl font-semibold">Recent Speaking Sessions</h2>
           <ul className="card divide-y divide-line text-sm">
             {recent.map(a => {
               const top = SPEAKING_TOPICS.find(x => x.id === a.topicId);
@@ -127,7 +127,7 @@ export default function SpeakingHome() {
                         <span className="rounded bg-accent-soft px-2 py-0.5 font-bold text-accent-2">{fmtBand(sc.overall)}</span>
                       </span>
                     ) : (
-                      <span className="text-xs text-muted">Chưa chấm</span>
+                      <span className="text-xs text-muted">Ungraded</span>
                     )}
                   </Link>
                 </li>

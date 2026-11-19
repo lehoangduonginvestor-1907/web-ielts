@@ -1,6 +1,6 @@
-// Bộ linh vật Sách Tranh (Cozy Storybook) cho web đều.
-// - Bé Hải Cẩu: phụ trách 4 kỹ năng học & luyện đề (Listening, Reading, Writing, Speaking, Kỹ năng, Phòng thi)
-// - Bé Nhím: phụ trách phần cá nhân người học (Nhật ký, Sổ lỗi, Sổ từ vựng, Mục tiêu & Chuỗi ngày)
+// Cozy Storybook mascots for SealIELTS.
+// - Seal: 4 IELTS skills & practice tests (Listening, Reading, Writing, Speaking, Skills, Exam Room)
+// - Hedgehog: Personal study tools (Journal, Mistake Log, Vocab Notebook, Daily Goal & Streak)
 
 import React from 'react';
 
@@ -719,12 +719,12 @@ export function MascotBadge({
 }
 
 /**
- * Màn chờ dễ thương thay cho khoảng trống khi dữ liệu đang tải.
- * Hiện dần sau ~0.3s để lần tải nhanh không bị nháy.
+ * Friendly loading placeholder while data is being fetched.
+ * Fades in after ~0.3s to prevent flicker on fast loads.
  */
 export function MascotLoading({
   character = 'seal',
-  label = 'Đang chuẩn bị cho bạn…',
+  label = 'Getting things ready…',
   className = 'h-96',
 }: {
   character?: 'seal' | 'hedgehog';

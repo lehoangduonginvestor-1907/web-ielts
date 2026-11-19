@@ -18,6 +18,7 @@ import { addDays, dayKey } from './dates';
 import { newSrs } from './srs';
 import { mergeStores } from './merge';
 import { applyMistakes, mistakeKey } from './mistakes';
+import { claimOnce, emitCelebration, STREAK_MILESTONES } from './celebrate';
 
 // Dữ liệu học nằm trong một khoá localStorage (bản làm việc, phản hồi tức thì) và được đồng bộ
 // với một file ở máy chủ (/api/progress) để không mất khi đổi máy và để người kèm xem được.
@@ -242,7 +243,8 @@ export const getStore = load;
 
 // ---------- Hoạt động & streak ----------
 
-export const isActive = (d?: DayLog) => !!d && (d.units >= 1 || (d.drills ?? 0) >= 1 || d.cards >= 10 || d.seconds >= 600);
+export const isActive = (d?: DayLog) =>
+  !!d && (d.units >= 1 || (d.drills ?? 0) >= 1 || (d.lessons ?? 0) >= 1 || d.cards >= 10 || d.seconds >= 600);
 
 function touchDay(s: Store, key: string): DayLog {
   return (s.days[key] ??= { seconds: 0, units: 0, cards: 0 });
@@ -252,25 +254,69 @@ function afterActivity(s: Store, key: string, wasActive: boolean) {
   if (!wasActive && isActive(s.days[key])) {
     // Mỗi 7 ngày liên tiếp được thưởng một vé nghỉ (giữ tối đa 2)
     const streak = streakOf(s);
-    if (streak > 0 && streak % 7 === 0) s.freezes = Math.min(2, s.freezes + 1);
+    let earnedFreeze = false;
+    if (streak > 0 && streak % 7 === 0) {
+      const before = s.freezes;
+      s.freezes = Math.min(2, s.freezes + 1);
+      earnedFreeze = s.freezes > before;
+    }
+    if (key === dayKey() && claimOnce(`streak:${key}`)) {
+      const isMilestone = STREAK_MILESTONES.has(streak);
+      const detail = earnedFreeze
+        ? `${streak} days in a row — you also earned +1 Streak Freeze!`
+        : isMilestone
+          ? `${streak} days strong! Consistency is paying off.`
+          : streak <= 1
+            ? 'You showed up today. Every band jump starts here.'
+            : `Today’s flame is lit — ${7 - (streak % 7)} more ${7 - (streak % 7) === 1 ? 'day' : 'days'} until your next Streak Freeze.`;
+      emitCelebration({
+        kind: 'streak_lit',
+        character: 'hedgehog',
+        title: isMilestone ? `${streak}-Day Streak Milestone!` : `Day ${streak} Streak Lit!`,
+        detail,
+        badge: earnedFreeze ? 'freeze' : 'flame',
+        sfx: 'celebrate',
+      });
+    }
   }
 }
 
 export function logSeconds(seconds: number) {
   if (seconds < 1) return;
+  let crossedGoal = false;
+  let goalMinutes = 30;
   update(s => {
     const k = dayKey();
     const was = isActive(s.days[k]);
-    touchDay(s, k).seconds += Math.round(seconds);
+    const d = touchDay(s, k);
+    const prevSec = d.seconds;
+    d.seconds += Math.round(seconds);
     afterActivity(s, k, was);
+    if (s.profile && s.profile.goalMinutes > 0) {
+      goalMinutes = s.profile.goalMinutes;
+      const goalSec = goalMinutes * 60;
+      if (prevSec < goalSec && d.seconds >= goalSec) crossedGoal = true;
+    }
   });
+  if (crossedGoal && claimOnce(`goal:${dayKey()}`)) {
+    emitCelebration({
+      kind: 'daily_goal',
+      character: 'hedgehog',
+      title: 'Daily Goal Reached!',
+      detail: `You completed ${goalMinutes} minutes of focused study today. Anything extra is a bonus.`,
+      badge: 'goal',
+      sfx: 'celebrate',
+    });
+  }
 }
 
-export function logCards(n: number) {
+export function logCards(n: number, isNew = false) {
   update(s => {
     const k = dayKey();
     const was = isActive(s.days[k]);
-    touchDay(s, k).cards += n;
+    const d = touchDay(s, k);
+    d.cards += n;
+    if (isNew) d.newCards = (d.newCards ?? 0) + n;
     afterActivity(s, k, was);
   });
 }
@@ -323,11 +369,24 @@ export function applyFreezes() {
     k = addDays(k, -1);
     gap++;
   }
-  if (counts(s, k) && gap <= s.freezes && streakOf(s, k) > 0) {
+  const savedStreak = streakOf(s, k);
+  if (counts(s, k) && gap <= s.freezes && savedStreak > 0) {
+    let left = 0;
     update(d => {
       for (let i = 0; i < gap; i++) d.frozenDays.push(addDays(yesterday, -i));
       d.freezes -= gap;
+      left = d.freezes;
     });
+    if (claimOnce(`freeze-used:${today}`)) {
+      emitCelebration({
+        kind: 'freeze_used',
+        character: 'hedgehog',
+        title: 'Streak Protected!',
+        detail: `Hedgehog used ${gap} ${gap === 1 ? 'Streak Freeze' : 'Streak Freezes'} to save your ${savedStreak}-day streak (${left} left).`,
+        badge: 'freeze',
+        sfx: 'resolve',
+      });
+    }
   }
 }
 
@@ -336,6 +395,7 @@ export function applyFreezes() {
 export { mistakeKey };
 
 export function recordAttempt(a: Attempt) {
+  let newlyResolved = 0;
   update(s => {
     const k = dayKey(a.finishedAt);
     const was = isActive(s.days[k]);
@@ -347,11 +407,25 @@ export function recordAttempt(a: Attempt) {
       if (a.focus?.length) d.drills = (d.drills ?? 0) + 1;
       else d.units += a.units.length;
     }
+    const prevResolved = new Set(Object.entries(s.mistakes).filter(([, m]) => m.resolved).map(([mk]) => mk));
     s.attempts.push(a);
     delete s.drafts[draftKey(a.testId, a.skill, a.units, a.focus)];
     applyMistakes(s.mistakes, a);
+    for (const [mk, m] of Object.entries(s.mistakes)) {
+      if (m.resolved && !prevResolved.has(mk)) newlyResolved++;
+    }
     afterActivity(s, k, was);
   });
+  if (newlyResolved > 0) {
+    emitCelebration({
+      kind: 'mistake_resolved',
+      character: 'hedgehog',
+      title: newlyResolved === 1 ? 'Mistake Cleared (3/3)!' : `${newlyResolved} Mistakes Cleared!`,
+      detail: 'Mastered on schedule across 1, 3, and 7 days — permanently crossed off your log.',
+      badge: 'star',
+      sfx: 'resolve',
+    });
+  }
   pushSoon();
 }
 
@@ -395,9 +469,30 @@ export function hasWord(s: Store | null, word: string) {
 // ---------- Bài học ----------
 
 export function updateLesson(slug: string, fn: (p: LessonState) => LessonState) {
+  let justCompleted = false;
   update(s => {
-    s.lessons[slug] = fn(s.lessons[slug] ?? {});
+    const prev = s.lessons[slug] ?? {};
+    const next = fn(prev);
+    s.lessons[slug] = next;
+    if (!prev.done && next.done) {
+      justCompleted = true;
+      const k = dayKey();
+      const was = isActive(s.days[k]);
+      const d = touchDay(s, k);
+      d.lessons = (d.lessons ?? 0) + 1;
+      afterActivity(s, k, was);
+    }
   });
+  if (justCompleted) {
+    emitCelebration({
+      kind: 'lesson_done',
+      character: 'seal',
+      title: 'Strategy Lesson Completed!',
+      detail: 'Try a Cambridge drill set right away to lock the technique in.',
+      badge: 'star',
+      sfx: 'resolve',
+    });
+  }
   pushSoon();
 }
 
@@ -415,16 +510,47 @@ export function saveProfile(p: Profile) {
 const DAY_MS = 86400000;
 const GRAMMAR_GAPS = [1, 3, 7];
 
+function calcWritingTier(list: WritingAttempt[]): number {
+  const stepDone = list.filter(a => a.mode === 'step').length;
+  const fullDone = list.filter(a => a.mode === 'full' || a.mode === 'exam').length;
+  if (stepDone < 2) return 0;
+  if (fullDone < 2) return 1;
+  return 2;
+}
+
+function calcSpeakingTier(list: SpeakingAttempt[]): number {
+  const p12 = list.filter(a => a.mode === 'part1' || a.mode === 'part2').length;
+  const p3 = list.filter(a => a.mode === 'part3' || a.mode === 'full').length;
+  if (p12 < 2) return 0;
+  if (p3 < 2) return 1;
+  return 2;
+}
+
 export function recordWritingAttempt(a: WritingAttempt) {
+  let unlockedTier: number | null = null;
   update(s => {
+    const prevTier = calcWritingTier(s.writingAttempts ?? []);
     const k = dayKey(a.finishedAt);
     const was = isActive(s.days[k]);
     const d = touchDay(s, k);
     d.units += 1;
     (s.writingAttempts ??= []).push(a);
     if (s.writingDrafts) delete s.writingDrafts[a.promptId];
+    const nextTier = calcWritingTier(s.writingAttempts);
+    if (nextTier > prevTier) unlockedTier = nextTier;
     afterActivity(s, k, was);
   });
+  if (unlockedTier !== null) {
+    const label = unlockedTier === 1 ? 'Full Essay (Freeform)' : 'Timed Mock Exam';
+    emitCelebration({
+      kind: 'tier_up',
+      character: 'seal',
+      title: 'Writing Tier Unlocked!',
+      detail: `You’re ready for ${label} mode.`,
+      badge: 'star',
+      sfx: 'celebrate',
+    });
+  }
   pushSoon();
 }
 
@@ -443,14 +569,29 @@ export function saveWritingDraft(d: WritingDraft) {
 }
 
 export function recordSpeakingAttempt(a: SpeakingAttempt) {
+  let unlockedTier: number | null = null;
   update(s => {
+    const prevTier = calcSpeakingTier(s.speakingAttempts ?? []);
     const k = dayKey(a.finishedAt);
     const was = isActive(s.days[k]);
     const d = touchDay(s, k);
     d.units += 1;
     (s.speakingAttempts ??= []).push(a);
+    const nextTier = calcSpeakingTier(s.speakingAttempts);
+    if (nextTier > prevTier) unlockedTier = nextTier;
     afterActivity(s, k, was);
   });
+  if (unlockedTier !== null) {
+    const label = unlockedTier === 1 ? 'Part 3 (In-Depth Discussion)' : 'Full 3-Part Test';
+    emitCelebration({
+      kind: 'tier_up',
+      character: 'seal',
+      title: 'Speaking Tier Unlocked!',
+      detail: `You’re ready for ${label}.`,
+      badge: 'star',
+      sfx: 'celebrate',
+    });
+  }
   pushSoon();
 }
 
@@ -493,9 +634,11 @@ export function addGrammarMistakes(
 
 export function reviewGrammarMistake(id: string, ok: boolean) {
   const now = Date.now();
+  let justResolved = false;
   update(s => {
     const m = s.grammarMistakes?.find(x => x.id === id);
     if (!m) return;
+    const wasResolved = !!m.resolved;
     if (!ok) {
       m.step = 0;
       m.due = now + DAY_MS;
@@ -506,6 +649,7 @@ export function reviewGrammarMistake(id: string, ok: boolean) {
       if (step >= GRAMMAR_GAPS.length) {
         m.resolved = true;
         m.due = Number.MAX_SAFE_INTEGER;
+        if (!wasResolved) justResolved = true;
       } else {
         m.due = now + GRAMMAR_GAPS[step] * DAY_MS;
       }
@@ -516,6 +660,16 @@ export function reviewGrammarMistake(id: string, ok: boolean) {
     d.drills = (d.drills ?? 0) + 1;
     afterActivity(s, k, was);
   });
+  if (justResolved) {
+    emitCelebration({
+      kind: 'mistake_resolved',
+      character: 'hedgehog',
+      title: 'Fix Mastered (3/3)!',
+      detail: 'That Writing/Speaking expression is permanently cleared from your Mistake Log.',
+      badge: 'star',
+      sfx: 'resolve',
+    });
+  }
   pushSoon();
 }
 
@@ -527,7 +681,7 @@ export function exportData(): string {
 
 export function importData(json: string) {
   const parsed = JSON.parse(json) as Store;
-  if (parsed.version !== 1 || !Array.isArray(parsed.attempts)) throw new Error('File không đúng định dạng');
+  if (parsed.version !== 1 || !Array.isArray(parsed.attempts)) throw new Error('Invalid backup file format');
   save({ ...empty(), ...parsed });
   pushSoon();
 }

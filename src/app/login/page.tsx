@@ -17,13 +17,13 @@ export default function LoginPage() {
     try {
       const r = await fetch('/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code }) });
       if (!r.ok) {
-        setError('Mã chưa đúng. Thử lại nhé.');
+        setError('Incorrect access code. Please try again.');
         return;
       }
       const { role } = (await r.json()) as { role: string };
       window.location.assign(role === 'coach' ? '/coach' : '/');
     } catch {
-      setError('Không kết nối được máy chủ.');
+      setError('Unable to connect to the server.');
     } finally {
       setBusy(false);
     }
@@ -36,20 +36,20 @@ export default function LoginPage() {
           <Logo />
           <MascotDuo size={86} mood="welcome" />
         </div>
-        <h1 className="mt-5 font-serif text-2xl font-semibold">Nhập mã vào cửa</h1>
-        <p className="mt-1 text-sm text-muted">App này dành riêng cho một người học. Mã do người kèm đưa cho bạn.</p>
+        <h1 className="mt-5 font-serif text-2xl font-semibold">Enter access code</h1>
+        <p className="mt-1 text-sm text-muted">This app is set up for an individual learner. Enter the code provided by your coach.</p>
         <input
           type="password"
           autoFocus
           autoComplete="current-password"
-          aria-label="Mã vào cửa"
+          aria-label="Access code"
           className="field mt-5"
           value={code}
           onChange={e => setCode(e.target.value)}
         />
         {error && <p className="mt-2 text-sm text-bad">{error}</p>}
         <button type="submit" className="btn-primary mt-4 w-full" disabled={busy || !code.trim()}>
-          {busy ? 'Đang kiểm tra…' : 'Vào học'}
+          {busy ? 'Checking…' : 'Start studying'}
         </button>
       </form>
     </div>

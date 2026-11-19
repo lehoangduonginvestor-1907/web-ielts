@@ -16,7 +16,7 @@ export interface LessonDef {
 }
 
 export const GROUP_LABEL: Record<LessonGroup, string> = {
-  foundation: 'Nền tảng',
+  foundation: 'Foundations',
   listening: 'Listening',
   reading: 'Reading',
   writing: 'Writing',
@@ -24,35 +24,35 @@ export const GROUP_LABEL: Record<LessonGroup, string> = {
 };
 
 export const LESSONS: LessonDef[] = [
-  // ---- Nền tảng ----
-  { slug: 'paraphrase', group: 'foundation', title: 'Đề luôn "nói khác đi"', summary: 'Câu hỏi và bài gần như không bao giờ dùng cùng một từ. Học cách nhận ra cùng một ý dưới lớp chữ khác.', minutes: 7 },
-  { slug: 'skim-scan', group: 'foundation', title: 'Đọc lướt và dò tìm', summary: 'Không ai đọc kỹ cả 900 chữ. Lướt để nắm bố cục, dò để tìm đúng chỗ, rồi mới đọc kỹ hai ba câu.', minutes: 6 },
-  { slug: 'read-ahead', group: 'foundation', title: 'Đọc câu hỏi trước khi nghe', summary: 'Dùng 30 giây trước mỗi đoạn để biết mình sắp nghe gì và ô trống cần loại từ nào.', minutes: 6 },
-  { slug: 'spelling-numbers', group: 'foundation', title: 'Chính tả, số, ngày tháng, đánh vần tên', summary: 'Nghe đúng mà viết sai vẫn mất điểm. Các lỗi hay gặp ở Part 1 và cách tránh.', minutes: 6 },
+  // ---- Foundations ----
+  { slug: 'paraphrase', group: 'foundation', title: 'Questions always say it differently', summary: 'Questions almost never reuse the exact wording from the text. Learn to spot the same idea beneath new phrasing.', minutes: 7 },
+  { slug: 'skim-scan', group: 'foundation', title: 'Skimming and scanning', summary: 'Nobody reads all 900 words closely. Skim for structure, scan for the right spot, then read two or three sentences carefully.', minutes: 6 },
+  { slug: 'read-ahead', group: 'foundation', title: 'Previewing questions before listening', summary: 'Use the 30 seconds before each recording to predict what is coming and what word type each gap needs.', minutes: 6 },
+  { slug: 'spelling-numbers', group: 'foundation', title: 'Spelling, numbers, dates & names', summary: 'Hearing the right answer still loses marks if spelled wrong. Common Part 1 pitfalls and how to avoid them.', minutes: 6 },
   // ---- Listening ----
-  { slug: 'l-completion', group: 'listening', title: 'Điền form, note, bảng', summary: 'Dạng chiếm nhiều câu nhất của Listening. Đi theo thứ tự, bám mốc, viết đúng số từ.', minutes: 7, skill: 'listening', types: ['Form completion', 'Note completion', 'Table completion', 'Sentence completion', 'Flow-chart completion'] },
-  { slug: 'l-mcq', group: 'listening', title: 'Trắc nghiệm và bẫy "nói rồi đổi ý"', summary: 'Cả ba phương án đều được nhắc tới. Đáp án là ý được chốt, không phải ý nghe thấy đầu tiên.', minutes: 7, skill: 'listening', types: ['Multiple choice', 'Multiple choice (two answers)'] },
-  { slug: 'l-matching', group: 'listening', title: 'Nối thông tin khi nghe', summary: 'Danh sách câu hỏi đi theo thứ tự bài nghe, danh sách lựa chọn thì không. Cách giữ nhịp.', minutes: 6, skill: 'listening', types: ['Matching', 'Matching features'] },
-  { slug: 'l-map', group: 'listening', title: 'Gắn nhãn bản đồ, sơ đồ', summary: 'Tìm điểm xuất phát, xoay bản đồ trong đầu, và thuộc nhóm từ chỉ hướng.', minutes: 7, skill: 'listening', types: ['Map labelling'] },
-  { slug: 'l-part4', group: 'listening', title: 'Part 4: bài giảng không nghỉ', summary: 'Mười câu liền, không có quãng dừng. Dùng tiêu đề trong note và từ chuyển ý để không lạc.', minutes: 6 },
+  { slug: 'l-completion', group: 'listening', title: 'Form, note & table completion', summary: 'The most frequent Listening task. Answers follow audio order—anchor to signposts and obey the word limit.', minutes: 7, skill: 'listening', types: ['Form completion', 'Note completion', 'Table completion', 'Sentence completion', 'Flow-chart completion'] },
+  { slug: 'l-mcq', group: 'listening', title: 'Multiple choice & distractor traps', summary: 'All three options are usually mentioned. The right answer is what the speakers settle on, not what you hear first.', minutes: 7, skill: 'listening', types: ['Multiple choice', 'Multiple choice (two answers)'] },
+  { slug: 'l-matching', group: 'listening', title: 'Matching while listening', summary: 'The numbered questions follow the audio order, while the lettered options do not. How to keep your place.', minutes: 6, skill: 'listening', types: ['Matching', 'Matching features'] },
+  { slug: 'l-map', group: 'listening', title: 'Map & plan labelling', summary: 'Find the starting point, orient yourself on the map, and master everyday direction vocabulary.', minutes: 7, skill: 'listening', types: ['Map labelling'] },
+  { slug: 'l-part4', group: 'listening', title: 'Part 4: uninterrupted lecture', summary: 'Ten questions straight through with no break. Use subheadings and signpost transitions so you never get lost.', minutes: 6 },
   // ---- Reading ----
-  { slug: 'r-tfng', group: 'reading', title: 'True / False / Not Given', summary: 'Phân biệt "bài nói ngược lại" với "bài không nói". Dạng dễ mất điểm nhất ở band 5.', minutes: 8, skill: 'reading', types: ['True / False / Not Given', 'Yes / No / Not Given'] },
-  { slug: 'r-headings', group: 'reading', title: 'Matching headings', summary: 'Chọn tiêu đề cho từng đoạn: tìm ý chính của cả đoạn, không phải một chi tiết trùng chữ.', minutes: 7, skill: 'reading', types: ['Matching headings'] },
-  { slug: 'r-matching-info', group: 'reading', title: 'Matching information', summary: 'Đoạn nào chứa thông tin này? Câu hỏi không theo thứ tự bài, nên cần cách dò riêng.', minutes: 6, skill: 'reading', types: ['Matching information'] },
-  { slug: 'r-matching-features', group: 'reading', title: 'Matching features', summary: 'Nối phát biểu với người, nơi chốn hay thời kỳ. Khoanh tên trước, đọc quanh tên sau.', minutes: 6, skill: 'reading', types: ['Matching features'] },
-  { slug: 'r-completion', group: 'reading', title: 'Điền từ lấy từ bài', summary: 'Note, câu, bảng, sơ đồ, tóm tắt: từ điền phải lấy nguyên từ bài và đúng giới hạn số từ.', minutes: 7, skill: 'reading', types: ['Note completion', 'Sentence completion', 'Summary completion', 'Table completion', 'Table / note completion', 'Diagram labelling', 'Short-answer questions'] },
-  { slug: 'r-summary-list', group: 'reading', title: 'Tóm tắt có danh sách từ', summary: 'Từ trong khung thường là từ đồng nghĩa với từ trong bài. Loại theo ngữ pháp trước, nghĩa sau.', minutes: 6, skill: 'reading', types: ['Summary completion (word list)'] },
-  { slug: 'r-mcq', group: 'reading', title: 'Trắc nghiệm trong bài đọc', summary: 'Tìm đúng đoạn, tự trả lời trước, rồi mới so với bốn phương án.', minutes: 7, skill: 'reading', types: ['Multiple choice', 'Multiple choice (two answers)'] },
-  { slug: 'r-endings', group: 'reading', title: 'Matching sentence endings', summary: 'Nửa câu đầu cho biết chỗ tìm trong bài; nửa sau phải khớp cả nghĩa lẫn ngữ pháp.', minutes: 6, skill: 'reading', types: ['Matching sentence endings'] },
-  { slug: 'r-timing', group: 'reading', title: 'Chia 60 phút cho ba bài đọc', summary: 'Bài 1 dễ nhất nhưng không được ăn hết giờ. Kế hoạch 17–20–23 và khi nào thì bỏ câu.', minutes: 5 },
+  { slug: 'r-tfng', group: 'reading', title: 'True / False / Not Given', summary: 'Distinguish “the passage says the opposite” from “the passage does not say.” The top score-loser around Band 5.', minutes: 8, skill: 'reading', types: ['True / False / Not Given', 'Yes / No / Not Given'] },
+  { slug: 'r-headings', group: 'reading', title: 'Matching headings', summary: 'Choose a heading for each paragraph by capturing its main idea rather than matching a single detail.', minutes: 7, skill: 'reading', types: ['Matching headings'] },
+  { slug: 'r-matching-info', group: 'reading', title: 'Matching information', summary: 'Which paragraph contains this detail? Questions are out of order, so you need a targeted scanning strategy.', minutes: 6, skill: 'reading', types: ['Matching information'] },
+  { slug: 'r-matching-features', group: 'reading', title: 'Matching features', summary: 'Link statements to people, places, or periods. Locate all names first, then read carefully around each one.', minutes: 6, skill: 'reading', types: ['Matching features'] },
+  { slug: 'r-completion', group: 'reading', title: 'Gap-fill from the passage', summary: 'Notes, sentences, tables, diagrams, and summaries: copy exact words from the text within the word limit.', minutes: 7, skill: 'reading', types: ['Note completion', 'Sentence completion', 'Summary completion', 'Table completion', 'Table / note completion', 'Diagram labelling', 'Short-answer questions'] },
+  { slug: 'r-summary-list', group: 'reading', title: 'Summary completion (word list)', summary: 'Boxed words are usually synonyms of words in the passage. Narrow by grammar first, then match meaning.', minutes: 6, skill: 'reading', types: ['Summary completion (word list)'] },
+  { slug: 'r-mcq', group: 'reading', title: 'Reading multiple choice', summary: 'Find the right paragraph, answer in your own words first, and only then compare with the four options.', minutes: 7, skill: 'reading', types: ['Multiple choice', 'Multiple choice (two answers)'] },
+  { slug: 'r-endings', group: 'reading', title: 'Matching sentence endings', summary: 'The sentence stem tells you where to look; the ending must match both the passage meaning and grammar.', minutes: 6, skill: 'reading', types: ['Matching sentence endings'] },
+  { slug: 'r-timing', group: 'reading', title: 'Pacing 60 minutes across 3 passages', summary: 'Passage 1 is easiest, so never let it eat your clock. Use a 17–20–23 plan and know when to move on.', minutes: 5 },
   // ---- Writing ----
-  { slug: 'w-task1-overview', group: 'writing', title: 'Task 1: Viết Overview và chọn số liệu nổi bật', summary: 'Không có Overview không thể qua band 5.5 Task Achievement. Học cách gom nhóm và chọn mốc đắt giá.', minutes: 7 },
-  { slug: 'w-task1-map-process', group: 'writing', title: 'Task 1: Tả Bản đồ & Quy trình', summary: 'Dùng thì bị động, từ nối trình tự và giới từ chỉ hướng chuẩn xác khi không có con số để so sánh.', minutes: 7 },
-  { slug: 'w-task2-peel', group: 'writing', title: 'Task 2: Lập luận đoạn văn theo khung PEEL', summary: 'Point → Explain → Example → Link. Cách triển khai ý sâu sắc thay vì liệt kê ý cụt lủn.', minutes: 8 },
+  { slug: 'w-task1-overview', group: 'writing', title: 'Task 1: Writing an overview & key figures', summary: 'Without a clear overview, Task Achievement cannot pass Band 5.5. Learn to group data and pick standout trends.', minutes: 7 },
+  { slug: 'w-task1-map-process', group: 'writing', title: 'Task 1: Describing maps & processes', summary: 'Use passive voice, sequencing linkers, and location prepositions accurately when there are no numbers to compare.', minutes: 7 },
+  { slug: 'w-task2-peel', group: 'writing', title: 'Task 2: Building arguments with PEEL', summary: 'Point → Explain → Example → Link. Develop ideas in depth instead of listing shallow points.', minutes: 8 },
   // ---- Speaking ----
-  { slug: 's-part1-expand', group: 'speaking', title: 'Part 1: Mở rộng câu trả lời tự nhiên trong 2–3 câu', summary: 'Tránh trả lời cộc lốc Yes/No hoặc học thuộc lòng. Dùng công thức Trả lời trực tiếp + Lý do/Ví dụ ngắn.', minutes: 6 },
-  { slug: 's-part2-cuecard', group: 'speaking', title: 'Part 2: Tận dụng 1 phút chuẩn bị Cue Card', summary: 'Ghi từ khóa thay vì viết cả câu. Chia bài nói 2 phút thành 4 chặng để không bao giờ cạn ý giữa chừng.', minutes: 7 },
-  { slug: 's-part3-reasoning', group: 'speaking', title: 'Part 3: Trả lời câu hỏi trừu tượng & so sánh đa chiều', summary: 'Chuyển từ câu chuyện cá nhân sang góc nhìn xã hội bằng cấu trúc so sánh quá khứ-hiện tại và giả định.', minutes: 7 },
+  { slug: 's-part1-expand', group: 'speaking', title: 'Part 1: Extending answers in 2–3 sentences', summary: 'Avoid abrupt Yes/No replies or memorised scripts. Use a Direct Answer + Reason or Short Example pattern.', minutes: 6 },
+  { slug: 's-part2-cuecard', group: 'speaking', title: 'Part 2: Making the most of 1-minute prep', summary: 'Jot down keywords instead of full sentences. Divide your 2-minute talk into 4 stages so you never run dry.', minutes: 7 },
+  { slug: 's-part3-reasoning', group: 'speaking', title: 'Part 3: Abstract questions & balanced comparisons', summary: 'Shift from personal stories to broader social viewpoints using past-vs-present comparisons and hypotheticals.', minutes: 7 },
 ];
 
 export const findLesson = (slug: string) => LESSONS.find(l => l.slug === slug);

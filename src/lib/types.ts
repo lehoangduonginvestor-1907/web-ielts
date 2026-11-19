@@ -180,7 +180,9 @@ export interface DayLog {
   seconds: number;
   units: number; // số Part/Passage đã làm xong (một đề Listening cả bài = 4)
   cards: number; // số thẻ từ đã ôn
+  newCards?: number; // số thẻ từ MỚI đã học trong ngày (để giới hạn không bị ngợp)
   drills?: number; // số lượt làm lại câu sai / luyện theo dạng
+  lessons?: number; // số bài học kỹ năng hoàn thành
 }
 
 export interface LessonState {
@@ -259,6 +261,10 @@ export interface WritingSentenceFix {
 
 export interface WritingFeedback {
   scores: WritingCriteriaScores;
+  /** Model đã chấm (vd gemini-4-hydrogen). */
+  gradedBy?: string;
+  /** Các luật cứng máy chủ đã áp (giới hạn band, câu sửa bị loại…), hiển thị cho người học. */
+  gradingNotesVi?: string[];
   summaryVi: string;
   strengthsVi: string[];
   prioritiesVi: string[];
@@ -313,6 +319,14 @@ export interface SpeakingTurn {
   text: string;
   part: SpeakingPartNum;
   at: number;
+  /** Câu trả lời gõ phím (không nói) — không được tính khi chấm Speaking. */
+  typed?: boolean;
+}
+
+/** Mốc thời gian trong file ghi âm (giây tính từ đầu bản ghi). */
+export interface SpeakingTimelineMark {
+  t: number;
+  event: 'part1' | 'part2_prep' | 'part2_speak' | 'part3' | 'finished' | 'mic_muted' | 'mic_unmuted';
 }
 
 export interface SpeakingCriteriaScores {
@@ -329,10 +343,18 @@ export interface SpeakingSentenceFix {
   criterion: 'fc' | 'lr' | 'gra' | 'p';
   reasonVi: string;
   errorPattern?: string;
+  /** Vị trí trong file ghi âm, dạng m:ss. */
+  at?: string;
 }
 
 export interface SpeakingFeedback {
   scores: SpeakingCriteriaScores;
+  gradedBy?: string;
+  /** 'audio' = model đã nghe toàn bộ file ghi âm. */
+  gradedFrom?: 'audio';
+  confidence?: 'low' | 'medium' | 'high';
+  confidenceVi?: string;
+  gradingNotesVi?: string[];
   summaryVi: string;
   strengthsVi: string[];
   prioritiesVi: string[];
@@ -353,6 +375,9 @@ export interface SpeakingAttempt {
   transcript: SpeakingTurn[];
   notes?: string;
   hasRecording?: boolean;
+  /** 'conversation' = ghi cả giám khảo lẫn thí sinh; 'candidate' (bản cũ) = chỉ micro thí sinh. */
+  recordingKind?: 'conversation' | 'candidate';
+  timeline?: SpeakingTimelineMark[];
   feedback?: SpeakingFeedback;
   addedVocab?: boolean;
   addedMistakes?: boolean;

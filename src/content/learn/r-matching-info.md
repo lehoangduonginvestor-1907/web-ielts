@@ -1,65 +1,65 @@
-Dạng Matching information đưa ra một loạt thông tin chi tiết và hỏi: **"Đoạn văn nào (A, B, C...) chứa thông tin này?"** Thoạt nhìn giống Matching headings vì đáp án đều là chữ cái đoạn văn, nhưng cách làm hai dạng trái ngược nhau hoàn toàn.
+Matching information gives you a set of specific statements and asks: **"Which paragraph (A, B, C...) contains the following information?"** At first glance it looks like Matching headings because the answers are paragraph letters, but the strategy is the exact opposite.
 
-Ở Matching information, câu hỏi **không đi theo thứ tự bài đọc**, và thứ cần tìm là **một chi tiết cụ thể** nằm lọt ở giữa đoạn văn, không phải ý chính của cả đoạn.
+In Matching information, questions **do not follow passage order**, and you are hunting for a **specific detail** buried inside a paragraph—not the main idea of the whole paragraph.
 
-## Làm dạng này sau cùng trong bài đọc
+## Do this task last in its passage
 
-Vì đáp án có thể nằm ở bất kỳ đoạn nào từ A tới G, nếu làm dạng này đầu tiên, bạn sẽ phải đọc cả bài tới mấy lần chỉ để tìm một câu nhỏ.
+Because any answer could sit anywhere from paragraph A to paragraph G, tackling this set first forces you to re-read the entire passage multiple times just to locate single sentences.
 
-:::steps Chiến lược xử lý Matching information
-1. **Để dạng này làm sau cùng** trong nhóm câu hỏi của bài đọc đó. Sau khi làm xong các dạng điền từ hay True/False/Not Given, bạn đã nhớ sơ vị trí nội dung từng đoạn.
-2. Đọc kỹ dòng hướng dẫn xem đề có ghi *"You may use any letter more than once"* hay không.
-3. Đọc từng câu hỏi, **phân loại nội dung** câu hỏi đang tìm (lý do, ví dụ, so sánh, mô tả hay con số) và gạch chân mốc nếu có.
-4. Dựa vào trí nhớ về bố cục bài, nhảy thẳng tới 1 hoặc 2 đoạn khả nghi nhất để dò chi tiết.
-5. Xử lý các câu có mốc rõ hoặc dễ thấy trước để thu gọn danh sách.
+:::steps Strategy for Matching information
+1. **Save this task for last** among the question sets for that passage. After finishing completion or True/False/Not Given questions, you already have a mental map of where topics live.
+2. Check the instructions to see whether *"You may use any letter more than once"* appears.
+3. Read each item, **classify the type of information** requested (a reason, example, comparison, description, or number), and underline any landmarks.
+4. Using your map of the passage, jump straight to the 1 or 2 most likely paragraphs to scan for the detail.
+5. Solve items with clear landmarks or obvious locations first to shrink the remaining list.
 :::
 
-## Phân loại câu hỏi trước khi đi tìm
+## Classify each prompt before you scan
 
-Câu hỏi của dạng này hay mở đầu bằng những danh từ báo hiệu rất rõ kiểu nội dung nằm trong bài:
+Matching information prompts almost always open with signal nouns that tell you exactly what shape the evidence takes in the passage:
 
-| Từ mở đầu câu hỏi | Nội dung cần tìm | Dấu hiệu trong bài đọc |
+| Opening phrase | What you are looking for | Signals in the passage |
 | --- | --- | --- |
-| *a reason why...* | Nguyên nhân của sự việc | *because, due to, led to, partly explains* |
-| *an example of...* | Một trường hợp minh họa cụ thể | *for instance, such as*, tên vật hoặc nơi cụ thể |
-| *a comparison between...* | Đặt hai đối tượng cạnh nhau đối chiếu | *whereas, unlike, faster than, similar to* |
-| *a description of how...* | Mô tả quy trình hoặc cách hoạt động | Các động từ trình tự, mô tả từng bước |
-| *a reference to...* | Có nhắc tới một đối tượng hay giai đoạn | Tên mốc thời gian, sự kiện, nhóm người |
+| *a reason why...* | Cause of an event or outcome | *because, due to, led to, partly explains* |
+| *an example of...* | A specific case or illustration | *for instance, such as*, concrete objects or places |
+| *a comparison between...* | Two things placed side by side | *whereas, unlike, faster than, similar to* |
+| *a description of how...* | A process or mechanism | Sequence verbs, step-by-step details |
+| *a reference to...* | Mention of a group, period, or fact | Dates, events, specific categories of people |
 
-## Hai nhầm lẫn thường gặp
+## Two common mistakes
 
-:::trap Dùng nhầm cách làm của Matching headings
-Nếu bạn chỉ đọc câu đầu và câu cuối đoạn B để tìm đáp án cho Matching information, bạn sẽ trượt rất nhiều câu. Thông tin chi tiết hoàn toàn có thể nằm ở câu thứ tư hoặc thứ năm giữa đoạn.
+:::trap Using Matching headings strategy here
+If you read only the first and last sentences of paragraph B for Matching information, you will miss plenty of answers. Target details frequently hide in the fourth or fifth sentence right in the middle of a paragraph.
 :::
 
-:::trap Nghĩ rằng mỗi đoạn chỉ dùng một lần
-Khác với Matching headings, ở Matching information đề **thường xuyên** cho phép một đoạn là đáp án của hai câu hỏi, đồng nghĩa có đoạn khác không được dùng lần nào. Đừng tự loại một đoạn chỉ vì bạn đã chọn nó ở câu trước.
+:::trap Assuming each paragraph can only be used once
+Unlike Matching headings, Matching information **frequently** uses the same paragraph for two different questions—meaning another paragraph may never be used. Never cross out a paragraph just because you already picked it once.
 :::
 
 :::examples
-✓ Câu hỏi: *an explanation of why early clocks lost accuracy in cold weather*. → Phân loại: lý do + thời tiết lạnh. Nhớ đoạn D nói kim loại co giãn theo nhiệt độ, mở đoạn D đọc kỹ phần giữa và tìm thấy lời giải thích. // Phân loại đúng kiểu nội dung giúp khoanh vùng ngay.
-✗ Câu hỏi: *a comparison between two materials used for roofs*. Đọc đoạn B thấy nhắc *clay tiles* và *slate* liền chọn B, trong khi đoạn B chỉ kể lịch sử hai vật liệu chứ không so sánh như đoạn E. // Nhắc tên chưa chắc đã là *comparison*.
+✓ Prompt: *an explanation of why early clocks lost accuracy in cold weather*. → Category: cause + cold weather. Remembering paragraph D discusses metal expanding and shrinking with temperature, you open D, read the middle closely, and find the exact explanation. // Classifying the prompt narrows your search immediately.
+✗ Prompt: *a comparison between two materials used for roofs*. Spotting *clay tiles* and *slate* in paragraph B and choosing B, even though B only outlines their history while paragraph E actually compares them. // Mentioning two items is not automatically a *comparison*.
 :::
 
 :::check
-Đoạn A: *"Tea arrived in northern ports in the late 1600s, initially sold only in apothecary shops as a winter remedy."*
-Đoạn B: *"Unlike coffee houses, which were noisy spaces reserved mostly for men, early tea gardens welcomed entire families and charged a single entry fee for music and refreshments."*
+Paragraph A: *"Tea arrived in northern ports in the late 1600s, initially sold only in apothecary shops as a winter remedy."*
+Paragraph B: *"Unlike coffee houses, which were noisy spaces reserved mostly for men, early tea gardens welcomed entire families and charged a single entry fee for music and refreshments."*
 
-Câu hỏi: *"a contrast between two types of public venue"* nằm ở đoạn nào?
-- [ ] Đoạn A
-- [x] Đoạn B
-- [ ] Cả hai đoạn
-> *contrast* yêu cầu đối chiếu hai nơi công cộng (*public venue*). Đoạn B đặt *coffee houses* cạnh *tea gardens* với từ nối *Unlike*, chỉ rõ sự khác biệt về không khí và đối tượng khách.
+Which paragraph contains *"a contrast between two types of public venue"*?
+- [ ] Paragraph A
+- [x] Paragraph B
+- [ ] Both paragraphs
+> *contrast* requires comparing two public venues. Paragraph B contrasts *coffee houses* and *tea gardens* using *Unlike*, highlighting differences in atmosphere and clientele.
 :::
 
 :::check
-Vẫn hai đoạn trên. Câu hỏi: *"a reference to the original purpose for selling a drink"* nằm ở đoạn nào?
-- [x] Đoạn A
-- [ ] Đoạn B
-- [ ] Không đoạn nào
-> *original purpose* (mục đích ban đầu) tương đương với *initially sold ... as a winter remedy* (ban đầu được bán như vị thuốc mùa đông) ở đoạn A.
+Same two paragraphs. Which paragraph contains *"a reference to the original purpose for selling a drink"*?
+- [x] Paragraph A
+- [ ] Paragraph B
+- [ ] Neither paragraph
+> *original purpose* matches *initially sold ... as a winter remedy* in paragraph A.
 :::
 
-## Khi tìm mãi không thấy một chi tiết
+## When a detail refuses to show up
 
-Nếu tìm qua hai lượt vẫn chưa thấy một chi tiết nào đó, đừng đọc lại cả bài từ đầu chỉ vì một câu. Đánh dấu tạm và làm các câu dễ hơn trước; trong lúc đọc đoạn văn cho các câu khác, nhiều khi bạn sẽ bắt gặp đúng chi tiết đang thiếu.
+If you scan twice and still cannot spot a detail, don't re-read the entire passage from top to bottom for one mark. Flag it and knock out the easier items first—while checking paragraphs for other questions, you will often stumble straight onto the missing detail.

@@ -18,7 +18,7 @@ export default function Library({ index }: { index: TestIndexEntry[] }) {
   const [skillPref, choose] = usePref<Skill>(SKILL_KEY, 'listening');
   const skill: Skill = skillPref === 'reading' ? 'reading' : 'listening';
 
-  // Cuốn của lộ trình lên đầu (cũ trước), rồi tới kho luyện theo dạng, cuốn để dành thi thử ở cuối
+  // Path books first (oldest first), then drill books, and reserved mock book last
   const reserved = reservedBook(index);
   const drill = drillBooks(index);
   const sorted = [...new Set(index.map(t => t.book))].sort((a, b) => a - b);
@@ -27,7 +27,7 @@ export default function Library({ index }: { index: TestIndexEntry[] }) {
   const open = tierUnits(skill, tier);
   const unitWord = skill === 'listening' ? 'Part' : 'Passage';
 
-  // Việc làm tiếp: bài đang làm dở (nếu có), không thì phần kế tiếp của lộ trình
+  // Up next: resume in-progress draft if any, otherwise next unit in the learning path
   const next = store ? nextUnit(store, index, skill) : null;
   const draft = store
     ? Object.entries(store.drafts)
@@ -39,23 +39,23 @@ export default function Library({ index }: { index: TestIndexEntry[] }) {
   const draftUnits = draft ? draft.parts[2].split('').map(Number) : [];
   const resume = draftTest
     ? {
-        label: 'Bài đang làm dở',
-        title: `Cam ${draftTest.book} Test ${draftTest.test} · ${draftUnits.length === 1 ? `${unitWord} ${draftUnits[0]}` : 'cả bài'}`,
-        detail: draftUnits.length === 1 ? (draftTest[skill].find(u => u.n === draftUnits[0])?.title ?? '') : `${Object.keys(draft!.d.answers).length} câu đã trả lời`,
+        label: 'In progress',
+        title: `Cam ${draftTest.book} Test ${draftTest.test} · ${draftUnits.length === 1 ? `${unitWord} ${draftUnits[0]}` : 'Full test'}`,
+        detail: draftUnits.length === 1 ? (draftTest[skill].find(u => u.n === draftUnits[0])?.title ?? '') : `${Object.keys(draft!.d.answers).length} questions answered`,
         href: `/test/${draftTest.id}/${skill}?p=${draftUnits.join(',')}`,
-        cta: 'Làm tiếp',
+        cta: 'Resume',
       }
     : next
       ? {
-          label: 'Phần kế tiếp của lộ trình',
+          label: 'Up next in your path',
           title: `Cam ${next.book} Test ${next.test} · ${unitWord} ${next.unit.n}`,
           detail: next.unit.title,
           href: `/test/${next.testId}/${skill}?p=${next.unit.n}`,
-          cta: 'Bắt đầu',
+          cta: 'Start',
         }
       : null;
 
-  // Mỗi cuốn gập lại được; mặc định chỉ mở cuốn đang học
+  // Each book collapses; expand only the active book by default
   const currentBook = next?.book ?? books[0];
   const [toggled, setToggled] = useState<Record<number, boolean>>({});
 
@@ -63,7 +63,7 @@ export default function Library({ index }: { index: TestIndexEntry[] }) {
     return (
       <div className="card p-8 text-center text-muted">
         <SealMascot pose="reading" size={84} className="mx-auto mb-2" />
-        Chưa có đề nào trong máy. Chạy công cụ nhập đề (<code>tools/assemble.py</code>) để thêm đề.
+        No practice tests loaded yet. Run the import tool (<code>tools/assemble.py</code>) to add tests.
       </div>
     );
   }
@@ -74,9 +74,9 @@ export default function Library({ index }: { index: TestIndexEntry[] }) {
         <div className="flex items-center gap-3.5">
           <SealMascot pose={skill === 'listening' ? 'listening' : 'reading'} size={76} className="hidden sm:block" />
           <div>
-            <h1 className="font-serif text-[34px] leading-tight font-semibold">Luyện đề</h1>
+            <h1 className="font-serif text-[34px] leading-tight font-semibold">Practice Tests</h1>
             <p className="mt-1 text-ink-2">
-              {index.length} đề Cambridge · Bé Hải Cẩu đồng hành cùng dẫn chứng và giải thích tiếng Việt
+              {index.length} Cambridge tests · Study with Seal using highlighted evidence and clear explanations
             </p>
           </div>
         </div>
@@ -111,7 +111,7 @@ export default function Library({ index }: { index: TestIndexEntry[] }) {
       )}
 
       <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-dashed border-line-strong px-4 py-3 text-sm">
-        <span className="eyebrow">Lộ trình</span>
+        <span className="eyebrow">Path</span>
         <span className="flex items-center gap-1">
           {tierUnits(skill, 2).map(n => (
             <span
@@ -124,8 +124,8 @@ export default function Library({ index }: { index: TestIndexEntry[] }) {
         </span>
         <span className="text-ink-2">
           {tier < 2
-            ? `Đạt trung bình 70% ở ${unitWord} ${open[open.length - 1]} (lần đầu làm, trên 3–5 đề khác nhau gần nhất) để mở phần tiếp theo. Phần chưa mở vẫn làm được.`
-            : 'Đã mở toàn bộ. Bắt đầu làm cả bài có bấm giờ.'}
+            ? `Average 70% on ${unitWord} ${open[open.length - 1]} (first attempt, across your last 3–5 different tests) to unlock the next tier. Locked parts are still open anytime.`
+            : 'All tiers unlocked. Ready for full timed tests.'}
         </span>
       </div>
 
@@ -145,13 +145,13 @@ export default function Library({ index }: { index: TestIndexEntry[] }) {
                 <ChevronDown size={18} className={`shrink-0 text-muted transition-transform ${isOpen ? '' : '-rotate-90'}`} />
                 <h2 className="font-serif text-xl font-semibold">Cambridge {book}</h2>
                 {book === reserved && (
-                  <span className="rounded bg-ember-soft px-2 py-0.5 text-[11px] font-semibold text-ember">Để dành thi thử cuối kỳ</span>
+                  <span className="rounded bg-ember-soft px-2 py-0.5 text-[11px] font-semibold text-ember">Reserved for final mocks</span>
                 )}
                 {drill.includes(book) && (
-                  <span className="rounded bg-accent-soft px-2 py-0.5 text-[11px] font-semibold text-accent">Kho luyện theo dạng (trang Kỹ năng)</span>
+                  <span className="rounded bg-accent-soft px-2 py-0.5 text-[11px] font-semibold text-accent">Question-type drills (Skills)</span>
                 )}
                 <span className="num ml-auto text-sm text-muted">
-                  {done}/{all.length} {unitWord.toLowerCase()} đã làm
+                  {done}/{all.length} {unitWord.toLowerCase()}s done
                 </span>
               </button>
               {isOpen && (
@@ -189,12 +189,12 @@ export default function Library({ index }: { index: TestIndexEntry[] }) {
           ))}
         </div>
         {units.some(u => u.audio === false) ? (
-          <span className="btn-ghost shrink-0 cursor-not-allowed opacity-40 sm:ml-2" title="Còn phần chưa có audio">
-            Cả bài
+          <span className="btn-ghost shrink-0 cursor-not-allowed opacity-40 sm:ml-2" title="Some parts are missing audio">
+            Full test
           </span>
         ) : (
           <Link href={`/test/${t.id}/${skill}`} className="btn-ghost shrink-0 sm:ml-2">
-            Cả bài
+            Full test
           </Link>
         )}
       </div>
@@ -220,10 +220,10 @@ function UnitChip({
   const href = score ? `/test/${t.id}/${skill}?p=${u.n}&attempt=${score.attemptId}` : `/test/${t.id}/${skill}?p=${u.n}`;
   if (u.audio === false) {
     return (
-      <div title="Chưa có file audio cho phần này" className="relative overflow-hidden rounded-lg border border-dashed border-line-strong py-2 pr-2 pl-3.5 opacity-55">
+      <div title="No audio file for this part yet" className="relative overflow-hidden rounded-lg border border-dashed border-line-strong py-2 pr-2 pl-3.5 opacity-55">
         <div className="flex items-baseline justify-between gap-2">
           <span className="text-[13px] font-semibold">Part {u.n}</span>
-          <span className="text-[11px] text-muted">chưa có audio</span>
+          <span className="text-[11px] text-muted">no audio</span>
         </div>
         <div className="mt-0.5 truncate font-serif text-[12.5px] text-muted">{u.title}</div>
       </div>

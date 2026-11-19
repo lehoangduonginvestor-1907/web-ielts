@@ -1,69 +1,69 @@
-Trong IELTS Listening, mỗi đoạn băng chỉ phát **một lần**. Nếu đợi băng chạy mới đọc câu hỏi, bạn phải vừa đọc, vừa dịch, vừa nghe liên tục. Ở band 5, làm ba việc cùng lúc rất dễ làm bạn trượt mấy câu đầu.
+In IELTS Listening, each recording plays **only once**. If you wait until the audio starts before reading the questions, you have to read, interpret, and listen all at once. Doing all three simultaneously makes it easy to miss the opening questions.
 
-Trước mỗi phần hoặc mỗi nhóm câu hỏi luôn có quãng lặng ngắn (thường khoảng 20 tới 30 giây) để xem trước đề. Tận dụng tốt khoảng thời gian này giúp bạn nghe nhẹ đầu hơn nhiều.
+Before each section or question set, there is always a brief pause (usually 20 to 30 seconds) to preview the questions. Using that window well makes listening feel far more manageable.
 
-## Tận dụng quãng lặng trước khi nghe
+## Make the most of the pre-listening pause
 
-:::steps Đọc trước đề trong 20 tới 30 giây
-1. Nhìn **giới hạn từ** ở dòng hướng dẫn (ví dụ "ONE WORD ONLY" hoặc "NO MORE THAN TWO WORDS"), gạch chân để không viết thừa.
-2. Đọc lướt tiêu đề và đề mục để nắm bối cảnh: đặt vé tàu, hỏi thuê nhà, hay bài giảng sinh học.
-3. Gạch chân **mốc** quanh mỗi ô trống: tên riêng, con số, giới từ (*on, at, until*), hoặc từ đứng ngay trước chỗ trống.
-4. **Đoán loại từ** cho từng ô trống (danh từ số ít hay số nhiều, tính từ, tên, giá tiền, ngày tháng).
+:::steps How to preview questions in 20–30 seconds
+1. Check the **word limit** in the instructions (e.g., "ONE WORD ONLY" or "NO MORE THAN TWO WORDS") and underline it so you don't overwrite.
+2. Skim the title and headings to get the context: booking a train ticket, renting a flat, or a biology lecture.
+3. Underline **anchors** around each gap: proper nouns, numbers, prepositions (*on, at, until*), or the word right before the blank.
+4. **Predict the word type** for each gap (singular or plural noun, adjective, name, price, date).
 :::
 
-:::note Đọc lướt câu hỏi, đừng dịch từng chữ
-Bạn không cần dịch cả câu hoàn chỉnh trong 30 giây đó. Chỉ cần biết câu hỏi đang hỏi về gì và ô trống cần loại từ nào là đủ.
+:::note Skim the questions—don't read every word slowly
+You don't need to digest every word of every sentence in 30 seconds. Knowing what each item is asking for and what word form fits the gap is plenty.
 :::
 
-## Đoán loại từ giúp tai bắt đúng chỗ
+## Predicting word form tunes your ear to the answer
 
-Khi biết trước ô trống cần một con số hay danh từ số nhiều, tai bạn tự động lọc bớt phần thông tin thừa.
+When you already know a gap needs a number or a plural noun, your ear automatically filters out surrounding filler.
 
-| Chữ quanh ô trống | Loại từ cần điền | Ví dụ đáp án |
+| Words around the gap | Required word type | Example answers |
 | --- | --- | --- |
-| "a / an ____" | Danh từ đếm được số ít | *ticket, umbrella* |
-| "many / several ____" | Danh từ số nhiều (nhớ -s) | *gardens, discounts* |
-| "cost: £____" | Giá tiền (con số) | *14.50, 30* |
-| "open until ____" | Giờ hoặc ngày, tháng | *7.30, October* |
-| "a very ____ room" | Tính từ | *bright, quiet* |
-| "contact: Ms ____" | Tên riêng (sẽ được đánh vần) | *Kowalski, Patel* |
+| "a / an ____" | Singular countable noun | *ticket, umbrella* |
+| "many / several ____" | Plural noun (watch for *-s*) | *gardens, discounts* |
+| "cost: £____" | Price (number) | *14.50, 30* |
+| "open until ____" | Time, day, or month | *7.30, October* |
+| "a very ____ room" | Adjective | *bright, quiet* |
+| "contact: Ms ____" | Proper name (will be spelled out) | *Kowalski, Patel* |
 
 :::examples
-✓ Đề: "Bring a ____ for the walk." → Đoán trước: một danh từ số ít chỉ đồ vật. Nghe băng nói *"Remember to pack a raincoat"* là viết *raincoat* ngay. // Nhờ chữ *a*, loại bỏ được động từ hay tính từ.
-✓ Đề: "Maximum group size: ____ people." → Đoán một con số. // Tai chỉ chờ một số đếm.
-✗ Đề: "Fee includes ____ and lunch." → Không đoán trước, tới lúc nghe *"We provide transport and a hot meal"* mới cuống tìm từ điền. // Nếu đoán trước "danh từ chỉ dịch vụ hay đồ ăn", chữ *transport* sẽ nổi bật ngay.
+✓ Prompt: "Bring a ____ for the walk." → Predict: a singular noun for an item. When you hear *"Remember to pack a raincoat"*, write *raincoat* straight away. // The article *a* rules out verbs and adjectives.
+✓ Prompt: "Maximum group size: ____ people." → Predict a number. // Your ear waits specifically for a figure.
+✗ Prompt: "Fee includes ____ and lunch." → Skipping prediction, then panicking when you hear *"We provide transport and a hot meal"*. // If you had predicted "a noun for a service or food", *transport* would stand out immediately.
 :::
 
-## Giữ mắt đi trước một câu
+## Keep your eyes one question ahead
 
-:::trap Dán mắt vào một ô trống làm hỏng câu sau
-Nhiều bạn viết xong câu 4 vẫn nán lại nhìn ô 4 để kiểm tra chính tả. Trong lúc đó, người nói đã đọc sang câu 5.
+:::trap Staring at one gap ruins the next answer
+Many candidates finish writing Q4 and linger on it to check spelling. While they do that, the speaker has already moved on to Q5.
 :::
 
-Khi đang nghe câu hiện tại, mắt bạn nên liếc sẵn xuống **mốc của câu kế tiếp**. Nhờ vậy, nếu lỡ trượt câu hiện tại, bạn nghe thấy mốc câu sau là chuyển xuống kịp ngay, tránh mất dây chuyền ba bốn câu liền.
+While listening for the current question, keep an eye on the **anchor for the next question**. That way, if you miss the current item, hearing the next anchor snaps you back on track instead of causing a chain reaction of three or four missed answers.
 
 :::check
-Trên phiếu ghi chú có dòng: "Discount available for ____ visitors."
+A note sheet reads: "Discount available for ____ visitors."
 
-Trước khi băng chạy, bạn đoán ô trống cần loại từ nào?
-- [ ] Danh từ số ít chỉ người
-- [x] Tính từ hoặc danh từ chỉ nhóm đối tượng (như *local*, *student*)
-- [ ] Động từ nguyên mẫu
-> Sau *for* và trước danh từ *visitors* phải là từ bổ nghĩa cho *visitors*, thường là tính từ hoặc danh từ đứng làm tính từ. Biết trước giúp bạn không chép nhầm động từ.
+Before the audio starts, what type of word do you predict for the gap?
+- [ ] A singular noun referring to a person
+- [x] An adjective or noun modifier describing a group (such as *local*, *student*)
+- [ ] A base verb
+> Sitting after *for* and before the noun *visitors*, the missing word must modify *visitors*—typically an adjective or a noun acting as an adjective. Predicting this stops you from writing down a verb by mistake.
 :::
 
 :::check
-Trong đề có hai câu liền nhau:
-Câu 11: "Meet at the ____ at 9 a.m."
-Câu 12: "Bring your own ____."
+Two consecutive questions read:
+Q11: "Meet at the ____ at 9 a.m."
+Q12: "Bring your own ____."
 
-Người nói bảo: *"We usually start from the fountain, though tomorrow gather by the main gate at nine. Oh, and don't forget a notebook."* Vừa viết xong *main gate* ở câu 11, bạn cần làm gì ngay?
-- [ ] Soát xem *main gate* viết liền hay rời
-- [x] Nhìn xuống câu 12 và chờ nghe món đồ mang theo
-- [ ] Nghe lại xem lúc nãy họ nói *nine* hay *ten*
-> Câu 12 nối ngay sau câu 11 mà không nghỉ. Nán lại nghĩ về câu 11 sẽ làm bạn trượt chữ *notebook* ở câu 12. Việc soát chính tả để dành tới lúc chuyển phần.
+The speaker says: *"We usually start from the fountain, though tomorrow gather by the main gate at nine. Oh, and don't forget a notebook."* The moment you finish writing *main gate* for Q11, what should you do?
+- [ ] Check whether *main gate* is one word or two
+- [x] Drop your eyes to Q12 and listen for the item to bring
+- [ ] Replay in your head whether they said *nine* or *ten*
+> Q12 follows Q11 with no pause. Lingering over Q11 will make you miss *notebook* for Q12. Save spelling checks for the pause between sections.
 :::
 
-## Nếu chưa kịp đọc hết trước khi băng chạy
+## What if the audio starts before you finish reading?
 
-Nếu quãng lặng hết nhanh và bạn mới đọc tới câu 7 trên 10 câu, đừng đọc nốt câu 8, 9, 10 khi băng đã chạy vào câu 1. Hãy dừng lại ngay, quay về câu 1 để nghe chắc những câu đã đọc trước, rồi tranh thủ liếc các câu cuối trong lúc băng chuyển ý.
+If the preview time runs out when you have only read Q1 through Q7 out of 10, do not keep reading Q8–Q10 while the speaker is already answering Q1. Stop immediately, jump back to Q1 so you nail the questions you already prepared, and glance at the final items during natural transitions in the audio.

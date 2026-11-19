@@ -3,7 +3,7 @@
 import { REASONS } from '@/lib/reasons';
 import { setMistakeReason, useStore } from '@/lib/store';
 
-// Hàng nút "Vì sao sai?" cho một câu trong Sổ lỗi. Không hiện gì nếu câu không nằm trong sổ.
+// "Why did I miss this?" reason chip selector for Mistake Log items. Hidden if not logged.
 export default function ReasonChips({ mistakeKey, label }: { mistakeKey: string; label?: string }) {
   const store = useStore();
   const m = store?.mistakes[mistakeKey];

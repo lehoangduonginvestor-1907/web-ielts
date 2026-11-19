@@ -1,8 +1,11 @@
-import type { Attempt, Skill, Store, TestIndexEntry, UnitIndex } from './types';
+import type { Attempt, Skill, SpeakingTopic, Store, TestIndexEntry, UnitIndex, WritingPrompt, WritingTaskType } from './types';
 import { bandFor } from './band';
 import { addDays, dayKey } from './dates';
 import { isActive } from './store';
 import { drillBooks, type DrillGroup } from './skills';
+import { buildReviewQueue, NEW_CARD_DAILY_CAP, type ReviewQueueResult } from './srs';
+import { WRITING_PROMPTS } from './writingPrompts';
+import { SPEAKING_TOPICS } from './speakingTopics';
 
 // Bài làm thật: không phải làm lại câu sai, không phải bài bỏ dở (trả lời chưa tới một nửa)
 const realAttempts = (s: Store) => s.attempts.filter(a => !a.focus?.length && !a.incomplete);
@@ -58,7 +61,7 @@ export function typeStats(s: Store, skill?: Skill) {
   for (const a of statAttempts(s)) {
     if (a.finishedAt < since || (skill && a.skill !== skill)) continue;
     for (const [n, ok] of Object.entries(a.results)) {
-      const type = a.types[Number(n)] ?? 'Khác';
+      const type = a.types[Number(n)] ?? 'Other';
       const k = `${a.skill}:${type}`;
       const v = map.get(k) ?? { type, skill: a.skill, ok: 0, all: 0 };
       v.all++;
@@ -206,6 +209,17 @@ export function dueWords(s: Store) {
   return s.words.filter(w => w.srs.due <= now);
 }
 
+/** Hàng đợi ôn thẻ trong ngày: ưu tiên thẻ ôn cũ + giới hạn thẻ mới còn lại của hôm nay. */
+export function todayVocabQueue(
+  s: Store,
+  now = Date.now(),
+  opts: { quick?: boolean; extraNew?: number } = {},
+): ReviewQueueResult {
+  const usedNew = s.days[dayKey(now)]?.newCards ?? 0;
+  const remainingNew = opts.extraNew !== undefined ? opts.extraNew : Math.max(0, NEW_CARD_DAILY_CAP - usedNew);
+  return buildReviewQueue(s.words, { now, maxNew: remainingNew, quick: opts.quick });
+}
+
 // Số ngày học trong 7 ngày gần nhất
 export function activeDaysThisWeek(s: Store) {
   let n = 0;
@@ -256,4 +270,131 @@ export function speakingTierOf(s: Store): number {
 export function dueGrammarMistakes(s: Store) {
   const now = Date.now();
   return (s.grammarMistakes ?? []).filter(m => !m.resolved && m.due <= now);
+}
+
+/** Tổng hợp nhịp học 7 ngày gần nhất để hiện ngay cho người học. */
+export function weeklyPulse(s: Store, today = dayKey()) {
+  let activeDays = 0;
+  let seconds = 0;
+  let cards = 0;
+  let units = 0;
+  let drills = 0;
+  let lessons = 0;
+  for (let i = 0; i < 7; i++) {
+    const d = s.days[addDays(today, -i)];
+    if (!d) continue;
+    if (isActive(d)) activeDays++;
+    seconds += d.seconds;
+    cards += d.cards;
+    units += d.units;
+    drills += d.drills ?? 0;
+    lessons += d.lessons ?? 0;
+  }
+  const minutes = Math.round(seconds / 60);
+  const dailyGoal = s.profile?.goalMinutes ?? 30;
+  return {
+    activeDays,
+    minutes,
+    cards,
+    units,
+    drills,
+    lessons,
+    targetDays: 5,
+    targetMinutes: dailyGoal * 5,
+  };
+}
+
+/**
+ * Gợi ý đề Writing thông minh:
+ * - Cân bằng Task 1 và Task 2 (hoặc ưu tiên Task có band trung bình thấp hơn ≥ 0.5).
+ * - Ưu tiên dạng biểu đồ/bài luận chưa từng làm để phủ đều các dạng.
+ * - Khi đã làm hết thì quay lại đề từng đạt band thấp nhất.
+ */
+export function nextWritingPrompt(s: Store): { prompt: WritingPrompt; reason: string } {
+  const attempts = s.writingAttempts ?? [];
+  const doneIds = new Set(attempts.map(a => a.promptId));
+  const doneCats = new Set(
+    attempts
+      .map(a => WRITING_PROMPTS.find(p => p.id === a.promptId)?.category)
+      .filter((c): c is WritingPrompt['category'] => !!c),
+  );
+
+  const avgTaskBand = (task: WritingTaskType) => {
+    const scored = attempts
+      .filter(a => a.task === task && a.feedback?.scores.overall !== undefined)
+      .slice(-3);
+    if (!scored.length) return null;
+    return scored.reduce((sum, a) => sum + a.feedback!.scores.overall, 0) / scored.length;
+  };
+
+  const b1 = avgTaskBand('task1');
+  const b2 = avgTaskBand('task2');
+  const lastTask = attempts[attempts.length - 1]?.task;
+  let preferredTask: WritingTaskType;
+  let taskReason = '';
+
+  if (b1 !== null && b2 !== null && Math.abs(b1 - b2) >= 0.5) {
+    preferredTask = b1 < b2 ? 'task1' : 'task2';
+    const weakBand = Math.min(b1, b2);
+    taskReason = `Focus: ${preferredTask === 'task1' ? 'Task 1' : 'Task 2'} avg ${weakBand.toFixed(1)}`;
+  } else if (lastTask) {
+    preferredTask = lastTask === 'task1' ? 'task2' : 'task1';
+    taskReason = `Balanced next: ${preferredTask === 'task1' ? 'Task 1' : 'Task 2'}`;
+  } else {
+    preferredTask = 'task2';
+    taskReason = 'Start with Task 2 (worth 2/3 of Writing score)';
+  }
+
+  const inTask = WRITING_PROMPTS.filter(p => p.task === preferredTask);
+  const unseenCat = inTask.find(p => !doneIds.has(p.id) && !doneCats.has(p.category));
+  if (unseenCat) return { prompt: unseenCat, reason: taskReason };
+
+  const unseenInTask = inTask.find(p => !doneIds.has(p.id));
+  if (unseenInTask) return { prompt: unseenInTask, reason: taskReason };
+
+  const unseenAny = WRITING_PROMPTS.find(p => !doneIds.has(p.id));
+  if (unseenAny) return { prompt: unseenAny, reason: `New prompt · ${unseenAny.categoryLabel}` };
+
+  // Đã làm hết: quay lại đề đạt band thấp nhất (ưu tiên đề đã chấm)
+  const latestByPrompt = new Map<string, { band: number; at: number }>();
+  for (const a of attempts) {
+    latestByPrompt.set(a.promptId, { band: a.feedback?.scores.overall ?? 9.5, at: a.finishedAt });
+  }
+  const ranked = [...WRITING_PROMPTS].sort((a, b) => {
+    const ra = latestByPrompt.get(a.id) ?? { band: 9.5, at: 0 };
+    const rb = latestByPrompt.get(b.id) ?? { band: 9.5, at: 0 };
+    return ra.band - rb.band || ra.at - rb.at;
+  });
+  const bestRetry = ranked[0] ?? WRITING_PROMPTS[0];
+  const prevBand = latestByPrompt.get(bestRetry.id)?.band;
+  return {
+    prompt: bestRetry,
+    reason: prevBand !== undefined && prevBand <= 9 ? `Retry to beat Band ${prevBand.toFixed(1)}` : 'Revisit prompt',
+  };
+}
+
+/** Gợi ý chủ đề Speaking thông minh: ưu tiên chủ đề mới, nếu làm hết thì ôn lại chủ đề band thấp nhất. */
+export function nextSpeakingTopic(s: Store): { topic: SpeakingTopic; reason: string } {
+  const attempts = s.speakingAttempts ?? [];
+  const tier = speakingTierOf(s);
+  const modeHint = tier >= 2 ? 'Full 3-Part Mock' : tier === 1 ? 'Part 3 Discussion' : 'Part 1 & 2 Warm-up';
+  const doneIds = new Set(attempts.map(a => a.topicId));
+  const unseen = SPEAKING_TOPICS.find(t => !doneIds.has(t.id));
+  if (unseen) return { topic: unseen, reason: `Recommended: ${modeHint}` };
+
+  const latestByTopic = new Map<string, { band: number; at: number }>();
+  for (const a of attempts) {
+    latestByTopic.set(a.topicId, { band: a.feedback?.scores.overall ?? 9.5, at: a.finishedAt });
+  }
+  const ranked = [...SPEAKING_TOPICS].sort((a, b) => {
+    const ra = latestByTopic.get(a.id) ?? { band: 9.5, at: 0 };
+    const rb = latestByTopic.get(b.id) ?? { band: 9.5, at: 0 };
+    return ra.band - rb.band || ra.at - rb.at;
+  });
+  const pick = ranked[0] ?? SPEAKING_TOPICS[0];
+  const prevBand = latestByTopic.get(pick.id)?.band;
+  return {
+    topic: pick,
+    reason: prevBand !== undefined && prevBand <= 9 ? `Retry to beat Band ${prevBand.toFixed(1)}` : `Recommended: ${modeHint}`,
+  };
 }

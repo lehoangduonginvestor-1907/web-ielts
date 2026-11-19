@@ -34,20 +34,20 @@ export default function SaveWord({
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-ink/30 p-4 sm:items-center" onMouseDown={onClose}>
       <div className="card w-full max-w-md p-5" onMouseDown={e => e.stopPropagation()}>
         <div className="flex items-center justify-between">
-          <span className="eyebrow">Lưu vào bộ từ</span>
-          <button className="btn-quiet -mr-2" onClick={onClose} aria-label="Đóng">
+          <span className="eyebrow">Save to vocabulary</span>
+          <button className="btn-quiet -mr-2" onClick={onClose} aria-label="Close">
             <X size={16} />
           </button>
         </div>
         <div className="mt-3 flex items-center gap-2">
           <input className="field font-serif text-lg font-semibold" value={word} onChange={e => setWord(e.target.value)} />
-          <button className="btn-ghost px-3" onClick={() => speak(word)} aria-label="Nghe phát âm">
+          <button className="btn-ghost px-3" onClick={() => speak(word)} aria-label="Listen to pronunciation">
             <Volume2 size={16} />
           </button>
         </div>
         <input
           className="field mt-2"
-          placeholder="Nghĩa tiếng Việt"
+          placeholder="Meaning / definition"
           value={vi}
           autoFocus={!vi}
           onChange={e => setVi(e.target.value)}
@@ -55,13 +55,13 @@ export default function SaveWord({
         />
         {context && <p className="mt-3 rounded-md bg-paper px-3 py-2 font-serif text-[14px] text-ink-2 italic">“{context}”</p>}
         <div className="mt-4 flex items-center justify-end gap-2">
-          {done === 'exists' && <span className="mr-auto text-sm text-muted">Từ này đã có trong bộ.</span>}
-          {done === 'saved' && <span className="mr-auto text-sm text-good">Đã lưu.</span>}
+          {done === 'exists' && <span className="mr-auto text-sm text-muted">Already in your deck.</span>}
+          {done === 'saved' && <span className="mr-auto text-sm text-good">Saved.</span>}
           <button className="btn-quiet" onClick={onClose}>
-            Huỷ
+            Cancel
           </button>
           <button className="btn-primary" onClick={save} disabled={!word.trim()}>
-            Lưu từ
+            Save word
           </button>
         </div>
       </div>

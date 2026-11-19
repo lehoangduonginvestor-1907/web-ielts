@@ -32,19 +32,21 @@ export default async function TestPage({ params, searchParams }: { params: Promi
   const units = wanted.length ? all.filter(u => wanted.includes(u.n)) : all;
   if (!units.length) notFound();
 
+  const index = await getIndex();
+
   if (skill === 'listening') {
-    const entry = (await getIndex()).find(t => t.id === test.id);
+    const entry = index.find(t => t.id === test.id);
     const missing = units.filter(u => entry?.listening.find(x => x.n === u.n)?.audio === false);
     if (missing.length) {
       return (
         <div className="flex min-h-dvh items-center justify-center p-6">
           <div className="card max-w-md p-6 text-center">
-            <p className="font-serif text-xl font-semibold">Chưa có audio</p>
+            <p className="font-serif text-xl font-semibold">Audio unavailable</p>
             <p className="mt-2 text-sm text-ink-2">
-              Cam {test.book} Test {test.test}: {missing.map(u => `Part ${u.n}`).join(', ')} chưa có file nghe. Đề và lời giải đã sẵn sàng, chỉ chờ audio.
+              Cam {test.book} Test {test.test}: {missing.map(u => `Part ${u.n}`).join(', ')} does not have audio files yet. The questions and explanations are ready—just waiting on audio.
             </p>
             <Link href="/practice" className="btn-ghost mt-5">
-              Về thư viện đề
+              Back to Practice Library
             </Link>
           </div>
         </div>
@@ -60,6 +62,7 @@ export default async function TestPage({ params, searchParams }: { params: Promi
       testNo={test.test}
       skill={skill as Skill}
       units={units}
+      index={index}
       initialMode={sp.mode === 'exam' ? 'exam' : 'practice'}
       focus={nums(sp.focus)}
       drill={sp.drill === '1' && nums(sp.focus).length > 0}

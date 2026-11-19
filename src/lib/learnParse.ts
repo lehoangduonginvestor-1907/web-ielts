@@ -44,7 +44,7 @@ function parseCheck(lines: string[], n: number): Block {
       (options.length ? explanation : prompt).push(line.trim());
     }
   }
-  if (answer < 0 || options.length < 2) throw new Error(`Câu hỏi nhanh ${n} cần các lựa chọn và đúng một "- [x]": ${prompt.join(' ')}`);
+  if (answer < 0 || options.length < 2) throw new Error(`Quick check ${n} requires options and exactly one "- [x]": ${prompt.join(' ')}`);
   return { t: 'check', n, prompt, options, answer, explanation: explanation.join(' ') };
 }
 
@@ -53,7 +53,7 @@ function parseExamples(lines: string[]): Block {
     .filter(l => l.trim())
     .map(l => {
       const m = l.trim().match(/^([✓✗])\s*(.*?)(?:\s+\/\/\s+(.*))?$/);
-      if (!m) throw new Error(`Dòng ví dụ phải bắt đầu bằng ✓ hoặc ✗: ${l}`);
+      if (!m) throw new Error(`Example line must start with ✓ or ✗: ${l}`);
       return { ok: m[1] === '✓', text: m[2], note: m[3] || '' };
     });
   return { t: 'examples', items };
@@ -89,7 +89,7 @@ export function parseLesson(source: string): Block[] {
         if (kind === 'check') blocks.push(parseCheck(inner, ++checks));
         else if (kind === 'examples') blocks.push(parseExamples(inner));
         else if (BOXES.has(kind as BoxKind)) blocks.push({ t: 'box', kind: kind as BoxKind, title: fence[2], blocks: parse(inner) });
-        else throw new Error(`Không có khối :::${kind}`);
+        else throw new Error(`Unknown block :::${kind}`);
         continue;
       }
 

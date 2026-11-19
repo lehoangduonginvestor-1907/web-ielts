@@ -4,9 +4,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { AArrowDown, AArrowUp, ArrowLeft, Flag, Headphones, BookOpen, Clock, X } from 'lucide-react';
-import type { Answers, Attempt, Explanation, Group, ListeningPart, Passage as PassageT, Skill } from '@/lib/types';
+import type { Answers, Attempt, Explanation, Group, ListeningPart, Passage as PassageT, Skill, TestIndexEntry } from '@/lib/types';
 import { expandFocus, gradeGroups, isFilled } from '@/lib/scoring';
-import { draftKey, logSeconds, recordAttempt, update, useStore } from '@/lib/store';
+import { draftKey, getStore, logSeconds, recordAttempt, update, useStore } from '@/lib/store';
+import { tierOf, tierUnits } from '@/lib/progress';
+import { emitCelebration } from '@/lib/celebrate';
 import { usePref } from '@/lib/hooks';
 import { fmtClock } from '@/lib/dates';
 import { lessonFor, type LessonDef } from '@/lib/skills';
@@ -25,6 +27,7 @@ export interface RoomProps {
   testNo: number;
   skill: Skill;
   units: (PassageT | ListeningPart)[];
+  index?: TestIndexEntry[];
   initialMode: 'practice' | 'exam';
   focus?: number[];
   drill?: boolean; // luyện theo dạng: focus là các câu của một nhóm
@@ -46,7 +49,7 @@ function isAnswered(groups: Group[], answers: Answers, n: number): boolean {
 const FS_KEY = 'ielts.fontsize';
 
 export default function TestRoom(props: RoomProps) {
-  const { testId, book, testNo, skill, units, focus, drill } = props;
+  const { testId, book, testNo, skill, units, index, focus, drill } = props;
   const home = drill ? '/skills' : '/practice';
   const router = useRouter();
   const store = useStore();
@@ -189,14 +192,31 @@ export default function TestRoom(props: RoomProps) {
       incomplete: qNums.length - blank.length < qNums.length / 2,
       ...(resumed ? { resumed: true } : {}),
     };
+    const prevTier = index ? tierOf(getStore(), skill, index) : null;
     recordAttempt(attempt);
+    if (index && prevTier !== null) {
+      const nextTier = tierOf(getStore(), skill, index);
+      if (nextTier > prevTier) {
+        const unlocked = tierUnits(skill, nextTier);
+        const newest = unlocked[unlocked.length - 1];
+        const unitLabel = skill === 'listening' ? `Part ${newest}` : `Passage ${newest}`;
+        emitCelebration({
+          kind: 'tier_up',
+          character: 'seal',
+          title: `${skill === 'listening' ? 'Listening' : 'Reading'} Tier Unlocked!`,
+          detail: `You averaged 70%+ and unlocked ${unitLabel} in your learning path.`,
+          badge: 'star',
+          sfx: 'celebrate',
+        });
+      }
+    }
     setPhase('review');
     setEvidence(null);
     window.scrollTo({ top: 0 });
     const url = new URL(window.location.href);
     url.searchParams.set('attempt', attempt.id);
     router.replace(url.pathname + url.search, { scroll: false });
-  }, [allGroups, qNums, answers, focus, drill, testId, skill, unitNums, mode, startedAt, seconds, resumed, router]);
+  }, [allGroups, qNums, answers, focus, drill, testId, skill, unitNums, mode, startedAt, seconds, resumed, index, router]);
 
   // Hết giờ (thi thử Reading) hoặc hết 2 phút kiểm tra (thi thử Listening)
   const remaining = limit !== null ? limit - seconds : audioDone !== null ? 120 - (seconds - audioDone) : null;
@@ -324,13 +344,13 @@ export default function TestRoom(props: RoomProps) {
       <div className="flex min-h-dvh items-center justify-center p-6 text-center text-muted">
         {store ? (
           <div>
-            <p>Không tìm thấy bài làm này trên máy.</p>
+            <p>This attempt wasn’t found on this device.</p>
             <Link href="/practice" className="btn-ghost mt-4">
-              Về thư viện đề
+              Back to Practice
             </Link>
           </div>
         ) : (
-          'Đang tải…'
+          'Loading…'
         )}
       </div>
     );
@@ -360,14 +380,16 @@ export default function TestRoom(props: RoomProps) {
               onClick={() => setOnlyWrong(w)}
               className={`rounded-md px-3 py-1 font-medium ${onlyWrong === w ? 'bg-ink text-paper' : 'text-ink-2'}`}
             >
-              {w ? `Chỉ câu sai (${wrongNums.length})` : `Tất cả (${qNums.length})`}
+              {w ? `Missed only (${wrongNums.length})` : `All (${qNums.length})`}
             </button>
           ))}
         </div>
-        {onlyWrong && visibleGroups(unit).length === 0 && <span className="text-muted">{isReading ? 'Passage' : 'Part'} này không có câu sai.</span>}
+        {onlyWrong && visibleGroups(unit).length === 0 && (
+          <span className="text-muted">No missed questions in this {isReading ? 'passage' : 'part'}.</span>
+        )}
         {dictationItems.length > 0 && (
           <button className="btn-ghost ml-auto" onClick={() => setDictating(true)}>
-            <Headphones size={15} /> Chép chính tả {dictationItems.length} đoạn nghe sai
+            <Headphones size={15} /> Dictation for {dictationItems.length} missed {dictationItems.length === 1 ? 'clip' : 'clips'}
           </button>
         )}
       </div>
@@ -378,12 +400,12 @@ export default function TestRoom(props: RoomProps) {
 
   return (
     <div className="flex h-dvh flex-col bg-paper" style={{ ['--passage-size' as string]: `${fontSize}px` }}>
-      {/* ---------- Thanh trên ---------- */}
+      {/* ---------- Top bar ---------- */}
       <header className="flex h-14 shrink-0 items-center gap-2 border-b border-line bg-surface px-3 sm:px-4">
         <button
           className="btn-quiet"
           onClick={() => (phase === 'doing' ? setConfirm('exit') : router.push(home))}
-          aria-label="Thoát"
+          aria-label="Exit"
         >
           {phase === 'doing' ? <X size={18} /> : <ArrowLeft size={18} />}
         </button>
@@ -397,7 +419,7 @@ export default function TestRoom(props: RoomProps) {
           <div className="flex items-center gap-1.5 overflow-hidden text-xs whitespace-nowrap text-muted">
             {isReading ? <BookOpen size={12} /> : <Headphones size={12} />}
             {isReading ? 'Reading' : 'Listening'}
-            {drill ? ' · luyện theo dạng' : focus?.length ? ' · làm lại câu sai' : mode === 'exam' ? ' · thi thử' : ' · luyện tập'}
+            {drill ? ' · type drill' : focus?.length ? ' · mistake retry' : mode === 'exam' ? ' · exam mode' : ' · practice mode'}
           </div>
         </div>
 
@@ -421,10 +443,10 @@ export default function TestRoom(props: RoomProps) {
         <div className="ml-auto flex shrink-0 items-center gap-1">
           {isReading && (
             <div className="mr-1 hidden items-center sm:flex">
-              <button className="btn-quiet px-2" onClick={() => changeFont(-1)} aria-label="Chữ nhỏ hơn">
+              <button className="btn-quiet px-2" onClick={() => changeFont(-1)} aria-label="Decrease font size">
                 <AArrowDown size={17} />
               </button>
-              <button className="btn-quiet px-2" onClick={() => changeFont(1)} aria-label="Chữ lớn hơn">
+              <button className="btn-quiet px-2" onClick={() => changeFont(1)} aria-label="Increase font size">
                 <AArrowUp size={17} />
               </button>
             </div>
@@ -434,7 +456,7 @@ export default function TestRoom(props: RoomProps) {
               className={`num mr-1 flex items-center gap-1.5 rounded-md px-1.5 py-1 text-[14px] font-semibold sm:mr-2 sm:px-2 ${
                 remaining !== null && remaining < 300 ? 'bg-bad-soft text-bad' : 'text-ink-2'
               }`}
-              title={remaining !== null ? 'Thời gian còn lại' : 'Thời gian đã làm'}
+              title={remaining !== null ? 'Time remaining' : 'Time elapsed'}
             >
               <Clock size={14} />
               {remaining !== null ? fmtClock(remaining) : fmtClock(seconds)}
@@ -442,7 +464,7 @@ export default function TestRoom(props: RoomProps) {
           )}
           {phase === 'doing' ? (
             <button className="btn-primary whitespace-nowrap" onClick={() => (unanswered ? setConfirm('submit') : submit())}>
-              Nộp bài
+              Submit
             </button>
           ) : (
             <Link
@@ -450,13 +472,13 @@ export default function TestRoom(props: RoomProps) {
               className="btn-ghost whitespace-nowrap"
               onClick={() => setPhase('intro')}
             >
-              Làm lại
+              Try again
             </Link>
           )}
         </div>
       </header>
 
-      {/* ---------- Nội dung ---------- */}
+      {/* ---------- Main content ---------- */}
       {isReading ? (
         <>
           <div className="flex border-b border-line bg-surface lg:hidden">
@@ -466,7 +488,7 @@ export default function TestRoom(props: RoomProps) {
                 onClick={() => setMobilePane(k)}
                 className={`flex-1 py-2 text-[13px] font-semibold ${mobilePane === k ? 'border-b-2 border-ink text-ink' : 'text-muted'}`}
               >
-                {k === 'text' ? 'Bài đọc' : 'Câu hỏi'}
+                {k === 'text' ? 'Passage' : 'Questions'}
               </button>
             ))}
           </div>
@@ -519,7 +541,7 @@ export default function TestRoom(props: RoomProps) {
               />
               {isListeningExam && audioDone !== null && (
                 <p className="mt-2 rounded-md bg-ember-soft px-3 py-1.5 text-center text-[13px] font-medium text-ember">
-                  Audio đã hết. Bạn còn 2 phút để kiểm tra lại câu trả lời.
+                  Audio finished. You have 2 minutes left to check your answers.
                 </p>
               )}
               </div>
@@ -548,7 +570,7 @@ export default function TestRoom(props: RoomProps) {
                 {filterBar}
                 {visibleGroups(unit).map(g => (
                   <div key={g.from} className={g.image ? '' : narrow}>
-                    <GroupView g={g} {...groupProps} locateLabel="Xem trong transcript" />
+                    <GroupView g={g} {...groupProps} locateLabel="Locate in transcript" />
                   </div>
                 ))}
                 {!isListeningExam && (
@@ -595,10 +617,10 @@ export default function TestRoom(props: RoomProps) {
             className={`btn-quiet shrink-0 ${current && flagged.includes(current) ? 'text-ember' : ''}`}
             disabled={!current}
             onClick={() => current && setFlagged(f => (f.includes(current) ? f.filter(x => x !== current) : [...f, current]))}
-            title="Đánh dấu câu để xem lại"
+            title="Flag question for review"
           >
             <Flag size={16} />
-            <span className="hidden sm:inline">Đánh dấu</span>
+            <span className="hidden sm:inline">Flag</span>
           </button>
         )}
       </footer>
@@ -611,30 +633,32 @@ export default function TestRoom(props: RoomProps) {
             <SealMascot pose="encourage" size={56} className="mx-auto mb-2" />
             {confirm === 'submit' ? (
               <>
-                <p className="font-semibold">Nộp bài khi còn {unanswered} câu bỏ trống?</p>
+                <p className="font-semibold">
+                  Submit with {unanswered} unanswered {unanswered === 1 ? 'question' : 'questions'}?
+                </p>
                 <p className="mt-1 text-sm text-muted">
                   {tooFew
-                    ? `Bạn mới trả lời ${qNums.length - unanswered}/${qNums.length} câu. Nộp bây giờ thì bài này không được tính là đã làm và không tính vào chuỗi ngày.`
-                    : 'Trong phòng thi thật, đoán vẫn tốt hơn bỏ trống vì không bị trừ điểm.'}
+                    ? `You've only answered ${qNums.length - unanswered}/${qNums.length} questions. Submitting now won't count as completed or extend your streak.`
+                    : 'In the real exam, guessing is better than leaving a blank since there is no penalty for wrong answers.'}
                 </p>
               </>
             ) : (
               <>
-                <p className="font-semibold">Tạm rời bài làm?</p>
-                <p className="mt-1 text-sm text-muted">Câu trả lời đã được lưu nháp. Lần sau mở lại đề này bạn có thể làm tiếp.</p>
+                <p className="font-semibold">Leave this test for now?</p>
+                <p className="mt-1 text-sm text-muted">Your answers are saved as a draft. You can pick up where you left off anytime.</p>
               </>
             )}
             <div className="mt-5 flex justify-end gap-2">
               <button className="btn-quiet" onClick={() => setConfirm(null)}>
-                Ở lại
+                Stay
               </button>
               {confirm === 'submit' ? (
                 <button className="btn-primary" onClick={submit}>
-                  Nộp bài
+                  Submit
                 </button>
               ) : (
                 <button className="btn-primary" onClick={() => router.push(home)}>
-                  Rời bài
+                  Leave
                 </button>
               )}
             </div>
@@ -677,20 +701,20 @@ function Intro(p: {
   onStart: (resume: boolean) => void;
 }) {
   const reading = p.skill === 'reading';
-  const examTime = reading ? `${p.units.length * 20} phút, hết giờ tự nộp` : 'Audio phát một lần, không dừng, không tua';
+  const examTime = reading ? `${p.units.length * 20} min, auto-submits when time is up` : 'Audio plays once — no pausing or rewinding';
   const modes = [
     {
       k: 'practice' as const,
-      name: 'Luyện tập',
-      desc: reading ? 'Không giới hạn giờ. Tô sáng, lưu từ thoải mái.' : 'Nghe tua lại được, chỉnh tốc độ, dừng khi cần.',
+      name: 'Practice',
+      desc: reading ? 'Untimed. Highlight text and save words freely.' : 'Replay audio, adjust speed, and pause anytime.',
     },
-    { k: 'exam' as const, name: 'Thi thử', desc: examTime },
+    { k: 'exam' as const, name: 'Exam', desc: examTime },
   ];
   return (
     <div className="flex min-h-dvh items-center justify-center bg-paper p-4">
       <div className="w-full max-w-lg">
         <Link href={p.home} className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-ink">
-          <ArrowLeft size={15} /> {p.drill ? 'Kỹ năng' : 'Thư viện đề'}
+          <ArrowLeft size={15} /> {p.drill ? 'Skills' : 'Practice library'}
         </Link>
         <div className="card mt-4 p-6 sm:p-8">
           <div className="flex items-start justify-between gap-4">
@@ -698,7 +722,7 @@ function Intro(p: {
               <p className="eyebrow">{p.title}</p>
               <h1 className="mt-2 font-serif text-[28px] leading-tight font-semibold">
                 {reading ? 'Reading' : 'Listening'}
-                {p.units.length === 1 ? ` · ${p.units[0].label}` : ' · cả bài'}
+                {p.units.length === 1 ? ` · ${p.units[0].label}` : ' · Full test'}
               </h1>
             </div>
             <SealMascot pose={reading ? 'reading' : 'listening'} size={78} className="hidden sm:block" />
@@ -713,30 +737,30 @@ function Intro(p: {
           </ul>
           <p className="mt-4 text-sm text-ink-2">
             {p.drill && p.focus?.length
-              ? `Luyện theo dạng: câu ${p.focus[0]}–${p.focus[p.focus.length - 1]} (${p.count} câu)`
+              ? `Type drill: Questions ${p.focus[0]}–${p.focus[p.focus.length - 1]} (${p.count} ${p.count === 1 ? 'question' : 'questions'})`
               : p.focus?.length
-                ? `Làm lại ${p.count} câu đã sai: ${p.focus.join(', ')}`
-                : `${p.count} câu hỏi`}
+                ? `Retry ${p.count} missed ${p.count === 1 ? 'question' : 'questions'}: ${p.focus.join(', ')}`
+                : `${p.count} ${p.count === 1 ? 'question' : 'questions'}`}
           </p>
           {!reading && p.focus?.length ? (
             <p className="mt-1 text-sm text-muted">
               {p.startAt === undefined
-                ? 'Audio phát từ đầu Part. Nghe tới đoạn của các câu này rồi trả lời.'
+                ? 'Audio starts from the beginning of the part. Listen until the section for these questions.'
                 : p.startAt > 0
-                  ? `Audio được tua sẵn tới ${fmtClock(p.startAt)}, ngay trước đoạn của các câu này. Bấm phát khi sẵn sàng.`
-                  : 'Các câu này nằm ở đoạn đầu: nghe từ đầu Part.'}
+                  ? `Audio is queued to ${fmtClock(p.startAt)}, right before these questions. Press play when ready.`
+                  : 'These questions appear near the start — listen from the beginning of the part.'}
             </p>
           ) : null}
           {p.hints.length > 0 && (
             <div className="mt-5 rounded-lg border border-dashed border-line-strong px-4 py-3 text-sm">
-              <p className="text-ink-2">Phần này có dạng câu bạn chưa học cách làm:</p>
+              <p className="text-ink-2">This section includes question types you haven’t studied yet:</p>
               <ul className="mt-1.5 space-y-1">
                 {p.hints.map(h => (
                   <li key={h.slug}>
                     <Link href={`/skills/${h.slug}`} className="font-semibold text-accent hover:underline">
                       {h.title}
                     </Link>
-                    <span className="text-muted"> · {h.minutes} phút</span>
+                    <span className="text-muted"> · {h.minutes} min</span>
                   </li>
                 ))}
               </ul>
@@ -763,18 +787,18 @@ function Intro(p: {
           <div className="mt-6 flex flex-wrap gap-2">
             {p.hasDraft && (
               <button className="btn-primary" onClick={() => p.onStart(true)}>
-                Làm tiếp bài dở
+                Resume draft
               </button>
             )}
             <button className={p.hasDraft ? 'btn-ghost' : 'btn-primary'} onClick={() => p.onStart(false)}>
-              {p.hasDraft ? 'Làm lại từ đầu' : 'Bắt đầu'}
+              {p.hasDraft ? 'Start over' : 'Start'}
             </button>
           </div>
           {p.hasDraft && p.mode === 'exam' && !p.focus?.length && (
-            <p className="mt-3 text-xs text-muted">Bài thi thử làm tiếp sau khi bị gián đoạn vẫn được chữa như thường nhưng không tính vào band.</p>
+            <p className="mt-3 text-xs text-muted">Resumed exam attempts are still graded as usual, but won’t count toward your estimated band.</p>
           )}
           {!reading && (
-            <p className="mt-4 text-xs text-muted">Đeo tai nghe. Khi luyện tập: Space để dừng/phát, ← → để tua 5 giây.</p>
+            <p className="mt-4 text-xs text-muted">Use headphones. In practice mode: Space to play/pause, ← → to skip 5 seconds.</p>
           )}
         </div>
       </div>

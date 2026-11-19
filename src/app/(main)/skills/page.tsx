@@ -3,7 +3,7 @@ import { connection } from 'next/server';
 import { getDrillGroups, writtenLessons } from '@/lib/learn';
 import Skills from '@/components/Skills';
 
-export const metadata: Metadata = { title: 'Kỹ năng' };
+export const metadata: Metadata = { title: 'Skills' };
 
 export default async function SkillsPage() {
   await connection(); // kho luyện đọc từ content/ mỗi lần mở

@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { Be_Vietnam_Pro, Literata } from 'next/font/google';
+import CelebrationToast from '@/components/CelebrationToast';
+import ReminderManager from '@/components/ReminderManager';
 import './globals.css';
 
 const ui = Be_Vietnam_Pro({
@@ -15,8 +17,8 @@ const read = Literata({
 });
 
 export const metadata: Metadata = {
-  title: { default: 'đều. — tự học IELTS', template: '%s · đều.' },
-  description: 'Luyện Reading & Listening trên đề Cambridge, giải thích từng câu, ôn từ vựng và giữ nhịp học mỗi ngày.',
+  title: { default: 'SealIELTS — IELTS Self-Study', template: '%s · SealIELTS' },
+  description: 'Practice IELTS Reading, Listening, Writing, and Speaking with Cambridge tests, detailed explanations, spaced-repetition vocabulary, and daily study habits.',
   robots: { index: false, follow: false },
 };
 
@@ -26,8 +28,12 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="vi" className={`${ui.variable} ${read.variable}`}>
-      <body className="antialiased">{children}</body>
+    <html lang="en" className={`${ui.variable} ${read.variable}`}>
+      <body className="antialiased">
+        {children}
+        <CelebrationToast />
+        <ReminderManager />
+      </body>
     </html>
   );
 }

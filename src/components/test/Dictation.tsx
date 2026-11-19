@@ -103,29 +103,33 @@ export default function Dictation({ items, onClose }: { items: DictationItem[]; 
       <div className="card w-full max-w-xl p-5 sm:p-6" onMouseDown={e => e.stopPropagation()}>
         <div className="flex items-center justify-between gap-3">
           <p className="eyebrow">
-            Chép chính tả · câu {item.n} · {idx + 1}/{items.length}
+            Dictation · Q{item.n} · {idx + 1}/{items.length}
           </p>
-          <button className="btn-quiet -mr-2" onClick={onClose} aria-label="Đóng">
+          <button className="btn-quiet -mr-2" onClick={onClose} aria-label="Close">
             <X size={16} />
           </button>
         </div>
-        <p className="mt-2 text-sm text-ink-2">Nghe đoạn chứa đáp án của câu bạn làm sai, gõ lại càng sát càng tốt. Được nghe lại bao nhiêu lần cũng được.</p>
+        <p className="mt-2 text-sm text-ink-2">Listen to the clip containing the answer you missed and type what you hear as closely as you can. Replay it as many times as you need.</p>
         <audio ref={audio} src={item.audio} preload="metadata" />
         <div className="mt-4 flex flex-wrap items-center gap-2">
           <button className="btn-primary" onClick={play}>
-            <Headphones size={16} /> {plays ? 'Nghe lại' : 'Nghe'}
+            <Headphones size={16} /> {plays ? 'Replay' : 'Play'}
           </button>
           <label className="flex items-center gap-1.5 text-sm text-ink-2">
-            <input type="checkbox" checked={slow} onChange={e => setSlow(e.target.checked)} /> Chậm (0.75×)
+            <input type="checkbox" checked={slow} onChange={e => setSlow(e.target.checked)} /> Slow (0.75×)
           </label>
-          {plays > 0 && <span className="num ml-auto text-xs text-muted">đã nghe {plays} lần</span>}
+          {plays > 0 && (
+            <span className="num ml-auto text-xs text-muted">
+              played {plays} {plays === 1 ? 'time' : 'times'}
+            </span>
+          )}
         </div>
         <textarea
           className="field mt-3 min-h-24 font-serif text-[16px] leading-relaxed"
           value={typed}
           onChange={e => setTyped(e.target.value)}
           disabled={checked}
-          placeholder="Gõ những gì bạn nghe được…"
+          placeholder="Type what you hear…"
           spellCheck={false}
           autoFocus
           onKeyDown={e => {
@@ -142,14 +146,14 @@ export default function Dictation({ items, onClose }: { items: DictationItem[]; 
               ))}
             </p>
             <p className="num mt-2 text-sm text-ink-2">
-              Chép đúng {res.ok}/{res.all} từ. Từ đỏ là chỗ bạn nghe sót hoặc viết sai: nghe lại và để ý đúng những chỗ đó.
+              {res.ok}/{res.all} words matched. Red words were missed or misspelled — replay the clip and listen closely for them.
             </p>
           </div>
         )}
         <div className="mt-4 flex flex-wrap justify-end gap-2">
           {!checked ? (
             <button className="btn-ghost" disabled={!typed.trim()} onClick={() => setChecked(true)}>
-              <Check size={16} /> So với transcript
+              <Check size={16} /> Check transcript
             </button>
           ) : (
             <button
@@ -159,16 +163,16 @@ export default function Dictation({ items, onClose }: { items: DictationItem[]; 
                 setTyped('');
               }}
             >
-              <RotateCcw size={15} /> Chép lại câu này
+              <RotateCcw size={15} /> Try again
             </button>
           )}
           {idx + 1 < items.length ? (
             <button className="btn-primary" onClick={next}>
-              Câu tiếp <ArrowRight size={15} />
+              Next <ArrowRight size={15} />
             </button>
           ) : (
             <button className="btn-primary" onClick={onClose}>
-              Xong
+              Done
             </button>
           )}
         </div>
