@@ -42,6 +42,20 @@ export function useMounted(): boolean {
   return useSyncExternalStore(noop, () => true, () => false);
 }
 
+// ---- Hỏi lại trước khi đóng tab khi đang có việc chưa xong (vd. AI đang chấm bài) ----
+
+export function useLeaveWarning(active: boolean) {
+  useEffect(() => {
+    if (!active) return;
+    const onBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', onBeforeUnload);
+    return () => window.removeEventListener('beforeunload', onBeforeUnload);
+  }, [active]);
+}
+
 // ---- Tuỳ chọn nhỏ lưu trong localStorage ----
 
 const prefListeners = new Set<() => void>();

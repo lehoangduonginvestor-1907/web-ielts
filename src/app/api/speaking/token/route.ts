@@ -28,10 +28,12 @@ export async function POST(req: Request) {
       },
     });
 
-    return Response.json({
-      token: token.name,
-      model: 'gemini-3.8-live-extended-thinking',
-    });
+    // Tên model Live đổi được qua biến môi trường (Google hay đổi tên model Live theo phiên bản)
+    const models = {
+      extended: process.env.GEMINI_LIVE_MODEL?.trim() || 'gemini-3.8-live-extended-thinking',
+      standard: process.env.GEMINI_LIVE_FAST_MODEL?.trim() || 'gemini-3.8-live',
+    };
+    return Response.json({ token: token.name, model: models.extended, models });
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Unable to start a live Speaking session.';
     return Response.json({ error: msg }, { status: 500 });

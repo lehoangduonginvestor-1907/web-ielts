@@ -1,6 +1,7 @@
 import { currentRole } from '@/lib/session';
-import { createStructuredGrade, prepareAudioContent, SPEAKING_GRADE_MODELS } from '@/lib/geminiGrade';
+import { createStructuredGrade, prepareAudioContent, speakingGradeModels } from '@/lib/geminiGrade';
 import { MANUAL_GRADE_LABEL } from '@/lib/manualGrade';
+import { bandProblem, dedupeGrade, hashKey, missingBands } from '@/lib/gradeGuard';
 import { extractJson } from '@/lib/textGrade';
 import { overallBand, SPEAKING_FC, SPEAKING_GRA, SPEAKING_LR, SPEAKING_P, wholeBand } from '@/lib/ieltsRubric';
 import { findSpeakingTopic } from '@/lib/speakingTopics';
@@ -10,6 +11,7 @@ import type { SpeakingFeedback, SpeakingMode, SpeakingPartNum, SpeakingSentenceF
 export const maxDuration = 300;
 
 const MAX_AUDIO_BYTES = 40 * 1024 * 1024;
+const SPEAKING_CRITERIA = ['fc', 'lr', 'gra', 'p'] as const;
 
 type Crit = 'fc' | 'lr' | 'gra' | 'p';
 
@@ -310,14 +312,18 @@ export async function POST(req: Request) {
     } catch {
       raw = null;
     }
-    if (
-      !raw ||
-      typeof raw !== 'object' ||
-      !raw.assessment ||
-      (!raw.assessment.fc && !raw.assessment.lr && !raw.assessment.gra && !raw.assessment.p)
-    ) {
+    if (!raw || typeof raw !== 'object' || !raw.assessment) {
       return Response.json(
         { error: 'The pasted text is not valid Speaking grading JSON. Copy the entire JSON block from Gemini and try again.' },
+        { status: 400 },
+      );
+    }
+    const missing = raw.listeningCheck?.candidateAudible === false ? [] : missingBands(raw.assessment, SPEAKING_CRITERIA);
+    if (missing.length) {
+      return Response.json(
+        {
+          error: `The pasted JSON has no band score for ${missing.join(', ')}. It may have been cut off — copy the entire JSON block from Gemini and try again.`,
+        },
         { status: 400 },
       );
     }
@@ -405,30 +411,39 @@ ${topic.part3.questions.map(q => `- ${q}`).join('\n')}
 
 Listen to the whole attached recording now and rate the candidate.`;
 
-  let prepared: Awaited<ReturnType<typeof prepareAudioContent>> | null = null;
-  try {
-    prepared = await prepareAudioContent(apiKey, audio);
-    const { data: raw, model } = await createStructuredGrade<RawSpeakingGrade>({
-      apiKey,
-      models: SPEAKING_GRADE_MODELS,
-      systemInstruction: buildSystemInstruction(),
-      input: [{ type: 'text', text: request }, prepared.content],
-      schema: SPEAKING_GRADE_SCHEMA,
-      thinkingLevel: 'high',
-      // Chừa thời gian để Gemini 3.8 Flash kịp chấm nếu Hydrogen quá chậm
-      timeoutMs: 190_000,
-      budgetMs: 290_000 - (Date.now() - routeStart),
-    });
+  const grade = async () => {
+    let prepared: Awaited<ReturnType<typeof prepareAudioContent>> | null = null;
+    try {
+      prepared = await prepareAudioContent(apiKey, audio);
+      const { data: raw, model } = await createStructuredGrade<RawSpeakingGrade>({
+        apiKey,
+        models: speakingGradeModels(),
+        systemInstruction: buildSystemInstruction(),
+        input: [{ type: 'text', text: request }, prepared.content],
+        schema: SPEAKING_GRADE_SCHEMA,
+        // Không nghe rõ giọng thì được phép thiếu điểm (sẽ báo lỗi micro), còn lại phải đủ bốn tiêu chí
+        validate: r => (r?.listeningCheck?.candidateAudible === false ? null : bandProblem(r?.assessment, SPEAKING_CRITERIA)),
+        thinkingLevel: 'high',
+        // Chừa thời gian để Gemini 3.8 Flash kịp chấm nếu Hydrogen quá chậm
+        timeoutMs: 190_000,
+        budgetMs: 290_000 - (Date.now() - routeStart),
+      });
+      return { ...finalizeSpeakingGrade(raw, { parts, typedAnswers, recordingKind }, model), model };
+    } finally {
+      await prepared?.cleanup();
+    }
+  };
 
-    const out = finalizeSpeakingGrade(raw, { parts, typedAnswers, recordingKind }, model);
+  try {
+    // Cùng bản ghi + cùng thông tin buổi nói trong 30 phút: dùng lại kết quả thay vì nghe và chấm lại
+    const key = hashKey('speaking', JSON.stringify(meta), new Uint8Array(await audio.arrayBuffer()));
+    const out = await dedupeGrade(key, grade);
     if (!out.feedback) {
       return Response.json({ error: out.error || 'Could not grade this Speaking session.' }, { status: out.status ?? 422 });
     }
-    return Response.json({ feedback: out.feedback, model });
+    return Response.json({ feedback: out.feedback, model: out.model });
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'An error occurred while grading Speaking.';
     return Response.json({ error: msg }, { status: 500 });
-  } finally {
-    await prepared?.cleanup();
   }
 }

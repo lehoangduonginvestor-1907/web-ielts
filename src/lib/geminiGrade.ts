@@ -5,13 +5,28 @@ import { GoogleGenAI } from '@google/genai';
 //   để cùng một bài không lúc chấm bằng model mạnh, lúc bằng model nhẹ.
 // - Chấp nhận đầu vào nhiều phần (văn bản + audio).
 
-/** Speaking phải nghe audio → chỉ model đa phương thức mạnh của Gemini, đều ở mức suy luận high. */
-export const SPEAKING_GRADE_MODELS = ['gemini-4-hydrogen', 'gemini-3.8-flash'] as const;
+const DEFAULT_GRADE_MODELS = ['gemini-4-hydrogen', 'gemini-3.8-flash'];
+
 /**
- * Writing ưu tiên model ngoài Gemini (xem textGrade.ts) để dành hạn mức Gemini cho Speaking.
- * Chỉ khi chưa cấu hình key nào khác mới dùng Gemini 3.8 Flash (không đụng Hydrogen).
+ * Danh sách model đọc từ biến môi trường (phân tách bằng dấu phẩy), rỗng thì dùng mặc định.
+ * Google đổi tên hoặc ngừng một model thì chỉ cần sửa biến trên Vercel, không phải sửa code.
  */
-export const WRITING_GEMINI_FALLBACK = ['gemini-3.8-flash'] as const;
+export function modelsFromEnv(name: string, fallback: readonly string[]): string[] {
+  const list = (process.env[name] ?? '')
+    .split(',')
+    .map(s => s.trim())
+    .filter(Boolean);
+  return list.length ? [...new Set(list)] : [...fallback];
+}
+
+/** Speaking phải nghe audio → chỉ model đa phương thức mạnh của Gemini, đều ở mức suy luận high. Biến: SPEAKING_GRADE_MODELS. */
+export const speakingGradeModels = () => modelsFromEnv('SPEAKING_GRADE_MODELS', DEFAULT_GRADE_MODELS);
+/**
+ * Writing cũng chấm bằng Gemini trước (Hydrogen rồi 3.8 Flash); chỉ khi cả hai lỗi mới chuyển sang
+ * model ngoài Gemini (NVIDIA / Groq / OpenRouter, xem textGrade.ts). Biến: WRITING_GEMINI_MODELS.
+ * Lưu ý: Writing và Speaking dùng chung hạn mức Hydrogen (gói miễn phí ~20 lượt/ngày).
+ */
+export const writingGeminiModels = () => modelsFromEnv('WRITING_GEMINI_MODELS', DEFAULT_GRADE_MODELS);
 
 /** Seed cố định giúp chấm lại cùng một bài cho kết quả ổn định hơn. */
 const GRADE_SEED = 20260407;
@@ -65,6 +80,8 @@ export async function createStructuredGrade<T>({
   thinkingLevel = 'high',
   timeoutMs = 180_000,
   budgetMs = 285_000,
+  validate,
+  retryOverloadedLast = true,
 }: {
   apiKey: string;
   models: readonly string[];
@@ -72,10 +89,17 @@ export async function createStructuredGrade<T>({
   input: string | GradeContent[];
   schema: Record<string, unknown>;
   thinkingLevel?: ThinkingLevel;
+  /** Kiểm tra nội dung kết quả (vd. đủ điểm từng tiêu chí); trả lời báo lỗi thì coi như JSON hỏng và chấm lại. */
+  validate?: (data: T) => string | null;
   /** Thời gian tối đa cho MỘT lần gọi. */
   timeoutMs?: number;
   /** Tổng thời gian cho mọi lần thử (phải nhỏ hơn maxDuration của route). */
   budgetMs?: number;
+  /**
+   * Model cuối danh sách quá tải (503) thì có chờ rồi thử lại không. Để false khi phía sau còn bộ chấm dự phòng
+   * khác (Writing có NVIDIA), để thời gian dành cho bộ dự phòng đó.
+   */
+  retryOverloadedLast?: boolean;
 }): Promise<{ data: T; model: string }> {
   let lastErr: unknown;
   const deadline = Date.now() + budgetMs;
@@ -95,7 +119,7 @@ export async function createStructuredGrade<T>({
       generation_config: { thinking_level: thinkingLevel, seed: GRADE_SEED },
     };
 
-    // Mỗi model: tối đa 3 lần cho lỗi tạm thời (503 quá tải/500, JSON hỏng), nghỉ 5s rồi 15s. Giữ ít lần thử vì mỗi lần
+    // Mỗi model: tối đa 3 lần cho lỗi tạm thời (500, JSON hỏng, 503 ở model cuối), nghỉ 5s rồi 15s. Giữ ít lần thử vì mỗi lần
     // gọi có thể bị tính vào hạn mức theo ngày (Free Tier của Hydrogen chỉ 20 lượt/ngày).
     // Hết giờ thì KHÔNG thử lại cùng model (một lượt chấm chậm lặp lại cũng sẽ chậm), mà chuyển model kế tiếp nếu còn thời gian.
     const BACKOFF = [5000, 15000];
@@ -131,6 +155,12 @@ export async function createStructuredGrade<T>({
             lastErr = new Error(`${model}: model unavailable for this API key (${msg})`);
             break;
           }
+          // 503 = model đang quá tải ("high demand"): đợt quá tải hiếm khi hết sau 5–15 giây, nên chuyển ngay
+          // sang model kế tiếp thay vì chờ thử lại. Chỉ thử lại khi đây là lựa chọn cuối cùng (không còn dự phòng).
+          if (r.status === 503 && !(model === models[models.length - 1] && retryOverloadedLast)) {
+            lastErr = new Error(`${model} is overloaded right now (${msg})`);
+            break;
+          }
           if (r.status === 503 || r.status === 500) throw new RetryableError(`${model}: ${msg}`);
           throw new Error(msg);
         }
@@ -143,6 +173,8 @@ export async function createStructuredGrade<T>({
         } catch {
           throw new RetryableError(`${model} returned malformed JSON.`);
         }
+        const problem = validate?.(data);
+        if (problem) throw new RetryableError(`${model} returned an incomplete grade (${problem}).`);
         console.info(`[grade] ${model} finished in ${Math.round((Date.now() - started) / 1000)}s`);
         return { data, model };
       } catch (err) {

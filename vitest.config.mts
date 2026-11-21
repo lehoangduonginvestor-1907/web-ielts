@@ -6,7 +6,11 @@ process.env.TZ = 'Asia/Ho_Chi_Minh';
 
 export default defineConfig({
   resolve: {
-    alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
+    alias: {
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+      // Gói đánh dấu "chỉ chạy trên máy chủ": ngoài Next nó luôn báo lỗi, nên trong test thay bằng bản rỗng
+      'server-only': fileURLToPath(new URL('./node_modules/server-only/empty.js', import.meta.url)),
+    },
   },
   test: {
     environment: 'node',

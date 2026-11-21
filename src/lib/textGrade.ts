@@ -1,5 +1,5 @@
-// Chấm bài dạng văn bản (Writing) bằng model NGOÀI Gemini qua API chuẩn OpenAI (chat/completions),
-// để dành hạn mức Gemini cho Speaking (cần nghe audio).
+// Chấm bài dạng văn bản (Writing) bằng model NGOÀI Gemini qua API chuẩn OpenAI (chat/completions).
+// Đây là lớp dự phòng cuối: Writing chấm bằng Gemini 4 Hydrogen → 3.8 Flash trước, cả hai lỗi mới tới đây.
 //
 // Nhà cung cấp được bật khi có key trong biến môi trường; thứ tự thử đặt bằng WRITING_PROVIDERS
 // (mặc định "nvidia,groq,openrouter"):
@@ -185,6 +185,7 @@ export async function createStructuredTextGrade<T>({
   schema,
   timeoutMs = 150_000,
   budgetMs = 285_000,
+  validate,
 }: {
   providers: TextProvider[];
   systemInstruction: string;
@@ -192,6 +193,8 @@ export async function createStructuredTextGrade<T>({
   schema: Record<string, unknown>;
   timeoutMs?: number;
   budgetMs?: number;
+  /** Kiểm tra nội dung kết quả (vd. đủ điểm từng tiêu chí); trả lời báo lỗi thì coi như JSON hỏng và chấm lại. */
+  validate?: (data: T) => string | null;
 }): Promise<{ data: T; model: string }> {
   const deadline = Date.now() + budgetMs;
   let lastErr: unknown;
@@ -256,14 +259,21 @@ export async function createStructuredTextGrade<T>({
 
         const choice = j.choices?.[0];
         const raw = choice?.message?.content?.trim() ?? '';
+        let problem = '';
         try {
           if (!raw) throw new Error('empty');
           const data = JSON.parse(extractJson(raw)) as T;
+          problem = validate?.(data) ?? '';
+          if (problem) throw new Error(problem);
           console.info(`[grade] ${tag} finished in ${secs}s`);
           return { data, model: providerLabel(p) };
         } catch {
-          lastErr = new Error(`${providerLabel(p)} returned empty or malformed JSON (finish_reason: ${choice?.finish_reason ?? '?'})`);
-          console.warn(`[grade] ${tag} malformed/empty JSON after ${secs}s, finish_reason=${choice?.finish_reason}`);
+          lastErr = new Error(
+            problem
+              ? `${providerLabel(p)} returned an incomplete grade (${problem})`
+              : `${providerLabel(p)} returned empty or malformed JSON (finish_reason: ${choice?.finish_reason ?? '?'})`,
+          );
+          console.warn(`[grade] ${tag} ${problem || 'malformed/empty JSON'} after ${secs}s, finish_reason=${choice?.finish_reason}`);
           if (retries > 0) break;
           retries++;
           // Truncated due to token limit: lower reasoning effort to leave room for JSON

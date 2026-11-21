@@ -51,6 +51,8 @@ import {
   useStore,
 } from '@/lib/store';
 import { geminiHeaders } from '@/lib/geminiKey';
+import { readGradeResponse } from '@/lib/gradeClient';
+import { useLeaveWarning } from '@/lib/hooks';
 import { buildSpeakingManualPrompt } from '@/lib/manualGrade';
 import { speakingTierOf } from '@/lib/progress';
 import { fmtBand } from '@/lib/band';
@@ -157,7 +159,7 @@ export default function SpeakingRoom({ topic, attemptId }: { topic: SpeakingTopi
   const [pickedMode, setMode] = useState<SpeakingMode | null>(null);
   const sTier = store ? speakingTierOf(store) : 0;
   const mode: SpeakingMode = pickedMode ?? (sTier >= 2 ? 'full' : sTier === 1 ? 'part3' : 'part1');
-  const [liveModel, setLiveModel] = useState<'gemini-3.8-live-extended-thinking' | 'gemini-3.8-live'>('gemini-3.8-live-extended-thinking');
+  const [liveMode, setLiveMode] = useState<'extended' | 'standard'>('extended');
   const [stage, setStage] = useState<UiStage>('part1');
   const [seconds, setSeconds] = useState(0);
   const [prepLeft, setPrepLeft] = useState(60);
@@ -174,6 +176,7 @@ export default function SpeakingRoom({ topic, attemptId }: { topic: SpeakingTopi
   const [textInput, setTextInput] = useState('');
   const [activeAttemptId, setActiveAttemptId] = useState<string | null>(attemptId ?? null);
   const [grading, setGrading] = useState(false);
+  useLeaveWarning(grading); // đóng tab giữa chừng thì mất kết quả mà vẫn tốn một lượt chấm
   const [gradeErr, setGradeErr] = useState('');
   const [recordingUrl, setRecordingUrl] = useState<string | null>(null);
   const [recordingExt, setRecordingExt] = useState('webm');
@@ -429,9 +432,7 @@ export default function SpeakingRoom({ topic, attemptId }: { topic: SpeakingTopi
           headers: { ...geminiHeaders() },
           body: form,
         });
-        const data = (await res.json().catch(() => ({}))) as { feedback?: SpeakingFeedback; error?: string };
-        if (res.status === 413) throw new Error(data.error || 'The audio recording is too large to upload for grading.');
-        if (!res.ok || !data.feedback) throw new Error(data.error || 'Could not grade this Speaking session.');
+        const data = await readGradeResponse<{ feedback?: SpeakingFeedback; error?: string }>(res, 'Could not grade this Speaking session.');
         updateSpeakingAttempt(attempt.id, a => {
           a.feedback = data.feedback;
         });
@@ -484,10 +485,7 @@ export default function SpeakingRoom({ topic, attemptId }: { topic: SpeakingTopi
             manualJson: trimmed,
           }),
         });
-        const data = (await res.json().catch(() => ({}))) as { feedback?: SpeakingFeedback; error?: string };
-        if (!res.ok || !data.feedback) {
-          throw new Error(data.error || 'Could not parse this JSON result.');
-        }
+        const data = await readGradeResponse<{ feedback?: SpeakingFeedback; error?: string }>(res, 'Could not parse this JSON result.');
         updateSpeakingAttempt(attempt.id, a => {
           a.feedback = data.feedback;
         });
@@ -579,7 +577,11 @@ export default function SpeakingRoom({ topic, attemptId }: { topic: SpeakingTopi
         method: 'POST',
         headers: { ...geminiHeaders() },
       });
-      const tokData = (await tokRes.json()) as { token?: string; model?: string; error?: string };
+      const tokData = (await tokRes.json().catch(() => ({}))) as {
+        token?: string;
+        models?: { extended?: string; standard?: string };
+        error?: string;
+      };
       if (!tokRes.ok || !tokData.token) {
         throw new Error(tokData.error || 'Could not obtain a Live API session token.');
       }
@@ -611,7 +613,9 @@ export default function SpeakingRoom({ topic, attemptId }: { topic: SpeakingTopi
         const mimeType = pickRecorderMime();
         const recorder = new MediaRecorder(mixDest.stream, {
           ...(mimeType ? { mimeType } : {}),
-          audioBitsPerSecond: 32000,
+          // 24 kbps Opus vẫn rõ giọng nói (Gemini tự hạ audio xuống ~16 kbps khi nghe), mà buổi nói
+          // dài tới ~25 phút vẫn lọt giới hạn 4,5 MB mỗi yêu cầu của Vercel (32 kbps chỉ ~18 phút).
+          audioBitsPerSecond: 24000,
         });
         recorder.ondataavailable = ev => {
           if (ev.data.size > 0) audioChunksRef.current.push(ev.data);
@@ -672,7 +676,8 @@ Examiner Conduct Rules (follow strictly — this is an exam, not a lesson):
         },
       };
 
-      const isExtended = liveModel === 'gemini-3.8-live-extended-thinking';
+      const isExtended = liveMode === 'extended';
+      const liveModel = tokData.models?.[liveMode] ?? (isExtended ? 'gemini-3.8-live-extended-thinking' : 'gemini-3.8-live');
       const session = await ai.live.connect({
         model: liveModel,
         config: {
@@ -888,15 +893,15 @@ Examiner Conduct Rules (follow strictly — this is an exam, not a lesson):
               <div className="inline-flex rounded-lg border border-line-strong bg-surface p-0.5">
                 <button
                   type="button"
-                  onClick={() => setLiveModel('gemini-3.8-live-extended-thinking')}
-                  className={`rounded-md px-2.5 py-1 font-medium ${liveModel === 'gemini-3.8-live-extended-thinking' ? 'bg-ink text-paper' : 'text-ink-2'}`}
+                  onClick={() => setLiveMode('extended')}
+                  className={`rounded-md px-2.5 py-1 font-medium ${liveMode === 'extended' ? 'bg-ink text-paper' : 'text-ink-2'}`}
                 >
                   3.8 Extended Thinking
                 </button>
                 <button
                   type="button"
-                  onClick={() => setLiveModel('gemini-3.8-live')}
-                  className={`rounded-md px-2.5 py-1 font-medium ${liveModel === 'gemini-3.8-live' ? 'bg-ink text-paper' : 'text-ink-2'}`}
+                  onClick={() => setLiveMode('standard')}
+                  className={`rounded-md px-2.5 py-1 font-medium ${liveMode === 'standard' ? 'bg-ink text-paper' : 'text-ink-2'}`}
                 >
                   3.8 Live (Faster &amp; lighter)
                 </button>
@@ -1301,7 +1306,7 @@ Examiner Conduct Rules (follow strictly — this is an exam, not a lesson):
                     </li>
                     <li>
                       Click <strong className="text-ink">✦ Ask Gemini</strong> in the top-right corner of Chrome → select{' '}
-                      <strong className="text-ink">Hydrogen</strong> or <strong className="text-ink">Argon</strong> → click{' '}
+                      <strong className="text-ink">4 Neon</strong> (“Deeper analysis”) or <strong className="text-ink">4 Hydrogen</strong> (faster) → click{' '}
                       <strong className="text-ink">+ → Upload files</strong> to attach the downloaded <code>.{recordingExt}</code> file (or upload at{' '}
                       <a href="https://gemini.google.com" target="_blank" rel="noreferrer" className="font-semibold text-accent underline">
                         gemini.google.com

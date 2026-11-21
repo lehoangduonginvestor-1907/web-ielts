@@ -1,4 +1,4 @@
-# Đưa "đều." lên Vercel (một người học + một người kèm)
+# Đưa SealIELTS lên Vercel (một người học + một người kèm)
 
 App chạy được theo hai kiểu, cùng một mã nguồn:
 
@@ -16,7 +16,11 @@ Kho đề không bao giờ nằm trong git. Trình duyệt chỉ nhận đề v�
    `D:/ielts-data/whisper-venv/Scripts/python.exe tools/compress_audio.py`
 2. **Tạo project trên Vercel** trỏ vào repo GitHub `web-ielts` (Framework: Next.js, giữ mặc định).
 3. **Tạo kho Blob riêng tư**: project → Storage → Create → Blob → chọn **Private**, vùng Singapore, và **tick "Add a read-write token env var"** (app cần `BLOB_READ_WRITE_TOKEN`; mặc định Vercel chỉ thêm `BLOB_STORE_ID`).
-4. **Đặt ba biến môi trường** (Settings → Environment Variables): `LEARNER_CODE`, `COACH_CODE`, `AUTH_SECRET` (xem `env.example`). Sau đó Redeploy.
+4. **Đặt biến môi trường** (Settings → Environment Variables), xem `env.example`:
+   - Đăng nhập: `LEARNER_CODE`, `COACH_CODE`, `AUTH_SECRET`.
+   - AI chấm bài: `GEMINI_API_KEY` (Writing và Speaking), và nên thêm `NVIDIA_API_KEY` (miễn phí) làm dự phòng cho Writing khi Gemini quá tải. Thiếu key dự phòng thì những lúc Gemini quá tải, Writing sẽ báo lỗi và người học phải chấm tay bằng *Grade with My Gemini*.
+
+   Sau đó Redeploy.
 5. **Đẩy kho đề lên Blob** từ máy này: chép dòng `BLOB_READ_WRITE_TOKEN=...` (Storage → kho Blob → tab `.env.local`) vào file `.env.local`, rồi chạy
    `node scripts/upload-content.mjs` (thử trước bằng `--dry` để xem số file và dung lượng).
    Xong thì xoá dòng token khỏi `.env.local` nếu muốn máy này tiếp tục đọc `content/` tại chỗ.

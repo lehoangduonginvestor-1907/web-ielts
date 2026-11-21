@@ -11,8 +11,8 @@ import { MascotBadge, MascotDuo } from './Mascots';
 const ITEMS = [
   { href: '/', label: 'Today', short: 'Today', icon: Home },
   { href: '/practice', label: 'Practice', short: 'Practice', icon: BookOpenText },
-  { href: '/writing', label: 'Writing', short: 'Writing', icon: PenTool },
-  { href: '/speaking', label: 'Speaking', short: 'Speaking', icon: Mic },
+  { href: '/writing', label: 'Writing', short: 'Write', icon: PenTool },
+  { href: '/speaking', label: 'Speaking', short: 'Speak', icon: Mic },
   { href: '/skills', label: 'Skills', short: 'Skills', icon: GraduationCap },
   { href: '/vocab', label: 'Vocab', short: 'Vocab', icon: Layers },
   { href: '/mistakes', label: 'Mistakes', short: 'Mistakes', icon: NotebookPen },
@@ -98,14 +98,16 @@ export default function Nav() {
       </header>
 
       {/* Mobile: bottom bar */}
-      <nav className="scroll-thin fixed inset-x-0 bottom-0 z-30 flex overflow-x-auto border-t border-line bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden">
+      {/* Cả 8 mục chia đều một hàng (không cuộn ngang): trên màn 360–375px mỗi mục còn ~45px */}
+      <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-8 border-t border-line bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden">
         {ITEMS.map(({ href, short, icon: Icon }) => {
           const on = isOn(path, href);
           return (
             <Link
               key={href}
               href={href}
-              className={`flex min-w-14 flex-1 flex-col items-center gap-0.5 py-2 text-[10.5px] font-medium whitespace-nowrap ${on ? 'text-accent' : 'text-muted'}`}
+              aria-current={on ? 'page' : undefined}
+              className={`flex min-w-0 flex-col items-center gap-0.5 py-2 text-[9.5px] font-medium tracking-tight whitespace-nowrap sm:text-[10.5px] ${on ? 'text-accent' : 'text-muted'}`}
             >
               <Icon size={18} strokeWidth={on ? 2.2 : 1.8} />
               {short}

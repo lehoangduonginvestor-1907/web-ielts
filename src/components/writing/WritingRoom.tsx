@@ -33,6 +33,8 @@ import { fmtBand } from '@/lib/band';
 import { fmtClock, fmtDuration } from '@/lib/dates';
 import { writingTierOf } from '@/lib/progress';
 import { geminiHeaders } from '@/lib/geminiKey';
+import { readGradeResponse } from '@/lib/gradeClient';
+import { useLeaveWarning } from '@/lib/hooks';
 import {
   buildWritingManualPrompt,
   buildWritingSocraticPrompt,
@@ -70,6 +72,7 @@ export default function WritingRoom({ prompt, attemptId }: { prompt: WritingProm
   const [seconds, setSeconds] = useState(0);
   const [startedAt, setStartedAt] = useState(0);
   const [grading, setGrading] = useState(false);
+  useLeaveWarning(grading); // đóng tab giữa chừng thì mất kết quả mà vẫn tốn một lượt chấm
   const [gradeErr, setGradeErr] = useState('');
   const [activeAttemptId, setActiveAttemptId] = useState<string | null>(attemptId ?? null);
   const [selectedFix, setSelectedFix] = useState<number | null>(null);
@@ -188,10 +191,7 @@ export default function WritingRoom({ prompt, attemptId }: { prompt: WritingProm
             essay: attempt.text,
           }),
         });
-        const data = (await res.json()) as { feedback?: WritingFeedback; error?: string };
-        if (!res.ok || !data.feedback) {
-          throw new Error(data.error || 'Unable to grade your essay right now.');
-        }
+        const data = await readGradeResponse<{ feedback?: WritingFeedback; error?: string }>(res, 'Unable to grade your essay right now.');
         updateWritingAttempt(attempt.id, a => {
           a.feedback = data.feedback;
         });
@@ -239,10 +239,7 @@ export default function WritingRoom({ prompt, attemptId }: { prompt: WritingProm
             manualJson: trimmed,
           }),
         });
-        const data = (await res.json().catch(() => ({}))) as { feedback?: WritingFeedback; error?: string };
-        if (!res.ok || !data.feedback) {
-          throw new Error(data.error || 'Could not parse this JSON result.');
-        }
+        const data = await readGradeResponse<{ feedback?: WritingFeedback; error?: string }>(res, 'Could not parse this JSON result.');
         updateWritingAttempt(attempt.id, a => {
           a.feedback = data.feedback;
         });
@@ -724,7 +721,8 @@ export default function WritingRoom({ prompt, attemptId }: { prompt: WritingProm
                           <a href="https://gemini.google.com" target="_blank" rel="noreferrer" className="font-semibold text-accent underline">
                             gemini.google.com
                           </a>
-                          ), and select <strong className="text-ink">Hydrogen</strong> or <strong className="text-ink">Argon</strong>.
+                          ), and pick <strong className="text-ink">4 Neon</strong> (“Deeper analysis” — checks chart/map details most carefully) or{' '}
+                          <strong className="text-ink">4 Hydrogen</strong> (faster).
                         </li>
                         <li>
                           Click <strong className="text-ink">1. Copy grading prompt</strong> below → paste it into Gemini with{' '}

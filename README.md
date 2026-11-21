@@ -1,6 +1,6 @@
-# đều. — tự học IELTS
+# SealIELTS — tự học IELTS
 
-Web luyện IELTS Reading & Listening trên đề Cambridge, dành cho một người học. Mỗi câu có dẫn chứng trích từ bài, dịch tiếng Việt, giải thích, cặp paraphrase và bẫy. Kèm theo nhật ký, chuỗi ngày học, ôn từ vựng lặp lại ngắt quãng và sổ lỗi tự quay vòng.
+Web luyện đủ bốn kỹ năng IELTS cho một người học (và một người kèm). Reading và Listening luyện trên đề Cambridge: mỗi câu có dẫn chứng trích từ bài, dịch tiếng Việt, giải thích, cặp paraphrase và bẫy. Writing và Speaking được AI chấm theo bốn tiêu chí của IELTS. Kèm theo bài học kỹ năng, nhật ký, chuỗi ngày học, ôn từ vựng lặp lại ngắt quãng và sổ lỗi tự quay vòng. Giao diện tiếng Anh; lời giải đề và nghĩa từ vựng giữ tiếng Việt.
 
 ## Chạy
 
@@ -21,11 +21,30 @@ npm run dev -- -p 3100   # http://localhost:3100
 - **Xem lại**: điểm, band, độ chính xác theo dạng câu; mỗi câu có lời giải và nút "Xem trong bài" tô xanh câu dẫn chứng.
 - **Sổ lỗi** (`/mistakes`): câu sai quay lại sau 1 → 3 → 7 ngày, đúng 3 lần thì gạch; gắn lý do sai và xem thống kê.
 - **Từ vựng** (`/vocab`): thẻ từ lấy từ bài, ôn kiểu SM-2, phát âm bằng giọng có sẵn của trình duyệt.
-- **Nhật ký** (`/journal`): lịch nhiệt 18 tuần, phút học 14 ngày, tâm trạng, ghi chú; cài đặt và sao lưu/khôi phục dữ liệu.
+- **Kỹ năng** (`/skills`): 24 bài học cách làm từng dạng câu (Reading, Listening, Writing, Speaking) kèm câu thử nhanh, và kho luyện theo dạng.
+- **Writing** (`/writing`): đề Task 1 và Task 2 theo ba chế độ (viết theo đoạn có gợi ý, viết tự do, thi thử 20/40 phút). AI chấm bốn tiêu chí, chỉ ra câu cần sửa ngay trong bài, viết lại đoạn lên một band và gợi ý từ vựng.
+- **Speaking** (`/speaking`): thi thử với giám khảo Gemini Live (nói chuyện trực tiếp), ghi âm cả buổi rồi AI nghe bản ghi để chấm bốn tiêu chí.
+- **Nhật ký** (`/journal`): lịch nhiệt 18 tuần, phút học 14 ngày, tâm trạng, ghi chú, mốc thành tích; cài đặt và sao lưu/khôi phục dữ liệu.
+- **Người kèm** (`/coach`): xem tiến độ của người học và để lại lời nhắn (khi đăng nhập bằng mã người kèm).
 
 Chuỗi ngày: một ngày được tính khi làm xong ít nhất 1 phần, hoặc ôn ≥ 10 thẻ, hoặc học ≥ 10 phút. Cứ 7 ngày liên tiếp được 1 vé nghỉ (tối đa 2), tự dùng khi lỡ một ngày.
 
-Dữ liệu học lưu trong `localStorage` của trình duyệt (khoá `ielts.v1`). Muốn chuyển máy thì dùng *Nhật ký → Cài đặt → Tải bản sao lưu*.
+Dữ liệu học nằm trong `localStorage` của trình duyệt (khoá `ielts.v1`) để phản hồi tức thì, và được đồng bộ với máy chủ (`/api/progress`: `data/progress.json` khi chạy trên máy, Vercel Blob khi deploy). Học trên hai máy thì hai bản được gộp, không bản nào ghi đè bản nào. Vẫn có thể sao lưu tay ở *Nhật ký → Cài đặt*.
+
+## AI chấm bài
+
+Đặt khoá trong `.env.local` (xem `env.example`), hoặc nhập Gemini key ở *Nhật ký → Cài đặt* khi chạy trên máy.
+
+| | Thứ tự model | Ghi chú |
+| --- | --- | --- |
+| Writing | Gemini 4 Hydrogen → Gemini 3.8 Flash → NVIDIA / Groq / OpenRouter | Model ngoài Gemini chỉ dùng khi cả hai Gemini lỗi |
+| Speaking | Gemini 4 Hydrogen → Gemini 3.8 Flash | Cần model nghe được audio |
+
+- Gemini quá tải (503) thì chuyển ngay sang model kế tiếp thay vì chờ thử lại.
+- Kết quả thiếu điểm một tiêu chí bị coi là hỏng và chấm lại, không bao giờ âm thầm tính 0.
+- Gửi lại đúng bài đó trong 30 phút (bấm *Retry* sau khi mất mạng…) thì dùng lại kết quả cũ, không tốn thêm lượt gọi model.
+- Đổi tên model không cần sửa code: `WRITING_GEMINI_MODELS`, `SPEAKING_GRADE_MODELS`, `GEMINI_LIVE_MODEL`, `GEMINI_LIVE_FAST_MODEL`.
+- **Chấm bằng Gemini của mình** (nút *Grade with My Gemini*): copy prompt → dán vào panel Gemini của Chrome hoặc gemini.google.com → dán JSON trả về. Không tốn quota API; khi thử (21/11/2026) Gemini 4 Neon đối chiếu dữ liệu bản đồ kỹ hơn so với chấm qua API.
 
 ## Nội dung đề
 

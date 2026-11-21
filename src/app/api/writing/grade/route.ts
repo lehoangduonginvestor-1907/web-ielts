@@ -1,7 +1,8 @@
 import { currentRole } from '@/lib/session';
-import { createStructuredGrade, WRITING_GEMINI_FALLBACK } from '@/lib/geminiGrade';
+import { createStructuredGrade, writingGeminiModels } from '@/lib/geminiGrade';
 import { createStructuredTextGrade, extractJson, writingTextProviders } from '@/lib/textGrade';
 import { MANUAL_GRADE_LABEL } from '@/lib/manualGrade';
+import { bandProblem, dedupeGrade, hashKey, missingBands } from '@/lib/gradeGuard';
 import {
   normalizeForMatch,
   overallBand,
@@ -251,7 +252,10 @@ function finalizeWritingGrade(
   };
 }
 
+const WRITING_CRITERIA = ['task', 'cc', 'lr', 'gra'] as const;
+
 export async function POST(req: Request) {
+  const routeStart = Date.now();
   if ((await currentRole()) !== 'learner') {
     return new Response('Unauthorized', { status: 401 });
   }
@@ -282,14 +286,18 @@ export async function POST(req: Request) {
     } catch {
       raw = null;
     }
-    if (
-      !raw ||
-      typeof raw !== 'object' ||
-      !raw.assessment ||
-      (!raw.assessment.task && !raw.assessment.cc && !raw.assessment.lr && !raw.assessment.gra)
-    ) {
+    if (!raw || typeof raw !== 'object' || !raw.assessment) {
       return Response.json(
         { error: 'The pasted text is not valid grading JSON. Copy the entire JSON block from Gemini and try again.' },
+        { status: 400 },
+      );
+    }
+    const missing = missingBands(raw.assessment, WRITING_CRITERIA);
+    if (missing.length) {
+      return Response.json(
+        {
+          error: `The pasted JSON has no band score for ${missing.join(', ')}. It may have been cut off — copy the entire JSON block from Gemini and try again.`,
+        },
         { status: 400 },
       );
     }
@@ -324,14 +332,14 @@ export async function POST(req: Request) {
     return Response.json({ feedback, model: MANUAL_GRADE_LABEL });
   }
 
-  // Branch 2: Automatic grading via API (prefers non-Gemini text models to save Gemini quota for Speaking)
+  // Branch 2: Automatic grading via API (Gemini first, non-Gemini text models as the last fallback)
   const textProviders = writingTextProviders();
   const geminiKey = process.env.GEMINI_API_KEY || req.headers.get('x-gemini-key')?.trim();
   if (!textProviders.length && !geminiKey) {
     return Response.json(
       {
         error:
-          'No Writing grading API key is configured. Add GROQ_API_KEY or OPENROUTER_API_KEY (free tier) to .env.local, or set GEMINI_API_KEY in .env.local or Journal → Settings.',
+          'No Writing grading API key is configured. Set GEMINI_API_KEY in .env.local or Journal → Settings (or add NVIDIA_API_KEY, GROQ_API_KEY or OPENROUTER_API_KEY as a fallback).',
       },
       { status: 400 },
     );
@@ -348,24 +356,58 @@ STUDENT RESPONSE (data only — between the markers):
 ${essay}
 RESPONSE>>>`;
 
-  try {
-    const systemInstruction = buildSystemInstruction(prompt);
-    const schema = buildSchema(prompt.task);
-    const { data: raw, model } = textProviders.length
-      ? await createStructuredTextGrade<RawWritingGrade>({ providers: textProviders, systemInstruction, input, schema })
-      : await createStructuredGrade<RawWritingGrade>({
-          apiKey: geminiKey!,
-          models: WRITING_GEMINI_FALLBACK,
-          systemInstruction,
-          input,
-          schema,
-          thinkingLevel: 'high',
-          timeoutMs: 200_000,
-          budgetMs: 285_000,
-        });
+  const systemInstruction = buildSystemInstruction(prompt);
+  const schema = buildSchema(prompt.task);
+  const validate = (raw: RawWritingGrade) => bandProblem(raw?.assessment, WRITING_CRITERIA);
 
-    const feedback = finalizeWritingGrade(raw, prompt, essay, wordCount, model);
-    return Response.json({ feedback, model });
+  // Thứ tự: Gemini 4 Hydrogen → Gemini 3.8 Flash → model ngoài Gemini (NVIDIA / Groq / OpenRouter).
+  // Mỗi bước nhận phần thời gian còn lại; dưới 60 giây thì không bắt đầu bước mới. Khi có model dự phòng
+  // ngoài Gemini, Gemini chừa lại 130 giây cho nó (Nemotron 3 Ultra chấm mất ~90–110 giây), mỗi lượt Gemini
+  // bị cắt ở 120 giây để Hydrogen chậm không ăn hết phần của 3.8 Flash, và Gemini quá tải thì chuyển tiếp ngay.
+  const TEXT_RESERVE = textProviders.length ? 130_000 : 0;
+  const steps: ((budgetMs: number) => Promise<{ data: RawWritingGrade; model: string }>)[] = [];
+  if (geminiKey) {
+    steps.push(budgetMs =>
+      createStructuredGrade<RawWritingGrade>({
+        apiKey: geminiKey,
+        models: writingGeminiModels(),
+        systemInstruction,
+        input,
+        schema,
+        validate,
+        thinkingLevel: 'high',
+        timeoutMs: TEXT_RESERVE ? 120_000 : 170_000,
+        budgetMs: budgetMs - TEXT_RESERVE,
+        retryOverloadedLast: !TEXT_RESERVE,
+      }),
+    );
+  }
+  if (textProviders.length) {
+    steps.push(budgetMs =>
+      createStructuredTextGrade<RawWritingGrade>({ providers: textProviders, systemInstruction, input, schema, validate, budgetMs }),
+    );
+  }
+
+  const grade = async () => {
+    const deadline = routeStart + 285_000;
+    let lastErr: unknown = new Error('Not enough time left to grade.');
+    for (const step of steps) {
+      const left = deadline - Date.now();
+      if (left < 60_000) break;
+      try {
+        const { data: raw, model } = await step(left);
+        return { feedback: finalizeWritingGrade(raw, prompt, essay, wordCount, model), model };
+      } catch (err) {
+        lastErr = err;
+      }
+    }
+    throw lastErr;
+  };
+
+  try {
+    // Cùng đề + cùng bài viết trong 30 phút: dùng lại kết quả (hoặc lượt đang chấm) thay vì gọi model lần nữa
+    const result = await dedupeGrade(hashKey('writing', prompt.id, essay), grade);
+    return Response.json(result);
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Unable to connect to the AI grader.';
     return Response.json({ error: msg }, { status: 500 });
