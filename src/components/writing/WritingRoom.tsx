@@ -1,19 +1,14 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   ArrowLeft,
   BookOpen,
   Check,
-  ChevronDown,
-  ClipboardPaste,
   Clock,
-  Copy,
-  Eye,
   Layers,
-  Loader2,
   NotebookPen,
   Sparkles,
   ZoomIn,
@@ -32,15 +27,14 @@ import {
 import { fmtBand } from '@/lib/band';
 import { fmtClock, fmtDuration } from '@/lib/dates';
 import { writingTierOf } from '@/lib/progress';
-import { geminiHeaders } from '@/lib/geminiKey';
 import { readGradeResponse } from '@/lib/gradeClient';
-import { useLeaveWarning } from '@/lib/hooks';
 import {
   buildWritingManualPrompt,
   buildWritingSocraticPrompt,
   summarizeGrammarMistakes,
 } from '@/lib/manualGrade';
-import GeminiContextPanel, { ChromeSkillsTip } from '../GeminiContextPanel';
+import GeminiContextPanel from '../GeminiContextPanel';
+import GeminiGradeGuide from '../GeminiGradeGuide';
 import { MascotLoading, SealMascot } from '../Mascots';
 
 type Phase = 'intro' | 'writing' | 'review';
@@ -71,9 +65,6 @@ export default function WritingRoom({ prompt, attemptId }: { prompt: WritingProm
   const [stepTexts, setStepTexts] = useState<string[]>(() => prompt.scaffold.map(() => ''));
   const [seconds, setSeconds] = useState(0);
   const [startedAt, setStartedAt] = useState(0);
-  const [grading, setGrading] = useState(false);
-  useLeaveWarning(grading); // đóng tab giữa chừng thì mất kết quả mà vẫn tốn một lượt chấm
-  const [gradeErr, setGradeErr] = useState('');
   const [activeAttemptId, setActiveAttemptId] = useState<string | null>(attemptId ?? null);
   const [selectedFix, setSelectedFix] = useState<number | null>(null);
   const [reviewTab, setReviewTab] = useState<'fixes' | 'paragraphs' | 'sample'>('fixes');
@@ -82,14 +73,6 @@ export default function WritingRoom({ prompt, attemptId }: { prompt: WritingProm
   const [vocabToast, setVocabToast] = useState<string | null>(null);
   const [mistakeToast, setMistakeToast] = useState<string | null>(null);
   const [socraticToast, setSocraticToast] = useState<{ key: string; msg: string; fallbackText?: string } | null>(null);
-  const [manualOpen, setManualOpen] = useState(false);
-  const [manualPromptCopied, setManualPromptCopied] = useState(false);
-  const [manualPromptFallback, setManualPromptFallback] = useState<string | null>(null);
-  const [manualJsonText, setManualJsonText] = useState('');
-  const [manualGrading, setManualGrading] = useState(false);
-  const [manualErr, setManualErr] = useState('');
-  const [manualHint, setManualHint] = useState('');
-  const manualTextareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   const topErrorPatterns = useMemo(
     () => summarizeGrammarMistakes(store, 'writing').topPatterns.map(p => p.pattern),
@@ -170,109 +153,24 @@ export default function WritingRoom({ prompt, attemptId }: { prompt: WritingProm
       setSeconds(0);
       setStartedAt(Date.now());
     }
-    setGradeErr('');
-    setManualErr('');
-    setManualHint('');
-    setManualJsonText('');
-    setManualPromptFallback(null);
     setPhase('writing');
   };
 
-  const runGrading = useCallback(
-    async (attempt: WritingAttempt) => {
-      setGrading(true);
-      setGradeErr('');
-      try {
-        const res = await fetch('/api/writing/grade', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', ...geminiHeaders() },
-          body: JSON.stringify({
-            promptId: prompt.id,
-            essay: attempt.text,
-          }),
-        });
-        const data = await readGradeResponse<{ feedback?: WritingFeedback; error?: string }>(res, 'Unable to grade your essay right now.');
-        updateWritingAttempt(attempt.id, a => {
-          a.feedback = data.feedback;
-        });
-      } catch (err) {
-        setGradeErr(err instanceof Error ? err.message : 'Failed to connect to the grading service.');
-        setManualOpen(true);
-      } finally {
-        setGrading(false);
-      }
-    },
-    [prompt.id],
-  );
-
-  const copyManualPrompt = async (attempt: WritingAttempt) => {
-    const promptText = buildWritingManualPrompt({ prompt, essay: attempt.text, attemptId: attempt.id });
-    setManualErr('');
-    try {
-      await navigator.clipboard.writeText(promptText);
-      setManualPromptFallback(null);
-      setManualPromptCopied(true);
-      setTimeout(() => setManualPromptCopied(false), 3000);
-    } catch {
-      setManualPromptFallback(promptText);
-    }
-  };
-
-  const runManualGrading = useCallback(
+  /** Gửi JSON Gemini trả về lên máy chủ để kiểm tra (đủ điểm, đúng bài) và tính band. */
+  const gradeFromGemini = useCallback(
     async (attempt: WritingAttempt, rawJson: string) => {
-      const trimmed = rawJson.trim();
-      if (!trimmed) {
-        setManualErr('Please paste the JSON grading output from Gemini into the box below first.');
-        return;
-      }
-      setManualGrading(true);
-      setManualErr('');
-      setManualHint('');
-      try {
-        const res = await fetch('/api/writing/grade', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            promptId: prompt.id,
-            essay: attempt.text,
-            attemptId: attempt.id,
-            manualJson: trimmed,
-          }),
-        });
-        const data = await readGradeResponse<{ feedback?: WritingFeedback; error?: string }>(res, 'Could not parse this JSON result.');
-        updateWritingAttempt(attempt.id, a => {
-          a.feedback = data.feedback;
-        });
-        setGradeErr('');
-        setManualJsonText('');
-        setManualOpen(false);
-      } catch (err) {
-        setManualErr(err instanceof Error ? err.message : 'Failed to submit the grading JSON.');
-      } finally {
-        setManualGrading(false);
-      }
+      const res = await fetch('/api/writing/grade', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ promptId: prompt.id, essay: attempt.text, attemptId: attempt.id, manualJson: rawJson }),
+      });
+      const data = await readGradeResponse<{ feedback?: WritingFeedback; error?: string }>(res, 'Could not read this result.');
+      updateWritingAttempt(attempt.id, a => {
+        a.feedback = data.feedback;
+      });
     },
     [prompt.id],
   );
-
-  const pasteAndGradeManual = async (attempt: WritingAttempt) => {
-    setManualErr('');
-    setManualHint('');
-    try {
-      if (!navigator.clipboard?.readText) throw new Error('no-clipboard');
-      const clip = await navigator.clipboard.readText();
-      if (!clip.trim()) {
-        setManualHint('Your clipboard is empty. Copy the JSON from Gemini, then press Ctrl+V in the box below.');
-        manualTextareaRef.current?.focus();
-        return;
-      }
-      setManualJsonText(clip);
-      await runManualGrading(attempt, clip);
-    } catch {
-      setManualHint('Your browser blocked direct clipboard access — click the box below, press Ctrl+V, then click "Grade from pasted JSON".');
-      manualTextareaRef.current?.focus();
-    }
-  };
 
   const submitEssay = useCallback(async () => {
     const essayText = combinedText.trim();
@@ -293,8 +191,7 @@ export default function WritingRoom({ prompt, attemptId }: { prompt: WritingProm
     setActiveAttemptId(id);
     setPhase('review');
     router.replace(`/writing/${prompt.id}?attempt=${id}`, { scroll: false });
-    await runGrading(attempt);
-  }, [combinedText, prompt.id, prompt.task, mode, startedAt, seconds, router, runGrading]);
+  }, [combinedText, prompt.id, prompt.task, mode, startedAt, seconds, router]);
 
   // Auto-submit when time runs out in Timed Mock Exam mode
   useEffect(() => {
@@ -332,7 +229,7 @@ export default function WritingRoom({ prompt, attemptId }: { prompt: WritingProm
             </p>
             <p className="mt-3 text-xs text-muted">
               Minimum requirement: <strong className="text-ink">{prompt.minWords} words</strong> · Recommended time: {prompt.recommendedMinutes} min ·
-              Automatically graded across all 4 IELTS band criteria.
+              Graded across all 4 IELTS criteria by your Gemini in Chrome after you submit.
             </p>
 
             <div className="mt-5 grid gap-2">
@@ -449,7 +346,7 @@ export default function WritingRoom({ prompt, attemptId }: { prompt: WritingProm
               {remaining !== null ? fmtClock(remaining) : fmtClock(seconds)}
             </span>
             <button className="btn-primary whitespace-nowrap" disabled={wc < 20} onClick={() => void submitEssay()}>
-              Submit &amp; Grade
+              Submit essay
             </button>
           </div>
         ) : (
@@ -655,157 +552,14 @@ export default function WritingRoom({ prompt, attemptId }: { prompt: WritingProm
             </div>
           ) : (
             <div className="mx-auto max-w-2xl space-y-6">
-              {grading && (
-                <div className="card flex items-center gap-4 border-accent/40 bg-accent-soft/50 p-5">
-                  <Loader2 size={24} className="shrink-0 animate-spin text-accent" />
-                  <div>
-                    <p className="font-semibold text-ink">AI Examiner is grading your essay… (usually 1–2 min)</p>
-                    <p className="mt-0.5 text-sm text-ink-2">
-                      Evaluating all 4 IELTS criteria, verifying chart data, spotting grammar issues, and drafting sentence upgrades.
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {gradeErr && (
-                <div className="card border-bad/40 bg-bad-soft/60 p-5">
-                  <p className="font-semibold text-bad">Could not grade your essay</p>
-                  <p className="mt-1 text-sm text-ink-2">{gradeErr}</p>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    <button className="btn-primary" onClick={() => attempt && void runGrading(attempt)}>
-                      Retry grading
-                    </button>
-                    <button
-                      type="button"
-                      className="btn-ghost border-accent/40 text-accent"
-                      onClick={() => {
-                        setManualOpen(true);
-                        setTimeout(() => manualTextareaRef.current?.focus(), 60);
-                      }}
-                    >
-                      <Sparkles size={15} /> Open Grade with My Gemini
-                    </button>
-                    <Link href="/journal" className="btn-ghost">
-                      Check API Key in Settings
-                    </Link>
-                  </div>
-                </div>
-              )}
-
               {attempt && (
-                <div className="card p-4 sm:p-5">
-                  <button
-                    type="button"
-                    onClick={() => setManualOpen(o => !o)}
-                    aria-expanded={manualOpen}
-                    className="flex w-full items-center justify-between gap-2 text-left text-sm font-semibold"
-                  >
-                    <span className="flex flex-wrap items-center gap-2">
-                      <Sparkles size={15} className="shrink-0 text-accent" />
-                      <span>Grade with My Gemini (Chrome Side Panel / AI Pro)</span>
-                      <code className="rounded bg-sunk px-1.5 py-0.5 text-[11px] font-normal text-muted">
-                        Attempt ID: {attempt.id}
-                      </code>
-                    </span>
-                    <span className="inline-flex shrink-0 items-center gap-1 text-xs font-normal text-muted">
-                      {manualOpen ? 'Hide' : 'Open bridge'}
-                      <ChevronDown size={14} className={`transition-transform ${manualOpen ? 'rotate-180' : ''}`} />
-                    </span>
-                  </button>
-
-                  {manualOpen && (
-                    <div className="mt-4 space-y-4 border-t border-line pt-4 text-sm">
-                      <ol className="list-decimal space-y-1.5 pl-4 text-xs leading-relaxed text-ink-2">
-                        <li>
-                          Click <strong className="text-ink">✦ Ask Gemini</strong> in the top-right corner of Chrome (or open{' '}
-                          <a href="https://gemini.google.com" target="_blank" rel="noreferrer" className="font-semibold text-accent underline">
-                            gemini.google.com
-                          </a>
-                          ), and pick <strong className="text-ink">4 Neon</strong> (“Deeper analysis” — checks chart/map details most carefully) or{' '}
-                          <strong className="text-ink">4 Hydrogen</strong> (faster).
-                        </li>
-                        <li>
-                          Click <strong className="text-ink">1. Copy grading prompt</strong> below → paste it into Gemini with{' '}
-                          <strong className="text-ink">Ctrl+V</strong> and send.
-                        </li>
-                        <li>
-                          Once Gemini returns the <code>json</code> block, click <strong className="text-ink">Copy</strong> on Gemini’s code block → return here and click{' '}
-                          <strong className="text-ink">2. Paste from Clipboard &amp; Grade</strong> (or paste into the box below).
-                        </li>
-                      </ol>
-
-                      <div className="space-y-2">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <button
-                            type="button"
-                            className="btn-ghost"
-                            onClick={() => void copyManualPrompt(attempt)}
-                          >
-                            {manualPromptCopied ? <Check size={15} className="text-good" /> : <Copy size={15} />}
-                            {manualPromptCopied ? 'Prompt copied (with Attempt ID)' : '1. Copy grading prompt'}
-                          </button>
-                          <span className="text-xs text-muted">
-                            Attempt ID: <code className="rounded bg-sunk px-1.5 py-0.5">{attempt.id}</code>
-                          </span>
-                        </div>
-                        {manualPromptFallback && (
-                          <div className="rounded-lg border border-line bg-paper p-3 text-xs">
-                            <p className="font-medium text-ink-2">
-                              Your browser blocked automatic copying — click the box below and press Ctrl+C to copy the prompt:
-                            </p>
-                            <textarea
-                              readOnly
-                              rows={4}
-                              value={manualPromptFallback}
-                              onFocus={e => e.currentTarget.select()}
-                              className="field mt-1.5 font-mono text-xs"
-                            />
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="space-y-2 border-t border-line pt-3">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <button
-                            type="button"
-                            className="btn-primary"
-                            disabled={manualGrading}
-                            onClick={() => void pasteAndGradeManual(attempt)}
-                          >
-                            {manualGrading ? <Loader2 size={15} className="animate-spin" /> : <ClipboardPaste size={15} />}
-                            2. Paste from Clipboard &amp; Grade
-                          </button>
-                        </div>
-
-                        {manualHint && <p className="text-xs font-medium text-ember">{manualHint}</p>}
-
-                        <textarea
-                          ref={manualTextareaRef}
-                          rows={4}
-                          className="field font-mono text-xs leading-relaxed"
-                          placeholder="Or manually paste the JSON returned by Gemini here…"
-                          value={manualJsonText}
-                          onChange={e => setManualJsonText(e.target.value)}
-                          spellCheck={false}
-                        />
-                        <div className="flex flex-wrap items-center justify-between gap-2">
-                          <button
-                            type="button"
-                            className="btn-ghost"
-                            disabled={manualGrading || !manualJsonText.trim()}
-                            onClick={() => void runManualGrading(attempt, manualJsonText)}
-                          >
-                            {manualGrading ? <Loader2 size={15} className="animate-spin" /> : <Check size={15} />}
-                            Grade from pasted JSON
-                          </button>
-                          {manualErr && <p className="text-xs font-medium text-bad">{manualErr}</p>}
-                        </div>
-                      </div>
-
-                      <ChromeSkillsTip skillIds={['writing-grade', 'writing-socratic']} />
-                    </div>
-                  )}
-                </div>
+                <GeminiGradeGuide
+                  kind="writing"
+                  attemptId={attempt.id}
+                  graded={!!fb}
+                  getPrompt={() => buildWritingManualPrompt({ prompt, essay: attempt.text, attemptId: attempt.id })}
+                  onSubmit={json => gradeFromGemini(attempt, json)}
+                />
               )}
 
               {fb && attempt && (
@@ -1017,13 +771,10 @@ export default function WritingRoom({ prompt, attemptId }: { prompt: WritingProm
                 </>
               )}
 
-              {!fb && !grading && !gradeErr && attempt && (
+              {!fb && attempt && (
                 <div className="card p-5">
                   <p className="eyebrow">Submitted Essay ({attempt.wordCount} words)</p>
                   <p className="mt-2 font-serif text-[15.5px] leading-relaxed whitespace-pre-line">{attempt.text}</p>
-                  <button className="btn-primary mt-4" onClick={() => void runGrading(attempt)}>
-                    <Eye size={15} /> Grade across 4 criteria
-                  </button>
                 </div>
               )}
             </div>

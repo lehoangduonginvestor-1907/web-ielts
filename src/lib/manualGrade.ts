@@ -11,7 +11,7 @@ import {
   WRITING_TASK2_TR,
 } from './ieltsRubric';
 
-export const MANUAL_GRADE_LABEL = 'Gemini AI Pro · Manual Paste';
+export const MANUAL_GRADE_LABEL = 'Your Gemini in Chrome';
 
 /** Tổng hợp các mẫu lỗi hay gặp nhất từ Sổ lỗi (grammarMistakes) để làm ngữ cảnh cho Gemini. */
 export function summarizeGrammarMistakes(

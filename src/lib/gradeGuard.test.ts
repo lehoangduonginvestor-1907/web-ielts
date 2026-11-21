@@ -1,6 +1,7 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { bandProblem, clearGradeCache, dedupeGrade, hashKey, missingBands } from './gradeGuard';
+import { describe, expect, it } from 'vitest';
+import { extractJson, missingBands } from './gradeGuard';
 import { gradeStatusMessage, readGradeResponse } from './gradeClient';
+import { looksLikeGradeJson } from '@/components/GeminiGradeGuide';
 
 const KEYS = ['task', 'cc', 'lr', 'gra'] as const;
 
@@ -15,55 +16,19 @@ describe('missingBands', () => {
     expect(missingBands({ task: { band: 'six' } }, ['task'])).toEqual(['task']);
     expect(missingBands(undefined, KEYS)).toEqual([...KEYS]);
   });
+});
 
-  it('bandProblem describes what is missing', () => {
-    expect(bandProblem({ task: { band: 5 } }, ['task', 'cc'])).toBe('missing band score for cc');
-    expect(bandProblem({ task: { band: 5 } }, ['task'])).toBeNull();
+describe('extractJson', () => {
+  it('pulls the JSON out of a code fence and surrounding chatter', () => {
+    expect(extractJson('Here you go:\n```json\n{"a":1}\n```\nGood luck!')).toBe('{"a":1}');
+    expect(extractJson('<think>hmm</think>{"a":{"b":2}}')).toBe('{"a":{"b":2}}');
   });
 });
 
-describe('dedupeGrade', () => {
-  beforeEach(() => clearGradeCache());
-
-  it('shares one model call between concurrent identical requests', async () => {
-    let release!: (v: string) => void;
-    const run = vi.fn(() => new Promise<string>(res => (release = res)));
-    const a = dedupeGrade('k', run);
-    const b = dedupeGrade('k', run);
-    release('graded');
-    expect(await a).toBe('graded');
-    expect(await b).toBe('graded');
-    expect(run).toHaveBeenCalledTimes(1);
-  });
-
-  it('reuses a finished result but never a failure', async () => {
-    const ok = vi.fn(async () => 'graded');
-    await dedupeGrade('ok', ok);
-    await dedupeGrade('ok', ok);
-    expect(ok).toHaveBeenCalledTimes(1);
-
-    const bad = vi.fn().mockRejectedValueOnce(new Error('503')).mockResolvedValueOnce('second try');
-    await expect(dedupeGrade('bad', bad)).rejects.toThrow('503');
-    expect(await dedupeGrade('bad', bad)).toBe('second try');
-    expect(bad).toHaveBeenCalledTimes(2);
-  });
-
-  it('forgets results after 30 minutes', async () => {
-    vi.useFakeTimers();
-    try {
-      const run = vi.fn(async () => 'graded');
-      await dedupeGrade('old', run);
-      vi.advanceTimersByTime(31 * 60_000);
-      await dedupeGrade('old', run);
-      expect(run).toHaveBeenCalledTimes(2);
-    } finally {
-      vi.useRealTimers();
-    }
-  });
-
-  it('hashKey separates its parts', () => {
-    expect(hashKey('ab', 'c')).not.toBe(hashKey('a', 'bc'));
-    expect(hashKey('x', new Uint8Array([1, 2]))).toBe(hashKey('x', new Uint8Array([1, 2])));
+describe('looksLikeGradeJson', () => {
+  it('recognises a pasted grading result, and nothing else', () => {
+    expect(looksLikeGradeJson('{\n  "assessment": { "task": { "band": 6 } }')).toBe(true);
+    expect(looksLikeGradeJson('You are a senior, certified IELTS examiner…')).toBe(false);
   });
 });
 
@@ -79,9 +44,8 @@ describe('readGradeResponse', () => {
     await expect(readGradeResponse(json(400, { error: 'Missing prompt or essay text.' }), 'x')).rejects.toThrow('Missing prompt');
   });
 
-  it('explains platform errors that are not JSON (timeout, too large)', async () => {
-    await expect(readGradeResponse(new Response('<html>504</html>', { status: 504 }), 'x')).rejects.toThrow('took too long');
-    await expect(readGradeResponse(new Response('Request Entity Too Large', { status: 413 }), 'x')).rejects.toThrow('too large');
+  it('explains platform errors that are not JSON', async () => {
+    await expect(readGradeResponse(new Response('<html>502</html>', { status: 502 }), 'x')).rejects.toThrow(/server had a problem/);
     expect(gradeStatusMessage(401)).toMatch(/Sign in again/);
     expect(gradeStatusMessage(400)).toBeNull();
   });

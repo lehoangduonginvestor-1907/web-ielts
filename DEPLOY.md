@@ -18,7 +18,7 @@ Kho đề không bao giờ nằm trong git. Trình duyệt chỉ nhận đề v�
 3. **Tạo kho Blob riêng tư**: project → Storage → Create → Blob → chọn **Private**, vùng Singapore, và **tick "Add a read-write token env var"** (app cần `BLOB_READ_WRITE_TOKEN`; mặc định Vercel chỉ thêm `BLOB_STORE_ID`).
 4. **Đặt biến môi trường** (Settings → Environment Variables), xem `env.example`:
    - Đăng nhập: `LEARNER_CODE`, `COACH_CODE`, `AUTH_SECRET`.
-   - AI chấm bài: `GEMINI_API_KEY` (Writing và Speaking), và nên thêm `NVIDIA_API_KEY` (miễn phí) làm dự phòng cho Writing khi Gemini quá tải. Thiếu key dự phòng thì những lúc Gemini quá tải, Writing sẽ báo lỗi và người học phải chấm tay bằng *Grade with My Gemini*.
+   - `GEMINI_API_KEY`: chỉ cho giám khảo Speaking nói chuyện trực tiếp. Chấm Writing/Speaking không cần key nào (người học dùng thanh Gemini của Chrome).
 
    Sau đó Redeploy.
 5. **Đẩy kho đề lên Blob** từ máy này: chép dòng `BLOB_READ_WRITE_TOKEN=...` (Storage → kho Blob → tab `.env.local`) vào file `.env.local`, rồi chạy

@@ -50,7 +50,7 @@ export default function WritingHome() {
           <div>
             <h1 className="font-serif text-[34px] leading-tight font-semibold">Writing Practice</h1>
             <p className="mt-1 text-ink-2">
-              Graded across all 4 criteria by an <span className="font-semibold text-ink">AI Examiner</span> using IELTS band descriptors · sentence-by-sentence upgrades to the next band
+              Graded across all 4 criteria by <span className="font-semibold text-ink">your Gemini in Chrome</span> using IELTS band descriptors · sentence-by-sentence upgrades to the next band
             </p>
           </div>
         </div>
@@ -120,7 +120,7 @@ export default function WritingHome() {
                 <p className="mt-1 text-xs text-muted">Avg of {band.count} recent graded essays</p>
               </>
             ) : (
-              <p className="mt-1.5 text-sm text-muted">Submit 1 essay to get an AI Examiner band score.</p>
+              <p className="mt-1.5 text-sm text-muted">Submit 1 essay and grade it with Gemini to get a band score.</p>
             )}
           </div>
           <Sparkles size={24} className="shrink-0 text-accent/70" />

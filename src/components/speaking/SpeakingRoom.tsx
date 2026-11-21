@@ -16,10 +16,7 @@ import {
 import {
   ArrowLeft,
   Check,
-  ChevronDown,
-  ClipboardPaste,
   Clock,
-  Copy,
   Download,
   Layers,
   Loader2,
@@ -28,7 +25,6 @@ import {
   NotebookPen,
   PhoneOff,
   Send,
-  Sparkles,
   Volume2,
 } from 'lucide-react';
 import type {
@@ -52,12 +48,12 @@ import {
 } from '@/lib/store';
 import { geminiHeaders } from '@/lib/geminiKey';
 import { readGradeResponse } from '@/lib/gradeClient';
-import { useLeaveWarning } from '@/lib/hooks';
 import { buildSpeakingManualPrompt } from '@/lib/manualGrade';
 import { speakingTierOf } from '@/lib/progress';
 import { fmtBand } from '@/lib/band';
 import { fmtClock, fmtDuration } from '@/lib/dates';
-import GeminiContextPanel, { ChromeSkillsTip } from '../GeminiContextPanel';
+import GeminiContextPanel from '../GeminiContextPanel';
+import GeminiGradeGuide from '../GeminiGradeGuide';
 import { MascotLoading, SealMascot } from '../Mascots';
 
 type Phase = 'intro' | 'live' | 'review';
@@ -175,21 +171,11 @@ export default function SpeakingRoom({ topic, attemptId }: { topic: SpeakingTopi
   const [liveCandidateText, setLiveCandidateText] = useState('');
   const [textInput, setTextInput] = useState('');
   const [activeAttemptId, setActiveAttemptId] = useState<string | null>(attemptId ?? null);
-  const [grading, setGrading] = useState(false);
-  useLeaveWarning(grading); // đóng tab giữa chừng thì mất kết quả mà vẫn tốn một lượt chấm
-  const [gradeErr, setGradeErr] = useState('');
   const [recordingUrl, setRecordingUrl] = useState<string | null>(null);
   const [recordingExt, setRecordingExt] = useState('webm');
+  const [recordingMissing, setRecordingMissing] = useState(false); // bản ghi không có trong trình duyệt này
   const [vocabToast, setVocabToast] = useState<string | null>(null);
   const [mistakeToast, setMistakeToast] = useState<string | null>(null);
-  const [manualOpen, setManualOpen] = useState(false);
-  const [manualPromptCopied, setManualPromptCopied] = useState(false);
-  const [manualPromptFallback, setManualPromptFallback] = useState<string | null>(null);
-  const [manualJsonText, setManualJsonText] = useState('');
-  const [manualGrading, setManualGrading] = useState(false);
-  const [manualErr, setManualErr] = useState('');
-  const [manualHint, setManualHint] = useState('');
-  const manualTextareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   // Refs for Live API session & Web Audio
   const sessionRef = useRef<Session | null>(null);
@@ -262,11 +248,14 @@ export default function SpeakingRoom({ topic, attemptId }: { topic: SpeakingTopi
         url = URL.createObjectURL(blob);
         setRecordingUrl(url);
         setRecordingExt(fileExtFor(blob.type || 'audio/webm'));
+      } else {
+        setRecordingMissing(true);
       }
     });
     return () => {
       if (url) URL.revokeObjectURL(url);
       setRecordingUrl(null);
+      setRecordingMissing(false);
     };
   }, [phase, activeAttemptId, attemptId]);
 
@@ -402,123 +391,31 @@ export default function SpeakingRoom({ topic, attemptId }: { topic: SpeakingTopi
     }
   }, [phase, stage, prepLeft, speakLeft]);
 
-  const runGrading = useCallback(
-    async (attempt: SpeakingAttempt, audioBlob?: Blob | null) => {
-      setGrading(true);
-      setGradeErr('');
-      try {
-        const blob = audioBlob ?? (attempt.hasRecording ? await getAudioBlob(attempt.id) : null);
-        if (!blob || blob.size === 0) {
-          throw new Error(
-            'No audio recording was found for this session in your browser, so it cannot be graded. Speaking is graded strictly from real spoken audio — enable your microphone and try again.',
-          );
-        }
-        const form = new FormData();
-        form.append(
-          'meta',
-          JSON.stringify({
-            topicId: topic.id,
-            mode: attempt.mode,
-            parts: attempt.parts,
-            seconds: attempt.seconds,
-            recordingKind: attempt.recordingKind ?? 'candidate',
-            timeline: attempt.timeline ?? [],
-            typedAnswers: attempt.transcript.filter(t => t.role === 'candidate' && t.typed).length,
-          }),
-        );
-        form.append('audio', blob, `speaking-${attempt.id}.${fileExtFor(blob.type)}`);
-        const res = await fetch('/api/speaking/grade', {
-          method: 'POST',
-          headers: { ...geminiHeaders() },
-          body: form,
-        });
-        const data = await readGradeResponse<{ feedback?: SpeakingFeedback; error?: string }>(res, 'Could not grade this Speaking session.');
-        updateSpeakingAttempt(attempt.id, a => {
-          a.feedback = data.feedback;
-        });
-      } catch (err) {
-        setGradeErr(err instanceof Error ? err.message : 'Failed to connect to Gemini.');
-        setManualOpen(true);
-      } finally {
-        setGrading(false);
-      }
-    },
-    [topic.id],
-  );
-
-  const copyManualPrompt = async (attempt: SpeakingAttempt) => {
-    const promptText = buildSpeakingManualPrompt({ topic, attempt });
-    setManualErr('');
-    try {
-      await navigator.clipboard.writeText(promptText);
-      setManualPromptFallback(null);
-      setManualPromptCopied(true);
-      setTimeout(() => setManualPromptCopied(false), 3000);
-    } catch {
-      setManualPromptFallback(promptText);
-    }
-  };
-
-  const runManualGrading = useCallback(
+  /** Gửi JSON Gemini trả về lên máy chủ để kiểm tra (đủ điểm, đúng buổi nói) và tính band. */
+  const gradeFromGemini = useCallback(
     async (attempt: SpeakingAttempt, rawJson: string) => {
-      const trimmed = rawJson.trim();
-      if (!trimmed) {
-        setManualErr('Please paste the JSON grading output from Gemini into the box below first.');
-        return;
-      }
-      setManualGrading(true);
-      setManualErr('');
-      setManualHint('');
-      try {
-        const res = await fetch('/api/speaking/grade', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            topicId: topic.id,
-            attemptId: attempt.id,
-            mode: attempt.mode,
-            parts: attempt.parts,
-            seconds: attempt.seconds,
-            recordingKind: attempt.recordingKind ?? 'candidate',
-            timeline: attempt.timeline ?? [],
-            typedAnswers: attempt.transcript.filter(t => t.role === 'candidate' && t.typed).length,
-            manualJson: trimmed,
-          }),
-        });
-        const data = await readGradeResponse<{ feedback?: SpeakingFeedback; error?: string }>(res, 'Could not parse this JSON result.');
-        updateSpeakingAttempt(attempt.id, a => {
-          a.feedback = data.feedback;
-        });
-        setGradeErr('');
-        setManualJsonText('');
-        setManualOpen(false);
-      } catch (err) {
-        setManualErr(err instanceof Error ? err.message : 'Failed to submit the Speaking grading JSON.');
-      } finally {
-        setManualGrading(false);
-      }
+      const res = await fetch('/api/speaking/grade', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          topicId: topic.id,
+          attemptId: attempt.id,
+          mode: attempt.mode,
+          parts: attempt.parts,
+          seconds: attempt.seconds,
+          recordingKind: attempt.recordingKind ?? 'candidate',
+          timeline: attempt.timeline ?? [],
+          typedAnswers: attempt.transcript.filter(t => t.role === 'candidate' && t.typed).length,
+          manualJson: rawJson,
+        }),
+      });
+      const data = await readGradeResponse<{ feedback?: SpeakingFeedback; error?: string }>(res, 'Could not read this result.');
+      updateSpeakingAttempt(attempt.id, a => {
+        a.feedback = data.feedback;
+      });
     },
     [topic.id],
   );
-
-  const pasteAndGradeManual = async (attempt: SpeakingAttempt) => {
-    setManualErr('');
-    setManualHint('');
-    try {
-      if (!navigator.clipboard?.readText) throw new Error('no-clipboard');
-      const clip = await navigator.clipboard.readText();
-      if (!clip.trim()) {
-        setManualHint('Your clipboard is empty. Copy the JSON from Gemini, then press Ctrl+V in the box below.');
-        manualTextareaRef.current?.focus();
-        return;
-      }
-      setManualJsonText(clip);
-      await runManualGrading(attempt, clip);
-    } catch {
-      setManualHint('Your browser blocked direct clipboard access — click the box below, press Ctrl+V, then click "Confirm JSON result".');
-      manualTextareaRef.current?.focus();
-    }
-  };
 
   const finishSession = useCallback(async () => {
     flushPartialTurns('both');
@@ -546,10 +443,7 @@ export default function SpeakingRoom({ topic, attemptId }: { topic: SpeakingTopi
     setActiveAttemptId(id);
     setPhase('review');
     router.replace(`/speaking/${topic.id}?attempt=${id}`, { scroll: false });
-    if (recordedBlob && recordedBlob.size > 0) {
-      void runGrading(attempt, recordedBlob);
-    }
-  }, [flushPartialTurns, markTimeline, cleanupMediaAndSocket, topic.id, mode, notes, router, runGrading]);
+  }, [flushPartialTurns, markTimeline, cleanupMediaAndSocket, topic.id, mode, notes, router]);
 
   const startLiveSession = async () => {
     setConnecting(true);
@@ -930,7 +824,7 @@ Examiner Conduct Rules (follow strictly — this is an exam, not a lesson):
                 )}
               </button>
               <span className="text-xs text-muted">
-                Headphones recommended. The full session is recorded for Gemini audio grading (4 Hydrogen, fallback 3.8 Flash) — typed answers are for practice only and are not graded.
+                Headphones recommended. The full session is recorded so you can have it graded by Gemini in Chrome afterwards — typed answers are for practice only and are not graded.
               </span>
             </div>
           </div>
@@ -1200,7 +1094,7 @@ Examiner Conduct Rules (follow strictly — this is an exam, not a lesson):
                 <span className="text-[11px] text-muted">Click any m:ss timestamp to jump</span>
               </div>
               <p className="mt-1.5 text-xs text-muted">
-                This is the exact audio Gemini listens to for grading. You can also download it to attach in Gemini AI Pro / gemini.google.com.
+                This is the audio you upload to Gemini for grading (see the steps on the right).
               </p>
             </div>
           )}
@@ -1226,182 +1120,23 @@ Examiner Conduct Rules (follow strictly — this is an exam, not a lesson):
 
         {/* Right column: 4-Criteria Grading + Utterance Upgrades */}
         <section className="space-y-5">
-          {grading && (
-            <div className="card flex items-center gap-4 border-accent/40 bg-accent-soft/50 p-5">
-              <Loader2 size={24} className="shrink-0 animate-spin text-accent" />
-              <div>
-                <p className="font-semibold">Gemini is listening to your full recording…</p>
-                <p className="mt-0.5 text-sm text-ink-2">
-                  Analyzing fluency, pronunciation, intonation, vocabulary, and grammar from start to finish. This may take 1–3 minutes.
-                </p>
-              </div>
-            </div>
-          )}
-
-          {gradeErr && (
-            <div className="card border-bad/40 bg-bad-soft/60 p-5">
-              <p className="font-semibold text-bad">Could not grade Speaking session</p>
-              <p className="mt-1 text-sm text-ink-2">{gradeErr}</p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                <button className="btn-primary" onClick={() => void runGrading(attempt)} disabled={!attempt.hasRecording}>
-                  Retry grading
-                </button>
-                {attempt.hasRecording && (
-                  <button
-                    type="button"
-                    className="btn-ghost border-accent/40 text-accent"
-                    onClick={() => {
-                      setManualOpen(true);
-                      setTimeout(() => manualTextareaRef.current?.focus(), 60);
-                    }}
-                  >
-                    <Sparkles size={15} /> Open Grade with My Gemini
-                  </button>
-                )}
-              </div>
-            </div>
-          )}
-
-          {!fb && !grading && !gradeErr && (
-            <div className="card p-5">
-              {attempt.hasRecording ? (
-                <button className="btn-primary" onClick={() => void runGrading(attempt)}>
-                  Grade 4 criteria from audio (Gemini 4 Hydrogen → 3.8 Flash)
-                </button>
-              ) : (
+          {attempt.hasRecording ? (
+            <GeminiGradeGuide
+              kind="speaking"
+              attemptId={attempt.id}
+              graded={!!fb}
+              getPrompt={() => buildSpeakingManualPrompt({ topic, attempt })}
+              recording={{ url: recordingUrl, missing: recordingMissing, fileName: `speaking-${attempt.id}.${recordingExt}` }}
+              onSubmit={json => gradeFromGemini(attempt, json)}
+            />
+          ) : (
+            !fb && (
+              <div className="card p-5">
                 <p className="text-sm text-ink-2">
                   This session has no audio recording (microphone was off), so it cannot be graded — Speaking is evaluated strictly from spoken audio.
                 </p>
-              )}
-            </div>
-          )}
-
-          {attempt.hasRecording && (
-            <div className="card p-4 sm:p-5">
-              <button
-                type="button"
-                onClick={() => setManualOpen(o => !o)}
-                aria-expanded={manualOpen}
-                className="flex w-full items-center justify-between gap-2 text-left text-sm font-semibold"
-              >
-                <span className="flex flex-wrap items-center gap-2">
-                  <Sparkles size={15} className="shrink-0 text-accent" />
-                  <span>Grade with My Gemini (AI Pro / gemini.google.com)</span>
-                  <code className="rounded bg-sunk px-1.5 py-0.5 text-[11px] font-normal text-muted">
-                    Session ID: {attempt.id}
-                  </code>
-                </span>
-                <span className="inline-flex shrink-0 items-center gap-1 text-xs font-normal text-muted">
-                  {manualOpen ? 'Hide' : 'Open bridge'}
-                  <ChevronDown size={14} className={`transition-transform ${manualOpen ? 'rotate-180' : ''}`} />
-                </span>
-              </button>
-
-              {manualOpen && (
-                <div className="mt-4 space-y-4 border-t border-line pt-4 text-sm">
-                  <ol className="list-decimal space-y-1.5 pl-4 text-xs leading-relaxed text-ink-2">
-                    <li>
-                      Click <strong className="text-ink">1. Download recording (.{recordingExt})</strong> and{' '}
-                      <strong className="text-ink">2. Copy Speaking grading prompt</strong> below.
-                    </li>
-                    <li>
-                      Click <strong className="text-ink">✦ Ask Gemini</strong> in the top-right corner of Chrome → select{' '}
-                      <strong className="text-ink">4 Neon</strong> (“Deeper analysis”) or <strong className="text-ink">4 Hydrogen</strong> (faster) → click{' '}
-                      <strong className="text-ink">+ → Upload files</strong> to attach the downloaded <code>.{recordingExt}</code> file (or upload at{' '}
-                      <a href="https://gemini.google.com" target="_blank" rel="noreferrer" className="font-semibold text-accent underline">
-                        gemini.google.com
-                      </a>
-                      ), press <strong className="text-ink">Ctrl+V</strong> to paste the prompt, and send.
-                    </li>
-                    <li>
-                      Once Gemini returns the <code>json</code> block, click <strong className="text-ink">Copy</strong> on Gemini’s code block → return here and click{' '}
-                      <strong className="text-ink">3. Paste from Clipboard &amp; Grade</strong> (or paste into the box below).
-                    </li>
-                  </ol>
-
-                  <div className="space-y-2">
-                    <div className="flex flex-wrap items-center gap-2">
-                      {recordingUrl ? (
-                        <a
-                          href={recordingUrl}
-                          download={`speaking-${attempt.id}.${recordingExt}`}
-                          className="btn-ghost"
-                        >
-                          <Download size={15} /> 1. Download recording (.{recordingExt})
-                        </a>
-                      ) : (
-                        <span className="text-xs text-muted">Loading recording…</span>
-                      )}
-                      <button
-                        type="button"
-                        className="btn-ghost"
-                        onClick={() => void copyManualPrompt(attempt)}
-                      >
-                        {manualPromptCopied ? <Check size={15} className="text-good" /> : <Copy size={15} />}
-                        {manualPromptCopied ? 'Prompt copied (with Session ID)' : '2. Copy Speaking grading prompt'}
-                      </button>
-                      <span className="text-xs text-muted">
-                        Session ID: <code className="rounded bg-sunk px-1.5 py-0.5">{attempt.id}</code>
-                      </span>
-                    </div>
-                    {manualPromptFallback && (
-                      <div className="rounded-lg border border-line bg-paper p-3 text-xs">
-                        <p className="font-medium text-ink-2">
-                          Your browser blocked automatic copying — click the box below and press Ctrl+C to copy the prompt:
-                        </p>
-                        <textarea
-                          readOnly
-                          rows={4}
-                          value={manualPromptFallback}
-                          onFocus={e => e.currentTarget.select()}
-                          className="field mt-1.5 font-mono text-xs"
-                        />
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="space-y-2 border-t border-line pt-3">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <button
-                        type="button"
-                        className="btn-primary"
-                        disabled={manualGrading}
-                        onClick={() => void pasteAndGradeManual(attempt)}
-                      >
-                        {manualGrading ? <Loader2 size={15} className="animate-spin" /> : <ClipboardPaste size={15} />}
-                        3. Paste from Clipboard &amp; Grade
-                      </button>
-                    </div>
-
-                    {manualHint && <p className="text-xs font-medium text-ember">{manualHint}</p>}
-
-                    <textarea
-                      ref={manualTextareaRef}
-                      rows={4}
-                      className="field font-mono text-xs leading-relaxed"
-                      placeholder="Or manually paste the JSON returned by Gemini here…"
-                      value={manualJsonText}
-                      onChange={e => setManualJsonText(e.target.value)}
-                      spellCheck={false}
-                    />
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <button
-                        type="button"
-                        className="btn-ghost"
-                        disabled={manualGrading || !manualJsonText.trim()}
-                        onClick={() => void runManualGrading(attempt, manualJsonText)}
-                      >
-                        {manualGrading ? <Loader2 size={15} className="animate-spin" /> : <Check size={15} />}
-                        Confirm JSON result
-                      </button>
-                      {manualErr && <p className="text-xs font-medium text-bad">{manualErr}</p>}
-                    </div>
-                  </div>
-
-                  <ChromeSkillsTip skillIds={['speaking-grade']} />
-                </div>
-              )}
-            </div>
+              </div>
+            )
           )}
 
           {fb && (

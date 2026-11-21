@@ -423,7 +423,7 @@ export default function Today({ index }: { index: TestIndexEntry[] }) {
                   <Link href="/writing" className="font-semibold text-accent hover:underline">
                     Write 1 essay
                   </Link>{' '}
-                  for an AI examiner band estimate.
+                  and grade it with Gemini for a band estimate.
                 </p>
               )}
             </div>

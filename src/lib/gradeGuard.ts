@@ -1,11 +1,17 @@
-import { createHash } from 'node:crypto';
 import 'server-only';
 
-// Hai lớp bảo vệ quanh việc gọi AI chấm bài (chỉ chạy trên máy chủ):
-// 1. Kiểm tra kết quả trả về có đủ điểm từng tiêu chí. Thiếu điểm mà vẫn dùng thì tiêu chí đó thành 0
-//    và kéo band tổng xuống mà không ai biết; coi như kết quả hỏng để chấm lại hoặc chuyển model.
-// 2. Gom các lượt chấm trùng: bấm "Chấm lại" sau khi mất mạng (máy chủ có thể vẫn đang chấm hoặc đã chấm xong)
-//    thì dùng lại kết quả đó thay vì tốn thêm một lượt gọi model (Hydrogen miễn phí chỉ 20 lượt/ngày).
+// Kiểm tra kết quả chấm mà người học dán từ Gemini (thanh Gemini của Chrome hoặc gemini.google.com).
+// Thiếu điểm một tiêu chí mà vẫn dùng thì tiêu chí đó thành 0 và kéo band tổng xuống mà không ai biết,
+// nên kết quả như vậy bị từ chối kèm lời báo để người học xin Gemini gửi lại.
+
+/** Lấy phần JSON từ câu trả lời: bỏ khối suy nghĩ <think>, rào ```json, chữ thừa trước/sau. */
+export function extractJson(raw: string): string {
+  let s = raw.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+  s = s.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+  const first = s.indexOf('{');
+  const last = s.lastIndexOf('}');
+  return first >= 0 && last > first ? s.slice(first, last + 1) : s;
+}
 
 /** Các tiêu chí thiếu điểm hợp lệ (số 0–9), vd. ['lr', 'gra']. */
 export function missingBands(assessment: unknown, keys: readonly string[]): string[] {
@@ -15,48 +21,4 @@ export function missingBands(assessment: unknown, keys: readonly string[]): stri
     const n = typeof raw === 'string' && raw.trim() ? Number(raw) : raw;
     return typeof n !== 'number' || !Number.isFinite(n) || n < 0 || n > 9;
   });
-}
-
-/** Lời báo lỗi khi kết quả thiếu điểm; null khi đủ. */
-export function bandProblem(assessment: unknown, keys: readonly string[]): string | null {
-  const miss = missingBands(assessment, keys);
-  return miss.length ? `missing band score for ${miss.join(', ')}` : null;
-}
-
-export const hashKey = (...parts: (string | Uint8Array)[]) => {
-  const h = createHash('sha256');
-  for (const p of parts) {
-    h.update(p);
-    h.update('\u0000');
-  }
-  return h.digest('hex');
-};
-
-const TTL = 30 * 60_000;
-const MAX_ENTRIES = 30;
-const entries = new Map<string, { at: number; value: Promise<unknown> }>();
-
-/**
- * Chạy `run` một lần cho mỗi `key`: lượt trùng trong lúc đang chấm thì chờ chung kết quả,
- * lượt trùng sau khi chấm xong (trong 30 phút) thì nhận lại kết quả cũ. Lượt lỗi không được nhớ.
- * Bộ nhớ nằm trong tiến trình máy chủ, nên trên Vercel chỉ có tác dụng khi cùng một instance còn ấm.
- */
-export function dedupeGrade<T>(key: string, run: () => Promise<T>): Promise<T> {
-  const now = Date.now();
-  for (const [k, e] of entries) if (now - e.at > TTL) entries.delete(k);
-  const hit = entries.get(key);
-  if (hit) return hit.value as Promise<T>;
-
-  const value = run();
-  entries.set(key, { at: now, value });
-  value.catch(() => {
-    if (entries.get(key)?.value === value) entries.delete(key);
-  });
-  while (entries.size > MAX_ENTRIES) entries.delete(entries.keys().next().value as string);
-  return value;
-}
-
-/** Chỉ dùng trong test. */
-export function clearGradeCache() {
-  entries.clear();
 }

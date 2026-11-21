@@ -1,5 +1,5 @@
-// Đọc phản hồi từ /api/{writing,speaking}/grade phía trình duyệt.
-// Khi hàm trên Vercel hết giờ hoặc gói gửi lên quá lớn, nền tảng trả về trang lỗi chứ không phải JSON
+// Đọc phản hồi từ /api/{writing,speaking}/grade phía trình duyệt (sau khi người học dán JSON của Gemini).
+// Khi máy chủ lỗi hoặc phiên đăng nhập hết hạn, nền tảng có thể trả về trang lỗi chứ không phải JSON
 // của app: đổi những trường hợp đó thành lời báo dễ hiểu thay vì "Unexpected token".
 
 export async function readGradeResponse<T extends { feedback?: unknown; error?: string }>(
@@ -12,11 +12,7 @@ export async function readGradeResponse<T extends { feedback?: unknown; error?: 
 }
 
 export function gradeStatusMessage(status: number): string | null {
-  if (status === 401) return 'Your session has expired. Sign in again, then retry grading — your work is saved.';
-  if (status === 413) return 'The recording is too large to upload for grading. Download it and grade it manually in Gemini below.';
-  if (status === 504 || status === 502) {
-    return 'The AI grader took too long and the server stopped waiting. Your work is saved — retry in a minute, or grade it manually in Gemini below.';
-  }
-  if (status >= 500) return 'The grading server had a problem. Your work is saved — please retry in a minute.';
+  if (status === 401) return 'Your session has expired. Sign in again, then paste Gemini’s result again — your work is saved.';
+  if (status >= 500) return 'The server had a problem saving the result. Your work is saved — paste Gemini’s result again in a minute.';
   return null;
 }

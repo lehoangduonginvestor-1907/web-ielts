@@ -31,20 +31,19 @@ Chuỗi ngày: một ngày được tính khi làm xong ít nhất 1 phần, ho�
 
 Dữ liệu học nằm trong `localStorage` của trình duyệt (khoá `ielts.v1`) để phản hồi tức thì, và được đồng bộ với máy chủ (`/api/progress`: `data/progress.json` khi chạy trên máy, Vercel Blob khi deploy). Học trên hai máy thì hai bản được gộp, không bản nào ghi đè bản nào. Vẫn có thể sao lưu tay ở *Nhật ký → Cài đặt*.
 
-## AI chấm bài
+## Chấm Writing và Speaking
 
-Đặt khoá trong `.env.local` (xem `env.example`), hoặc nhập Gemini key ở *Nhật ký → Cài đặt* khi chạy trên máy.
+App **không tự gọi model AI nào để chấm**. Người học chấm bằng Gemini của chính mình trong thanh Gemini bên cạnh Chrome (nút ✦ góc trên bên phải, hoặc gemini.google.com), theo hướng dẫn từng bước hiện ngay dưới bài làm (`src/components/GeminiGradeGuide.tsx`):
 
-| | Thứ tự model | Ghi chú |
-| --- | --- | --- |
-| Writing | Gemini 4 Hydrogen → Gemini 3.8 Flash → NVIDIA / Groq / OpenRouter | Model ngoài Gemini chỉ dùng khi cả hai Gemini lỗi |
-| Speaking | Gemini 4 Hydrogen → Gemini 3.8 Flash | Cần model nghe được audio |
+1. *(Speaking)* Tải bản ghi âm về máy.
+2. Copy prompt chấm: đề, dữ liệu biểu đồ đã kiểm, bài làm, thang mô tả band của IELTS và mã bài.
+3. Trong thanh Gemini: mở cuộc trò chuyện mới, chọn **4 Neon** (*Deeper analysis*), *(Speaking: + → Upload files)*, dán prompt và gửi.
+4. Bấm biểu tượng copy trên khối JSON mà Gemini trả về.
+5. Quay lại trang bài làm, nhấn Ctrl+V ở bất kỳ đâu: máy chủ (`/api/{writing,speaking}/grade`) kiểm tra JSON (đủ điểm bốn tiêu chí, đúng mã bài), áp các mức trần của IELTS (thiếu overview, sai dữ liệu, viết gạch đầu dòng…) rồi tính band.
 
-- Gemini quá tải (503) thì chuyển ngay sang model kế tiếp thay vì chờ thử lại.
-- Kết quả thiếu điểm một tiêu chí bị coi là hỏng và chấm lại, không bao giờ âm thầm tính 0.
-- Gửi lại đúng bài đó trong 30 phút (bấm *Retry* sau khi mất mạng…) thì dùng lại kết quả cũ, không tốn thêm lượt gọi model.
-- Đổi tên model không cần sửa code: `WRITING_GEMINI_MODELS`, `SPEAKING_GRADE_MODELS`, `GEMINI_LIVE_MODEL`, `GEMINI_LIVE_FAST_MODEL`.
-- **Chấm bằng Gemini của mình** (nút *Grade with My Gemini*): copy prompt → dán vào panel Gemini của Chrome hoặc gemini.google.com → dán JSON trả về. Không tốn quota API; khi thử (21/11/2026) Gemini 4 Neon đối chiếu dữ liệu bản đồ kỹ hơn so với chấm qua API.
+Lý do: khi thử (21/11/2026), chấm qua API rất bất ổn (Gemini quá tải, model miễn phí chấm lỏng tay), còn Gemini 4 Neon trong tài khoản Google AI Pro chấm kỹ hơn và không tốn quota API. Trang bài làm có mục *Something went wrong?* với các câu trả lời mẫu để gửi lại cho Gemini khi nó trả sai định dạng.
+
+`GEMINI_API_KEY` chỉ còn dùng cho giám khảo Speaking nói chuyện trực tiếp (Gemini Live); tên model đổi được bằng `GEMINI_LIVE_MODEL` / `GEMINI_LIVE_FAST_MODEL`.
 
 ## Nội dung đề
 

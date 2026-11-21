@@ -188,10 +188,10 @@ export default function Journal() {
           </div>
           <div className="mt-6 border-t border-line pt-5">
             <p className="flex items-center gap-1.5 text-sm font-semibold">
-              <KeyRound size={15} className="text-accent" /> Gemini API Key (for Writing &amp; Speaking)
+              <KeyRound size={15} className="text-accent" /> Gemini API Key (for the live Speaking examiner)
             </p>
             <p className="mt-1 text-sm text-muted">
-              Use this if <code>GEMINI_API_KEY</code> isn’t set on your server. Stored locally in your browser to power Gemini Live (Speaking Examiner) and audio-based Speaking/Writing grading.
+              Only needed to talk to the live Speaking examiner when <code>GEMINI_API_KEY</code> isn’t set on the server. Stored only in this browser. Grading does not use an API key — it is done by your own Gemini in Chrome.
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
               <input
@@ -234,17 +234,17 @@ export default function Journal() {
             </p>
             <div className="mt-2 space-y-2 rounded-lg border border-line bg-paper/60 p-3.5 text-xs leading-relaxed text-ink-2">
               <p>
-                <strong className="text-ink">When you need an API Key:</strong> Only required for real-time voice interviews in{' '}
-                <strong>Speaking Live</strong> (or one-click automatic grading via the API).
+                <strong className="text-ink">All Writing and Speaking grading happens here.</strong> The app does not call any AI model itself: each
+                essay or session page shows step-by-step instructions under <em>“Grade … with Gemini”</em>.
               </p>
               <p>
-                <strong className="text-ink">When to use Chrome’s Ask Gemini side panel (uses zero API quota):</strong>
+                <strong className="text-ink">What to use the Gemini panel for:</strong>
               </p>
               <ul className="list-disc space-y-1 pl-4">
                 <li>
-                  <strong>Grade Writing &amp; Speaking recordings:</strong> Open <em>“Grade with my Gemini”</em>, copy the prompt to{' '}
-                  <strong>Gemini</strong> in your side panel (for Speaking, download your recording and click <code>+ → Upload files</code>), then paste the returned{' '}
-                  <code>json</code> block back into <code>SealIELTS</code> to apply IELTS scoring rules and save mistakes to your notebook.
+                  <strong>Grade Writing &amp; Speaking:</strong> copy the grading prompt into the Gemini panel (choose <strong>4 Neon</strong>; for Speaking,
+                  upload your recording with <code>+ → Upload files</code>), then copy the returned <code>JSON</code> box and press Ctrl+V on the
+                  essay/session page. SealIELTS checks the result, applies the IELTS scoring rules and saves your mistakes.
                 </li>
                 <li>
                   <strong>Socratic hints while writing:</strong> Click <em>“Ask Gemini for paragraph feedback (no rewriting)”</em> in Practice mode (disabled in Exam mode).
