@@ -41,6 +41,12 @@ export function preview(s: Srs, grade: Grade): string {
 
 export const isDue = (s: Srs, now = Date.now()) => s.due <= now;
 
+/**
+ * Thẻ chưa từng được ôn. Thẻ đã học rồi quên (bấm Again) cũng có reps = 0 nhưng là thẻ ôn lại:
+ * không tính vào giới hạn thẻ mới mỗi ngày và không bị hoãn sang hôm sau.
+ */
+export const isNewCard = (s: Srs) => s.reps === 0 && !s.lapses;
+
 export interface ReviewQueueResult {
   queue: Word[];
   dueReviewCount: number;
@@ -64,11 +70,11 @@ export function buildReviewQueue(
   const maxNew = opts.maxNew ?? NEW_CARD_DAILY_CAP;
 
   const dueReviews = words
-    .filter(w => w.srs.reps > 0 && w.srs.due <= now)
+    .filter(w => !isNewCard(w.srs) && w.srs.due <= now)
     .sort((a, b) => a.srs.due - b.srs.due);
 
   const dueNew = words
-    .filter(w => w.srs.reps === 0 && w.srs.due <= now)
+    .filter(w => isNewCard(w.srs) && w.srs.due <= now)
     .sort((a, b) => a.addedAt - b.addedAt);
 
   const reviewSlice = dueReviews.slice(0, maxTotal);

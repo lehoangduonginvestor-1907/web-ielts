@@ -9,6 +9,8 @@ npm install
 npm run dev -- -p 3100   # http://localhost:3100
 ```
 
+`npm test` chạy test tự động (Vitest) cho phần logic trong `src/lib/`: chấm điểm, quy đổi band, lặp lại ngắt quãng, Sổ lỗi, chuỗi ngày và vé nghỉ, bậc thang mở phần khó, gộp tiến độ giữa hai máy. `npm run test:watch` để chạy lại mỗi khi sửa code.
+
 `npm run validate` kiểm tra toàn bộ đề trong `content/`: đủ 40 câu, đủ đáp án, chỗ trống khớp số câu, và **câu dẫn chứng của mọi lời giải phải có thật trong bài đọc/transcript**.
 
 ## Tính năng

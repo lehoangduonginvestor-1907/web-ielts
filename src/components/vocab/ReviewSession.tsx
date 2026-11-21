@@ -7,7 +7,7 @@ import type { Word } from '@/lib/types';
 import { getStore, logCards, logSeconds, update } from '@/lib/store';
 import { useMounted, useNow, useStudyTimer } from '@/lib/hooks';
 import { todayVocabQueue } from '@/lib/progress';
-import { preview, review, type Grade } from '@/lib/srs';
+import { isNewCard, preview, review, type Grade } from '@/lib/srs';
 import { playSfx } from '@/lib/sfx';
 import { speak } from '@/lib/speech';
 import { HedgehogMascot } from '../Mascots';
@@ -141,14 +141,14 @@ function Session() {
   const grade = useCallback(
     (g: Grade) => {
       if (!card) return;
-      const isNewCard = card.srs.reps === 0 && !seenNewIds.current.has(card.id);
-      if (isNewCard) seenNewIds.current.add(card.id);
+      const firstSight = isNewCard(card.srs) && !seenNewIds.current.has(card.id);
+      if (firstSight) seenNewIds.current.add(card.id);
       const next = review(card.srs, g);
       update(s => {
         const w = s.words.find(x => x.id === card.id);
         if (w) w.srs = next;
       });
-      logCards(1, isNewCard);
+      logCards(1, firstSight);
       setDone(d => d + 1);
       const finishing = queue.length === 1 && g !== 0;
       if (g >= 2) {

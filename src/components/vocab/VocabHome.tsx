@@ -7,11 +7,12 @@ import type { Word } from '@/lib/types';
 import { addWord, update, useStore } from '@/lib/store';
 import { todayVocabQueue } from '@/lib/progress';
 import { speak } from '@/lib/speech';
+import { isNewCard } from '@/lib/srs';
 import { dayKey, fmtDay } from '@/lib/dates';
 import { useNow } from '@/lib/hooks';
 import { HedgehogMascot, MascotLoading } from '../Mascots';
 
-const stage = (w: Word) => (w.srs.reps === 0 ? 'new' : w.srs.interval >= 21 ? 'known' : 'learning');
+const stage = (w: Word) => (isNewCard(w.srs) ? 'new' : w.srs.interval >= 21 ? 'known' : 'learning');
 const STAGE_LABEL = { new: 'New', learning: 'Learning', known: 'Mastered' } as const;
 const STAGE_TONE = { new: 'bg-sunk text-ink-2', learning: 'bg-ember-soft text-ember', known: 'bg-good-soft text-good' } as const;
 
@@ -172,7 +173,7 @@ export default function VocabHome() {
                   )}
                   <p className="mt-1 text-[11px] text-muted">
                     {w.source}
-                    {w.srs.reps > 0 && ` · next review ${fmtDay(dayKey(w.srs.due))}`}
+                    {!isNewCard(w.srs) && ` · next review ${fmtDay(dayKey(w.srs.due))}`}
                   </p>
                 </div>
                 <div className="flex shrink-0 items-start gap-1">
